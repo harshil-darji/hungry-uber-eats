@@ -22,5 +22,8 @@
     "nodejs": "^0.0.0",
     "sequelize": "^6.6.5",
     "u-server-utils": "^1.0.9"
+  },
+  "devDependencies": {
+    "@babel/eslint-parser": "^7.15.4"
   }
 }

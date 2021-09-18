@@ -10,6 +10,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const { sequelize } = require('./models/data-model');
+const routes = require('./routes');
+
+app.use('/api', routes);
 
 // Start the connection
 try {

@@ -26,6 +26,10 @@ const customer = sequelize.define('customer', {
     type: Sequelize.STRING,
     allowNull: false,
   },
+  contactNo: {
+    type: Sequelize.STRING,
+    allowNull: false,
+  },
   city: {
     type: Sequelize.STRING,
   },
@@ -45,9 +49,6 @@ const customer = sequelize.define('customer', {
     type: Sequelize.DATE,
   },
   nickName: {
-    type: Sequelize.STRING,
-  },
-  contactNo: {
     type: Sequelize.STRING,
   },
 });
@@ -83,6 +84,9 @@ const restaurant = sequelize.define('restaurant', {
     type: Sequelize.STRING,
     allowNull: false,
   },
+  contactNo: {
+    type: Sequelize.STRING,
+  },
   city: {
     type: Sequelize.STRING,
   },
@@ -93,9 +97,6 @@ const restaurant = sequelize.define('restaurant', {
     type: Sequelize.STRING,
   },
   description: {
-    type: Sequelize.STRING,
-  },
-  contactNo: {
     type: Sequelize.STRING,
   },
   profileImg: {
