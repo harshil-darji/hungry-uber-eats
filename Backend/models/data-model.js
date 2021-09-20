@@ -390,5 +390,6 @@ module.exports = {
   dish,
   dishImages,
   order,
+  orderDishes,
   cart,
 };

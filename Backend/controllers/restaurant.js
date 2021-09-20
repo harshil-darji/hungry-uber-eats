@@ -1,5 +1,5 @@
 const bcrypt = require('bcrypt');
-const { getPaiganation } = require('u-server-utils');
+// const { getPaiganation } = require('u-server-utils');
 const { generateAccessToken } = require('../middleware/validateToken');
 const { restaurant, dish } = require('../models/data-model');
 
@@ -102,8 +102,8 @@ const deleteRestaurant = async (req, res) => {
 
 const getRestaurants = async (req, res) => {
   try {
-    const { limit, offset } = getPaiganation(req.query.page, req.query.limit);
-    const restaurants = await restaurant.findAll({ limit, offset });
+    // const { limit, offset } = getPaiganation(req.query.page, req.query.limit);
+    const restaurants = await restaurant.findAll({});
     if (!restaurants) {
       return res.status(200).json({ message: 'No restaurants found!' });
     }
@@ -136,9 +136,9 @@ const createDish = async (req, res) => {
 
 const getRestaurantDishes = async (req, res) => {
   const { restId } = req.params;
-  const { limit, offset } = getPaiganation(req.query.page, req.query.limit);
+  // const { limit, offset } = getPaiganation(req.query.page, req.query.limit);
   try {
-    const dishes = await dish.findAll({ limit, offset, where: { restId } });
+    const dishes = await dish.findAll({ where: { restId } });
     if (!dishes) return res.status(404).json({ error: 'Restaurant not found!' });
     return res.status(200).json({ dishes });
   } catch (error) {

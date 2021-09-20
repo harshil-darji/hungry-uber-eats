@@ -63,8 +63,8 @@ router.delete(
 );
 // Restaurant Dishes routes
 router.post(
-  '/restaurants/:restId/dish',
-  dishValidationRules,
+  '/restaurants/:restId/dishes',
+  dishValidationRules(),
   validate,
   restaurantController.createDish,
 );
@@ -108,7 +108,7 @@ router.post(
   validate,
   orderController.createOrder,
 );
-router.get('/customers/:custId/orders', orderController.getOrder);
+router.get('/customers/:custId/latestOrder', orderController.getLatestOrder);
 router.get(
   '/customers/:custId/orders/:orderId',
   orderController.getOrderDetailsById,
@@ -117,16 +117,20 @@ router.get(
   '/restaurants/:restId/orders',
   orderController.getRestaurantOrders,
 );
+router.get(
+  '/customers/:custId/orders',
+  orderController.getCustomerOrders,
+);
 
 // Customer addresses
 router.post(
-  '/customer/:custId/addresses',
+  '/customers/:custId/addresses',
   customerAddressValidationRules(),
   validate,
   customerController.addCustomerAddress,
 );
 router.get(
-  '/customer/:custId/addresses',
+  '/customers/:custId/addresses',
   customerController.getCustomerAddresses,
 );
 

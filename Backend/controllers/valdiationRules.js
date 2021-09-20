@@ -49,8 +49,7 @@ const orderValidationRules = () => [
     .withMessage('Please specify order type!')
     .isString(),
   body('orderAddress')
-    .exists()
-    .withMessage('Please enter address!')
+    .optional({ nullable: true })
     .isString(),
 ];
 

@@ -1,5 +1,3 @@
-const { getPaiganation } = require('u-server-utils');
-
 const { cart, restaurant, dish } = require('../models/data-model');
 
 const insertIntoCart = async (req, res) => {
@@ -11,7 +9,9 @@ const insertIntoCart = async (req, res) => {
     const { restId, dishId } = req.body;
     // If restaurant ID or Dish ID is not sent
     if (!restId) {
-      return res.status(400).json({ error: 'Please select restaurant!' });
+      return res
+        .status(400)
+        .json({ error: 'Please select restaurant!' });
     }
     if (!dishId) {
       return res.status(400).json({ error: 'Please select dish!' });
@@ -29,18 +29,30 @@ const insertIntoCart = async (req, res) => {
     if (!checkExistingDish) {
       return res.status(404).json({ error: 'Dish not found!' });
     }
-    const restIDSameAsBefore = await cart.findOne({
-      where: { restId },
+    const latestCartEntry = await cart.findOne({
+      where: { custId },
+      order: [['createdAt', 'DESC']],
     });
-    if (!restIDSameAsBefore) {
-      // New dish added from different restaurant
-      const newDishInfo = await dish.findOne({
-        where: { dishId },
+    if (!latestCartEntry) {
+      req.body.custId = custId;
+      const cartEntry = await cart.create(req.body);
+      return res.status(201).json({
+        cartEntry,
       });
-      return res
-        .status(200)
-        .json({ message: 'Create new order?', ...req.body, dishInfo: newDishInfo.dataValues });
     }
+    // If added into cart from different restaurant
+    if (latestCartEntry.restId !== restId) {
+      // const newDishInfo = await dish.findOne({
+      //   where: { dishId },
+      // });
+      return res.status(200).json({
+        message: 'Create new order?',
+        ...req.body,
+        newRestId: restId,
+        oldRestId: latestCartEntry.restId,
+      });
+    }
+    // Else add into cart
     req.body.custId = custId;
     const cartEntry = await cart.create(req.body);
     return res.status(201).json({
@@ -61,12 +73,16 @@ const resetCartWithDifferentRestaurant = async (req, res) => {
       where: { custId },
     });
     if (!deleteAllCartItems) {
-      return res.status(500).json({ error: 'Server error! Could not reset cart!' });
+      return res
+        .status(500)
+        .json({ error: 'Server error! Could not reset cart!' });
     }
     const { restId, dishId } = req.body;
     // If restaurant ID or Dish ID is not sent
     if (!restId) {
-      return res.status(400).json({ error: 'Please select restaurant!' });
+      return res
+        .status(400)
+        .json({ error: 'Please select restaurant!' });
     }
     if (!dishId) {
       return res.status(400).json({ error: 'Please select dish!' });
@@ -101,10 +117,7 @@ const viewCart = async (req, res) => {
     if (String(req.headers.id) !== String(custId)) {
       return res.status(401).json({ error: 'Unauthorized request!' });
     }
-    const { limit, offset } = getPaiganation(req.query.page, req.query.limit);
     const cartItems = await cart.findAll({
-      limit,
-      offset,
       include: [{ model: dish }],
       where: { custId },
     });
@@ -123,19 +136,25 @@ const deleteFromCart = async (req, res) => {
     if (String(req.headers.id) !== String(custId)) {
       return res.status(401).json({ error: 'Unauthorized request!' });
     }
-    const checkExistingDish = await dish.findOne({
+    const checkExistingDish = await cart.findOne({
       where: { dishId },
     });
     if (!checkExistingDish) {
-      return res.status(404).json({ error: 'No dish found in cart!' });
+      return res
+        .status(404)
+        .json({ error: 'No dish found in cart!' });
     }
     const deletedCartItem = await cart.destroy({
       where: { custId, dishId },
     });
     if (deletedCartItem) {
-      return res.status(200).json({ message: 'Item removed from cart successfully!' });
+      return res
+        .status(200)
+        .json({ message: 'Item removed from cart successfully!' });
     }
-    return res.status(404).json({ error: 'Item could not be deleted!' });
+    return res
+      .status(404)
+      .json({ error: 'Item could not be deleted!' });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }

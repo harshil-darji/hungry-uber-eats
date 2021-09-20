@@ -3,6 +3,7 @@ const {
   dish,
   sequelize,
   order,
+  orderDishes,
 } = require('../models/data-model');
 
 const initOrder = async (req, res) => {
@@ -44,17 +45,12 @@ const initOrder = async (req, res) => {
     const totalPrice = Math.round((price + taxPrice) * 100) / 100;
     const orderEntry = await order.create(
       {
+        price,
         taxPrice,
         totalPrice,
         custId,
         restId,
         orderStatus: 'Initialized',
-      },
-      { transaction: t },
-    );
-    await cart.destroy(
-      {
-        where: { custId },
       },
       { transaction: t },
     );
@@ -98,17 +94,45 @@ const createOrder = async (req, res) => {
       },
       { transaction: t },
     );
+    const cartItems = await cart.findAll(
+      {
+        attributes: ['dishId'],
+        where: { custId },
+      },
+      { transaction: t },
+    );
+    if (cartItems.length === 0) {
+      return res.status(404).json({ error: 'No items in cart!' });
+    }
+    cartItems.forEach(async (cartItem) => {
+      await orderDishes.create(
+        {
+          dishId: cartItem.dishId,
+          orderId: latestOrder.orderId,
+        },
+        {
+          transaction: t,
+        },
+      );
+    });
+    await cart.destroy(
+      {
+        where: { custId },
+      },
+      { transaction: t },
+    );
     t.commit();
-    return res
-      .status(200)
-      .json({ updatedOrder, message: 'Order placed successfully!' });
+    return res.status(200).json({
+      updatedOrder,
+      message: 'Order placed successfully!',
+    });
   } catch (error) {
     await t.rollback();
     return res.status(500).json({ error: error.message });
   }
 };
 
-const getOrder = async (req, res) => {
+const getLatestOrder = async (req, res) => {
   try {
     const { custId } = req.params;
     if (String(req.headers.id) !== String(custId)) {
@@ -132,9 +156,27 @@ const getRestaurantOrders = async (req, res) => {
     }
     const restaurantOrders = await order.findAll({
       where: { restId },
+      include: [{ model: orderDishes, include: [{ model: dish }] }],
       order: [['createdAt', 'DESC']],
     });
-    return res.status(200).json({ restaurantOrders });
+    return res.json({ restaurantOrders });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+const getCustomerOrders = async (req, res) => {
+  try {
+    const { custId } = req.params;
+    if (String(req.headers.id) !== String(custId)) {
+      return res.status(401).json({ error: 'Unauthorized request!' });
+    }
+    const customerOrders = await order.findAll({
+      where: { custId },
+      include: [{ model: orderDishes, include: [{ model: dish }] }],
+      order: [['createdAt', 'DESC']],
+    });
+    return res.json({ customerOrders });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -186,8 +228,9 @@ const getOrderDetailsById = async (req, res) => {
 module.exports = {
   initOrder,
   createOrder,
-  getOrder,
+  getLatestOrder,
   updateOrder,
   getRestaurantOrders,
+  getCustomerOrders,
   getOrderDetailsById,
 };
