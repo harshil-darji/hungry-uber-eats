@@ -56,10 +56,17 @@ const customer = sequelize.define('customer', {
 const customerAddress = sequelize.define('customerAddress', {
   address: {
     type: Sequelize.TEXT,
+    allowNull: false,
   },
 });
 
 customer.hasMany(customerAddress, {
+  foreignKey: 'custId',
+  onDelete: 'cascade',
+  onUpdate: 'cascade',
+});
+
+customerAddress.belongsTo(customer, {
   foreignKey: 'custId',
   onDelete: 'cascade',
   onUpdate: 'cascade',
@@ -128,7 +135,19 @@ customer.hasMany(custFavs, {
   onUpdate: 'cascade',
 });
 
+custFavs.belongsTo(customer, {
+  foreignKey: 'custId',
+  onDelete: 'cascade',
+  onUpdate: 'cascade',
+});
+
 restaurant.hasMany(custFavs, {
+  foreignKey: 'restId',
+  onDelete: 'cascade',
+  onUpdate: 'cascade',
+});
+
+custFavs.belongsTo(restaurant, {
   foreignKey: 'restId',
   onDelete: 'cascade',
   onUpdate: 'cascade',
@@ -152,6 +171,12 @@ restaurant.hasMany(restaurantType, {
   onUpdate: 'cascade',
 });
 
+restaurantType.belongsTo(restaurant, {
+  foreignKey: 'restId',
+  onDelete: 'cascade',
+  onUpdate: 'cascade',
+});
+
 const dish = sequelize.define('dish', {
   dishId: {
     type: Sequelize.INTEGER,
@@ -160,6 +185,7 @@ const dish = sequelize.define('dish', {
   },
   name: {
     type: Sequelize.STRING,
+    allowNull: false,
   },
   ingreds: {
     type: Sequelize.STRING,
@@ -185,6 +211,12 @@ restaurant.hasMany(dish, {
   onUdpate: 'cascade',
 });
 
+dish.belongsTo(restaurant, {
+  foreignKey: 'restId',
+  onDelete: 'cascade',
+  onUdpate: 'cascade',
+});
+
 const dishImages = sequelize.define('dishImages', {
   dishImageId: {
     type: Sequelize.INTEGER,
@@ -197,6 +229,12 @@ const dishImages = sequelize.define('dishImages', {
 });
 
 dish.hasMany(dishImages, {
+  foreignKey: 'dishId',
+  onDelete: 'cascade',
+  onUpdate: 'cascade',
+});
+
+dishImages.belongsTo(dish, {
   foreignKey: 'dishId',
   onDelete: 'cascade',
   onUpdate: 'cascade',
@@ -237,6 +275,9 @@ const order = sequelize.define('order', {
   orderPlacedTime: {
     type: Sequelize.DATE,
   },
+  orderAddress: {
+    type: Sequelize.STRING,
+  },
 });
 
 customer.hasMany(order, {
@@ -245,7 +286,19 @@ customer.hasMany(order, {
   onDelete: 'cascade',
 });
 
+order.belongsTo(customer, {
+  foreignKey: 'custId',
+  onUpdate: 'cascade',
+  onDelete: 'cascade',
+});
+
 restaurant.hasMany(order, {
+  foreignKey: 'restId',
+  onUpdate: 'cascade',
+  onDelete: 'cascade',
+});
+
+order.belongsTo(restaurant, {
   foreignKey: 'restId',
   onUpdate: 'cascade',
   onDelete: 'cascade',
@@ -265,13 +318,31 @@ customer.hasMany(cart, {
   onDelete: 'cascade',
 });
 
+cart.belongsTo(customer, {
+  foreignKey: 'custId',
+  onUpdate: 'cascade',
+  onDelete: 'cascade',
+});
+
 restaurant.hasMany(cart, {
   foreignKey: 'restId',
   onUpdate: 'cascade',
   onDelete: 'cascade',
 });
 
+cart.belongsTo(restaurant, {
+  foreignKey: 'restId',
+  onUpdate: 'cascade',
+  onDelete: 'cascade',
+});
+
 dish.hasMany(cart, {
+  foreignKey: 'dishId',
+  onUpdate: 'cascade',
+  onDelete: 'cascade',
+});
+
+cart.belongsTo(dish, {
   foreignKey: 'dishId',
   onUpdate: 'cascade',
   onDelete: 'cascade',
@@ -291,7 +362,19 @@ order.hasMany(orderDishes, {
   onUpdate: 'cascade',
 });
 
+orderDishes.belongsTo(order, {
+  foreignKey: 'orderId',
+  onDelete: 'cascade',
+  onUpdate: 'cascade',
+});
+
 dish.hasMany(orderDishes, {
+  foreignKey: 'dishId',
+  onDelete: 'cascade',
+  onUpdate: 'cascade',
+});
+
+orderDishes.belongsTo(dish, {
   foreignKey: 'dishId',
   onDelete: 'cascade',
   onUpdate: 'cascade',

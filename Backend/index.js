@@ -12,12 +12,16 @@ app.use(express.urlencoded({ extended: true }));
 const { sequelize } = require('./models/data-model');
 const routes = require('./routes');
 
+const { authenticateToken } = require('./middleware/validateToken');
+
+app.use(authenticateToken);
+
 app.use('/api', routes);
 
 // Start the connection
 try {
   // conn.sync({ alter: true })
-  sequelize.sync().then(() => {
+  sequelize.sync({ alter: true }).then(() => {
     const PORT = 8080;
     app
       .listen(PORT, () => {

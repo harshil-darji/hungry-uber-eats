@@ -1,4 +1,6 @@
+const bcrypt = require('bcrypt');
 const { getPaiganation } = require('u-server-utils');
+const { generateAccessToken } = require('../middleware/validateToken');
 const { restaurant, dish } = require('../models/data-model');
 
 // Restaurants
@@ -15,6 +17,7 @@ const createRestaurant = async (req, res) => {
       });
     }
     // Else create new restaurant
+    req.body.passwd = await bcrypt.hash(req.body.passwd, 12); // crypt the password
     const rest = await restaurant.create(req.body);
     return res.status(201).json({
       rest,
@@ -24,9 +27,35 @@ const createRestaurant = async (req, res) => {
   }
 };
 
+const loginRestaurant = async (req, res) => {
+  try {
+    const { emailId, passwd } = req.body;
+    if (!emailId || !passwd) {
+      return res.status(401).json({ error: 'Please input all fields!' });
+    }
+    const existingRest = await restaurant.findOne({
+      where: { emailId },
+    });
+    if (!existingRest) {
+      return res.status(404).json({ error: 'Email not found! Please register!' });
+    }
+    bcrypt.compare(passwd, existingRest.passwd, (err) => {
+      if (err) {
+        return res.status(401).json({ error: 'Invalid password!' });
+      }
+      const token = generateAccessToken(existingRest.restId, 'restaurant');
+      return res.status(200).json({ message: 'Login successful!', token });
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+  return null;
+};
+
 const getRestaurant = async (req, res) => {
   try {
     const { restId } = req.params;
+    if (String(req.headers.id) !== String(restId)) return res.status(401).json({ error: 'Unauthorized request!' });
     const rest = await restaurant.findOne({
       where: { restId },
     });
@@ -42,6 +71,7 @@ const getRestaurant = async (req, res) => {
 const updateRestaurant = async (req, res) => {
   try {
     const { restId } = req.params;
+    if (String(req.headers.id) !== String(restId)) return res.status(401).json({ error: 'Unauthorized request!' });
     const [updated] = await restaurant.update(req.body, {
       where: { restId },
     });
@@ -74,6 +104,9 @@ const getRestaurants = async (req, res) => {
   try {
     const { limit, offset } = getPaiganation(req.query.page, req.query.limit);
     const restaurants = await restaurant.findAll({ limit, offset });
+    if (!restaurants) {
+      return res.status(200).json({ message: 'No restaurants found!' });
+    }
     return res.status(200).json({ restaurants });
   } catch (error) {
     return res.status(500).send(error.message);
@@ -84,6 +117,7 @@ const getRestaurants = async (req, res) => {
 const createDish = async (req, res) => {
   try {
     const { restId } = req.params;
+    if (String(req.headers.id) !== String(restId)) return res.status(401).json({ error: 'Unauthorized request!' });
     const existingDish = await dish.findOne({
       where: { restId, name: req.body.name },
     });
@@ -128,6 +162,7 @@ const getRestaurantDish = async (req, res) => {
 const updateRestaurantDish = async (req, res) => {
   try {
     const { restId, dishId } = req.params;
+    if (String(req.headers.id) !== String(restId)) return res.status(401).json({ error: 'Unauthorized request!' });
     const [updated] = await dish.update(req.body, {
       where: { restId, dishId },
     });
@@ -158,6 +193,7 @@ const deleteRestaurantDish = async (req, res) => {
 
 module.exports = {
   createRestaurant,
+  loginRestaurant,
   getRestaurant,
   updateRestaurant,
   deleteRestaurant,
