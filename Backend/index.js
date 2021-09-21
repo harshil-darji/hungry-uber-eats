@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+// const { getAccessMiddleware } = require('u-server-utils');
 
 const app = express();
 
@@ -17,6 +18,10 @@ const { authenticateToken } = require('./middleware/validateToken');
 app.use(authenticateToken);
 
 app.use('/api', routes);
+
+// const accessController = require('./controllers/accessController');
+
+// app.use(getAccessMiddleware(accessController));
 
 // Start the connection
 try {

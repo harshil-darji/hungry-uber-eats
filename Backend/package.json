@@ -23,7 +23,7 @@
     "nodejs": "^0.0.0",
     "path": "^0.12.7",
     "sequelize": "^6.6.5",
-    "u-server-utils": "^1.0.9"
+    "u-server-utils": "^1.0.10"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.15.4"

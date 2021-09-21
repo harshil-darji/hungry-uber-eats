@@ -18,7 +18,7 @@ const {
 
 const router = Router();
 
-// Root route
+// Root route - temporary route
 router.get('/', (req, res) => res.send('This is root!'));
 
 // Register and Login routes
