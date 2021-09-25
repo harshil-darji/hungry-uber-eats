@@ -1,0 +1,18 @@
+.background {
+    background-image: url('../assets/img/background.png');
+    height: 100vh;
+    /* background-position: center top; */
+    background-size: cover;
+    background-color: #FFF2D9;
+    background-attachment: fixed;
+
+    /* background: url('../assets/img/background.png') no-repeat center;
+    background-size: contain;
+    background-position: center top;
+    
+    height: 790px; */
+}
+
+.customInput {
+    
+}

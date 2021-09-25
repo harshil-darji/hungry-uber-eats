@@ -1,22 +1,35 @@
 const bcrypt = require('bcrypt');
 const { customer, customerAddress } = require('../models/data-model');
-const {
-  generateAccessToken,
-} = require('../middleware/validateToken');
+const { generateAccessToken } = require('../middleware/validateToken');
 
-const createCustomer = async (req, res) => {
+const checkEmail = async (req, res) => {
   try {
-    // Check if email already exists
     const checkUser = await customer.findOne({
       where: { emailId: req.body.emailId },
     });
     if (checkUser) {
       return res.status(409).json({
-        error:
-          "There's already an account with this email. Please sign in.",
+        error: "There's already an account with this email. Please sign in.",
       });
     }
-    // Else create new customer
+    return res.status(200).json({ message: 'Email found!' });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+const createCustomer = async (req, res) => {
+  try {
+    if (
+      !(
+        req.body.emailId
+        && req.body.passwd
+        && req.body.name
+        && req.body.contactNo
+      )
+    ) {
+      return res.status(400).json({ error: 'Please enter all fields! ' });
+    }
     req.body.passwd = await bcrypt.hash(req.body.passwd, 12); // crypt the password
     const cust = await customer.create(req.body);
     const token = generateAccessToken(cust.custId, 'customer');
@@ -29,13 +42,27 @@ const createCustomer = async (req, res) => {
   }
 };
 
+const checkLoginEmail = async (req, res) => {
+  try {
+    const checkUser = await customer.findOne({
+      where: { emailId: req.body.emailId },
+    });
+    if (checkUser) {
+      return res.status(200).json({ message: 'Email valid!' });
+    }
+    return res.status(404).json({
+      error: 'Email not found! Please register first.',
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
 const loginCustomer = async (req, res) => {
   try {
     const { emailId, passwd } = req.body;
     if (!emailId || !passwd) {
-      return res
-        .status(401)
-        .json({ error: 'Please input all fields!' });
+      return res.status(401).json({ error: 'Please input all fields!' });
     }
     const existingCustomer = await customer.findOne({
       where: { emailId },
@@ -49,13 +76,8 @@ const loginCustomer = async (req, res) => {
       if (err) {
         return res.status(401).json({ error: 'Invalid password!' });
       }
-      const token = generateAccessToken(
-        existingCustomer.custId,
-        'customer',
-      );
-      return res
-        .status(200)
-        .json({ message: 'Login successful!', token });
+      const token = generateAccessToken(existingCustomer.custId, 'customer');
+      return res.status(200).json({ token, cust: existingCustomer });
     });
   } catch (error) {
     return res.status(500).json({ error: error.message });
@@ -119,9 +141,7 @@ const addCustomerAddress = async (req, res) => {
       address,
     });
     if (checkExistingAddress === address) {
-      return res
-        .status(409)
-        .json({ error: 'Address already exists!' });
+      return res.status(409).json({ error: 'Address already exists!' });
     }
     const cust = await customerAddress.create({
       custId,
@@ -169,6 +189,8 @@ const getCustomerAddresses = async (req, res) => {
 };
 
 module.exports = {
+  checkEmail,
+  checkLoginEmail,
   createCustomer,
   loginCustomer,
   getCustomer,

@@ -1,0 +1,57 @@
+.nav {
+  right: 0;
+  padding: 10px !important;
+  height: 64px;
+  z-index: 10;
+}
+
+.navbar-custom {
+  background-color: black;
+}
+
+.bg-dark {
+  background-color: black;
+}
+
+.navbar {
+  padding:0;
+}
+
+.innerDiv {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  /* max-width: 1024px; */
+  /* margin: 0 auto; */
+  width: 100%;
+}
+
+.imageDiv {
+  position: relative;
+  background-color: white;
+  max-width: 1280px;
+  height: 100vh;
+  margin: 0 auto;
+  background-position: center;
+}
+
+.bgImage{ 
+  height: 88%;
+  width: 95%;
+  background-size: cover;
+}
+
+.formDiv {
+  position: absolute;
+  right: 128px;
+  width: 486px;
+  z-index: 5;
+  height: 90vh;
+  top: 0;
+  background-color: white;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.formElements {
+  padding: 130px 48px 48px 48px;
+}

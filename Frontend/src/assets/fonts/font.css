@@ -1,0 +1,24 @@
+@font-face {
+  font-family: 'UberMoveText';
+  src: url('./fonts/UberMoveTextRegular.woff') format("woff");
+}
+@font-face {
+  font-family: 'UberMoveText';
+  src: url('./fonts/UberMoveTextBold.woff') format("woff");
+  font-weight: bold;
+}
+@font-face {
+  font-family: 'UberMoveText';
+  src: url('./fonts/UberMoveTextLight.woff') format("woff");
+  font-style: italic;
+}
+@font-face {
+  font-family: 'UberMoveText';
+  src: url('./fonts/UberMoveTextMedium.woff') format("woff");
+  font-weight: bold;
+  font-style: italic, oblique;
+}
+
+body, input, textarea, button {
+  font-family: 'UberMoveText';
+}

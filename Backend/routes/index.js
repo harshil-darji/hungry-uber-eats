@@ -22,6 +22,8 @@ const router = Router();
 router.get('/', (req, res) => res.send('This is root!'));
 
 // Register and Login routes
+router.post('/register/email', customerController.checkEmail); // check email doesnt already exist in db
+router.post('/login/email', customerController.checkLoginEmail); // check email exists for login
 router.post(
   '/register/customers',
   customerRegistrationValidationRules(),
@@ -35,32 +37,17 @@ router.post(
   restaurantController.createRestaurant,
 );
 router.post('/login/customers', customerController.loginCustomer);
-router.post(
-  '/login/restaurants',
-  restaurantController.loginRestaurant,
-);
+router.post('/login/restaurants', restaurantController.loginRestaurant);
 
 router.get('/customers/:custId', customerController.getCustomer);
 router.put('/customers/:custId', customerController.updateCustomer);
-router.delete(
-  '/customers/:custId',
-  customerController.deleteCustomer,
-);
+router.delete('/customers/:custId', customerController.deleteCustomer);
 
 // Restaurant routes
 router.get('/restaurants', restaurantController.getRestaurants);
-router.get(
-  '/restaurants/:restId',
-  restaurantController.getRestaurant,
-);
-router.put(
-  '/restaurants/:restId',
-  restaurantController.updateRestaurant,
-);
-router.delete(
-  '/restaurants/:restId',
-  restaurantController.deleteRestaurant,
-);
+router.get('/restaurants/:restId', restaurantController.getRestaurant);
+router.put('/restaurants/:restId', restaurantController.updateRestaurant);
+router.delete('/restaurants/:restId', restaurantController.deleteRestaurant);
 // Restaurant Dishes routes
 router.post(
   '/restaurants/:restId/dishes',
@@ -92,16 +79,10 @@ router.post(
   cartController.resetCartWithDifferentRestaurant,
 );
 router.get('/customers/:custId/cart', cartController.viewCart);
-router.delete(
-  '/customers/:custId/cart/:dishId',
-  cartController.deleteFromCart,
-);
+router.delete('/customers/:custId/cart/:dishId', cartController.deleteFromCart);
 
 // Order routes
-router.post(
-  '/customers/:custId/orders/init',
-  orderController.initOrder,
-);
+router.post('/customers/:custId/orders/init', orderController.initOrder);
 router.post(
   '/customers/:custId/orders/create',
   orderValidationRules(),
@@ -113,14 +94,8 @@ router.get(
   '/customers/:custId/orders/:orderId',
   orderController.getOrderDetailsById,
 );
-router.get(
-  '/restaurants/:restId/orders',
-  orderController.getRestaurantOrders,
-);
-router.get(
-  '/customers/:custId/orders',
-  orderController.getCustomerOrders,
-);
+router.get('/restaurants/:restId/orders', orderController.getRestaurantOrders);
+router.get('/customers/:custId/orders', orderController.getCustomerOrders);
 
 // Customer addresses
 router.post(

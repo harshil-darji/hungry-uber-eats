@@ -19,8 +19,10 @@ const createRestaurant = async (req, res) => {
     // Else create new restaurant
     req.body.passwd = await bcrypt.hash(req.body.passwd, 12); // crypt the password
     const rest = await restaurant.create(req.body);
+    const token = generateAccessToken(rest.restId, 'restaurant');
     return res.status(201).json({
       rest,
+      token,
     });
   } catch (error) {
     return res.status(500).json({ error: error.message });

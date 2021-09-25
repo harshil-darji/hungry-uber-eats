@@ -1,0 +1,33 @@
+.nav {
+    display: flex;
+    justify-content: space-between;
+    right: 0;
+    padding: 10px !important;
+}
+
+.navbar {
+    padding:0;
+}
+
+.menuIcon {
+    width: 19px;
+    height: 19px;
+}
+
+svg {
+    margin-left: 20px;
+}
+
+.navButton {
+    background: white;
+    color: #000;
+    font-family: 'UberMoveText';
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 8px, rgba(0, 0, 0, 0.04) 0px 4px 4px;
+    font-weight: bold;
+    font-family: 'UberMoveText';    
+}
+
+.navButton:hover {
+    background: rgb(204, 204, 204) none repeat scroll 0% 0%;
+    cursor: pointer;
+}

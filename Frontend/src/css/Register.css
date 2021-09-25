@@ -1,0 +1,20 @@
+.centerColumn {
+  display: flex;
+  height: 100vh;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.emptyDiv {
+  height: 20%;
+}
+
+.widthDiv {
+  max-width: calc(100vw - 32px);
+  width: 552px;
+}
+
+.white {
+  background-color: white;
+}
