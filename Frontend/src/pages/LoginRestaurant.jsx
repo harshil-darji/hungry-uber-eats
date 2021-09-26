@@ -86,7 +86,7 @@ function LoginRestaurant() {
       dispatch(loginRestaurantSuccess(response));
       sessionStorage.setItem('token', response.data.token);
       toast.success('Logged in successfully!');
-      history.push('/dashboard/restaurant');
+      history.push('/restaurant/dashboard');
     } catch (error) {
       dispatch(loginRestaurantFailure(error));
       toast.error(error.response.data.error);

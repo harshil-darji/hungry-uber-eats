@@ -76,7 +76,7 @@ function RegisterSubmit(props) {
       dispatch(registerCustomerSuccess(response));
       sessionStorage.setItem('token', response.data.token);
       toast.success('Account created successfully!');
-      props.history.push('/dashboard');
+      props.history.push('/customer/dashboard');
     } catch (error) {
       dispatch(registerCustomerFailure(error.response.data.error));
       toast.error(error.response.data.error);

@@ -76,7 +76,7 @@ function LoginPasswd() {
         dispatch(loginCustomerSuccess(response));
         sessionStorage.setItem('token', response.data.token);
         toast.success('Logged in successfully!');
-        history.push('/dashboard');
+        history.push('/customer/dashboard');
       } catch (error) {
         dispatch(loginCustomerFailure(error.response.data.error));
         toast.error(error.response.data.error);

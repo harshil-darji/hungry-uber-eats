@@ -93,7 +93,7 @@ function RegisterRestaurant() {
       dispatch(registerRestaurantSuccess(response));
       sessionStorage.setItem('token', response.data.token);
       toast.success('Restaurant added successfully!');
-      history.push('/dashboard/restaurant');
+      history.push('/restaurant/dashboard');
     } catch (error) {
       dispatch(registerRestaurantFailure(error));
       toast.error(error.response.data.error);
