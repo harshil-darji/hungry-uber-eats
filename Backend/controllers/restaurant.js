@@ -1,7 +1,14 @@
+/* eslint-disable consistent-return */
+/* eslint-disable operator-linebreak */
 const bcrypt = require('bcrypt');
 // const { getPaiganation } = require('u-server-utils');
 const { generateAccessToken } = require('../middleware/validateToken');
-const { restaurant, dish } = require('../models/data-model');
+const {
+  restaurant,
+  dish,
+  restaurantType,
+  sequelize,
+} = require('../models/data-model');
 
 // Restaurants
 
@@ -39,7 +46,9 @@ const loginRestaurant = async (req, res) => {
       where: { emailId },
     });
     if (!existingRest) {
-      return res.status(404).json({ error: 'Email not found! Please register!' });
+      return res
+        .status(404)
+        .json({ error: 'Email not found! Please register!' });
     }
     bcrypt.compare(passwd, existingRest.passwd, (err) => {
       if (err) {
@@ -57,32 +66,88 @@ const loginRestaurant = async (req, res) => {
 const getRestaurant = async (req, res) => {
   try {
     const { restId } = req.params;
-    if (String(req.headers.id) !== String(restId)) return res.status(401).json({ error: 'Unauthorized request!' });
+    if (String(req.headers.id) !== String(restId)) {
+      return res.status(401).json({ error: 'Unauthorized request!' });
+    }
     const rest = await restaurant.findOne({
       where: { restId },
+      include: [{ model: restaurantType }],
     });
     if (rest) {
       return res.status(200).json({ rest });
     }
-    return res.status(404).json({ error: 'Restaurant with the specified ID does not exist!' });
+    return res
+      .status(404)
+      .json({ error: 'Restaurant with the specified ID does not exist!' });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
 };
 
 const updateRestaurant = async (req, res) => {
+  const t = await sequelize.transaction();
   try {
     const { restId } = req.params;
-    if (String(req.headers.id) !== String(restId)) return res.status(401).json({ error: 'Unauthorized request!' });
-    const [updated] = await restaurant.update(req.body, {
-      where: { restId },
-    });
+    if (String(req.headers.id) !== String(restId)) {
+      return res.status(401).json({ error: 'Unauthorized request!' });
+    }
+    const updated = await restaurant.update(
+      req.body,
+      {
+        where: { restId },
+      },
+      { transaction: t },
+    );
     if (updated) {
       const updatedRest = await restaurant.findOne({ where: { restId } });
-      return res.status(200).json({ user: updatedRest });
+      if (req.body.restType.length > 0) {
+        const enumVals = ['Veg', 'Non-veg', 'Vegan'];
+        req.body.restType.forEach((restType) => {
+          if (!enumVals.includes(restType)) {
+            return res
+              .status(400)
+              .json({ error: 'Invalid restaurant type(s) selected!' });
+          }
+        });
+        const existingRestTypes = await restaurantType.findAll(
+          {
+            raw: true,
+            where: { restId },
+            attributes: ['restType'],
+          },
+          { transaction: t },
+        );
+        const restTypes = [];
+        existingRestTypes.forEach((ele) => {
+          restTypes.push(ele.restType);
+        });
+        let restType = req.body.restType.filter((x) => !restTypes.includes(x));
+        restType.forEach(async (element) => {
+          restType = await restaurantType.create(
+            {
+              restType: element,
+              restId: parseInt(restId, 10),
+            },
+            { transaction: t },
+          );
+        });
+        const rest = await restaurant.findOne(
+          {
+            where: { restId },
+            include: [{ model: restaurantType }],
+          },
+          { transaction: t },
+        );
+        t.commit();
+        return res.status(200).json({ rest });
+      }
+      await t.rollback();
+      return res.status(200).json({ rest: updatedRest });
     }
+    await t.rollback();
     return res.status(404).json({ error: 'Restaurant not found!' });
   } catch (error) {
+    await t.rollback();
     return res.status(500).json({ error: error.message });
   }
 };
@@ -94,7 +159,9 @@ const deleteRestaurant = async (req, res) => {
       where: { restId },
     });
     if (deleted) {
-      return res.status(200).json({ message: 'Restaurant deleted successfully!' });
+      return res
+        .status(200)
+        .json({ message: 'Restaurant deleted successfully!' });
     }
     return res.status(404).json({ error: 'Restaurant not found!' });
   } catch (error) {
@@ -111,7 +178,43 @@ const getRestaurants = async (req, res) => {
     }
     return res.status(200).json({ restaurants });
   } catch (error) {
-    return res.status(500).send(error.message);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+const addRestaurantType = async (req, res) => {
+  try {
+    const { restId } = req.params;
+    if (String(req.headers.id) !== String(restId)) {
+      return res.status(401).json({ error: 'Unauthorized request!' });
+    }
+    const rest = await restaurant.findOne({
+      where: { restId },
+    });
+    if (rest) {
+      if (
+        req.body.restType !== 'Veg' &&
+        req.body.restType !== 'Non-veg' &&
+        req.body.restType !== 'Vegan'
+      ) {
+        return res
+          .status(400)
+          .json({ error: 'Invalid restaurant type selected!' });
+      }
+      let restType = await restaurantType.findOne({
+        where: { restId, restType: req.body.restType },
+      });
+      if (restType) {
+        return res.status(200).json({ restType });
+      }
+      restType = await restaurantType.create(req.body);
+      return res.status(200).json({ restType });
+    }
+    return res
+      .status(404)
+      .json({ error: 'Restaurant with the specified ID does not exist!' });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
   }
 };
 
@@ -119,12 +222,16 @@ const getRestaurants = async (req, res) => {
 const createDish = async (req, res) => {
   try {
     const { restId } = req.params;
-    if (String(req.headers.id) !== String(restId)) return res.status(401).json({ error: 'Unauthorized request!' });
+    if (String(req.headers.id) !== String(restId)) {
+      return res.status(401).json({ error: 'Unauthorized request!' });
+    }
     const existingDish = await dish.findOne({
       where: { restId, name: req.body.name },
     });
     if (existingDish) {
-      return res.status(409).json({ error: `Dish ${req.body.name} already exists!` });
+      return res
+        .status(409)
+        .json({ error: `Dish ${req.body.name} already exists!` });
     }
     const body = { ...req.body, restId };
     const newDish = await dish.create(body);
@@ -141,7 +248,9 @@ const getRestaurantDishes = async (req, res) => {
   // const { limit, offset } = getPaiganation(req.query.page, req.query.limit);
   try {
     const dishes = await dish.findAll({ where: { restId } });
-    if (!dishes) return res.status(404).json({ error: 'Restaurant not found!' });
+    if (!dishes) {
+      return res.status(404).json({ error: 'Restaurant not found!' });
+    }
     return res.status(200).json({ dishes });
   } catch (error) {
     return res.status(500).send(error.message);
@@ -164,7 +273,9 @@ const getRestaurantDish = async (req, res) => {
 const updateRestaurantDish = async (req, res) => {
   try {
     const { restId, dishId } = req.params;
-    if (String(req.headers.id) !== String(restId)) return res.status(401).json({ error: 'Unauthorized request!' });
+    if (String(req.headers.id) !== String(restId)) {
+      return res.status(401).json({ error: 'Unauthorized request!' });
+    }
     const [updated] = await dish.update(req.body, {
       where: { restId, dishId },
     });
@@ -198,6 +309,7 @@ module.exports = {
   loginRestaurant,
   getRestaurant,
   updateRestaurant,
+  addRestaurantType,
   deleteRestaurant,
   getRestaurants,
   createDish,
