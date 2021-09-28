@@ -1,33 +1,51 @@
 .nav {
-    display: flex;
-    justify-content: space-between;
-    right: 0;
-    padding: 10px !important;
+  display: flex;
+  justify-content: space-between;
+  right: 0;
+  padding: 10px !important;
+  align-items: center;
 }
 
 .navbar {
-    padding:0;
+  padding: 10px;
 }
 
 .menuIcon {
-    width: 19px;
-    height: 19px;
+  width: 19px;
+  height: 19px;
 }
 
-svg {
+/* svg {
     margin-left: 20px;
+} */
+
+.transparentButton {
+  background-color: transparent;
+  background-repeat: no-repeat;
+  border: none;
+  cursor: pointer;
+  overflow: hidden;
+  outline: none;
+}
+
+.h6Link {
+  margin-top: 20px;
+}
+
+.h6Link:hover {
+  cursor: pointer;
 }
 
 .navButton {
-    background: white;
-    color: #000;
-    font-family: 'UberMoveText';
-    box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 8px, rgba(0, 0, 0, 0.04) 0px 4px 4px;
-    font-weight: bold;
-    font-family: 'UberMoveText';    
+  background: white;
+  color: #000;
+  font-family: 'UberMoveText';
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 8px, rgba(0, 0, 0, 0.04) 0px 4px 4px;
+  font-weight: bold;
+  font-family: 'UberMoveText';
 }
 
 .navButton:hover {
-    background: rgb(204, 204, 204) none repeat scroll 0% 0%;
-    cursor: pointer;
+  background: rgb(204, 204, 204) none repeat scroll 0% 0%;
+  cursor: pointer;
 }

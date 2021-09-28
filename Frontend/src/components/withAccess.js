@@ -1,7 +1,6 @@
 /* eslint-disable */
 import React from 'react';
 import jwt_decode from 'jwt-decode';
-import toast from 'react-hot-toast';
 
 export default function withAccess(ComposedComponent) {
   class Authenticate extends React.Component {
@@ -38,7 +37,6 @@ export default function withAccess(ComposedComponent) {
         this.goToLogin();
         return;
       }
-      console.log(decoded);
       const resRegex = /^\/restaurant(.)*/;
       const custRegex = /^\/customer(.)*/;
       if (

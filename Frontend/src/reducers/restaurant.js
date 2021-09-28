@@ -27,7 +27,16 @@ const restaurantReducer = (state = initialState, action) => {
       };
     case 'LOGIN_RESTAURANT_FAILURE':
       return { ...state, error: action.payload, rest: {} };
-
+    case 'UPDATE_RESTAURANT_REQUEST':
+      return state;
+    case 'UPDATE_RESTAURANT_SUCCESS':
+      return {
+        ...state,
+        error: '',
+        rest: action.payload.data,
+      };
+    case 'UPDATE_RESTAURANT_FAILURE':
+      return { ...state, error: action.payload, rest: {} };
     default:
       return state;
   }

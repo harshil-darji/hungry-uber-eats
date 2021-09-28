@@ -100,7 +100,7 @@ const updateRestaurant = async (req, res) => {
     );
     if (updated) {
       const updatedRest = await restaurant.findOne({ where: { restId } });
-      if (req.body.restType.length > 0) {
+      if (req.body.restType) {
         const enumVals = ['Veg', 'Non-veg', 'Vegan'];
         req.body.restType.forEach((restType) => {
           if (!enumVals.includes(restType)) {
@@ -109,28 +109,20 @@ const updateRestaurant = async (req, res) => {
               .json({ error: 'Invalid restaurant type(s) selected!' });
           }
         });
-        const existingRestTypes = await restaurantType.findAll(
-          {
-            raw: true,
-            where: { restId },
-            attributes: ['restType'],
-          },
-          { transaction: t },
-        );
-        const restTypes = [];
-        existingRestTypes.forEach((ele) => {
-          restTypes.push(ele.restType);
-        });
-        let restType = req.body.restType.filter((x) => !restTypes.includes(x));
-        restType.forEach(async (element) => {
-          restType = await restaurantType.create(
+        if (req.body.restType) {
+          await restaurantType.destroy(
             {
-              restType: element,
-              restId: parseInt(restId, 10),
+              where: { restId },
             },
             { transaction: t },
           );
-        });
+          let restTypes = req.body.restType;
+          restTypes = restTypes.map((element) => ({
+            restId,
+            restType: element,
+          }));
+          await restaurantType.bulkCreate(restTypes, { transaction: t });
+        }
         const rest = await restaurant.findOne(
           {
             where: { restId },
@@ -183,6 +175,7 @@ const getRestaurants = async (req, res) => {
 };
 
 const addRestaurantType = async (req, res) => {
+  const t = await sequelize.transaction();
   try {
     const { restId } = req.params;
     if (String(req.headers.id) !== String(restId)) {
@@ -201,13 +194,17 @@ const addRestaurantType = async (req, res) => {
           .status(400)
           .json({ error: 'Invalid restaurant type selected!' });
       }
-      let restType = await restaurantType.findOne({
-        where: { restId, restType: req.body.restType },
-      });
-      if (restType) {
-        return res.status(200).json({ restType });
-      }
-      restType = await restaurantType.create(req.body);
+      await restaurantType.destroy(
+        {
+          where: { restId },
+        },
+        { transaction: t },
+      );
+      const restType = await restaurantType.create(
+        { ...req.body, restId },
+        { transaction: t },
+      );
+      t.commit();
       return res.status(200).json({ restType });
     }
     return res

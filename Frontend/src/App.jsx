@@ -60,7 +60,7 @@ function App() {
               <Route path="/login/restaurant" component={LoginRestaurant} />
               <Route path="/customer/dashboard" component={withAccess(Dashboard)} />
               <Route
-                path="/restaurant/dashboard"
+                path="/restaurant"
                 component={withAccess(RestaurantDashboard)}
               />
             </Container>
