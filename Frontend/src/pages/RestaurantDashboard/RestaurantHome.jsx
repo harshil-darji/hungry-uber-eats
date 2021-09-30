@@ -5,14 +5,16 @@ import toast from 'react-hot-toast';
 import { useHistory } from 'react-router';
 import jwt_decode from 'jwt-decode';
 import { Avatar } from 'baseui/avatar';
+import '../../../node_modules/react-responsive-carousel/lib/styles/carousel.css';
 
 import axiosInstance from '../../services/apiConfig';
 import RestaurantDish from './RestaurantDish';
 
+// TODO: Update profile pictures here
+
 function RestaurantHome() {
   const history = useHistory();
   const [restData, setRestData] = useState({ rest: null });
-  console.log(restData);
   const [profileImg, setProfileImg] = useState(
     'https://avatars.dicebear.com/api/human/1.svg?width=285&mood=happy',
   );
@@ -48,7 +50,6 @@ function RestaurantHome() {
     <div style={{ marginLeft: '25px', marginTop: '25px' }}>
       {/* Restaurant Avatar, Title and address div */}
       <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-        {/* Restaurant Avatar */}
         <Avatar
           overrides={{
             Avatar: {
@@ -69,9 +70,10 @@ function RestaurantHome() {
             },
           }}
           name="user name #3"
-          size="300px"
+          size="318px"
           src={profileImg}
         />
+        {/* Restaurant Avatar */}
         {/* Restaurant Title and address div */}
         <div
           style={{
@@ -87,7 +89,7 @@ function RestaurantHome() {
               <i
                 className="fa fa-map-marker"
                 aria-hidden="true"
-                style={{ fontSize: '1.2em', marginTop: 2 }}
+                style={{ fontSize: '1.2em', marginTop: -2 }}
               />
               <h6 style={{ marginBottom: 0, fontSize: '1.2em' }}>
                 {restData.rest?.address}
@@ -105,17 +107,17 @@ function RestaurantHome() {
               </h6>
             </div>
           )}
+          {profileImg
+          === 'https://avatars.dicebear.com/api/human/1.svg?width=285&mood=happy' ? (
+            <h5 style={{ marginTop: '10px' }}>
+              Update restaurant details in settings
+            </h5>
+            ) : null}
         </div>
       </div>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'flex-start',
-          marginTop: '25px',
-        }}
-      >
-        <RestaurantDish />
-      </div>
+      <hr />
+      <h1>Dishes</h1>
+      <RestaurantDish />
     </div>
   );
 }

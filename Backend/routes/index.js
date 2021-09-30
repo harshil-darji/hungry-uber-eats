@@ -72,6 +72,35 @@ router.delete(
   restaurantController.deleteRestaurantDish,
 );
 
+// Restaurant images
+router.post(
+  '/restaurants/:restId/images',
+  restaurantController.addRestaurantImage,
+);
+router.get(
+  '/restaurants/:restId/images',
+  restaurantController.getRestaurantImages,
+);
+router.delete(
+  '/restaurants/:restId/images',
+  restaurantController.deleteRestaurantImage,
+);
+
+// Dish images
+router.post(
+  '/restaurants/:restId/dishes/:dishId/images',
+  restaurantController.createDishImage,
+);
+// TODO: Verify this route probably not required
+router.get(
+  '/restaurants/:restId/dishes/:dishId/images',
+  restaurantController.getDishImages,
+);
+router.delete(
+  '/restaurants/:restId/dishes/:dishId/images',
+  restaurantController.deleteDishImage,
+);
+
 // Cart routes
 router.post('/customers/:custId/cart', cartController.insertIntoCart);
 router.post(

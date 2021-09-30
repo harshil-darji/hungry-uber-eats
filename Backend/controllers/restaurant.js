@@ -8,6 +8,8 @@ const {
   dish,
   restaurantType,
   sequelize,
+  restaurantImages,
+  dishImages,
 } = require('../models/data-model');
 
 // Restaurants
@@ -240,11 +242,55 @@ const createDish = async (req, res) => {
   }
 };
 
+const addRestaurantImage = async (req, res) => {
+  const { restId } = req.params;
+  try {
+    if (!req.body.imageLink) {
+      return res.status(400).json({ error: 'Image link not found!' });
+    }
+    const restImage = await restaurantImages.create({
+      restId,
+      imageLink: req.body.imageLink,
+    });
+    return res.status(200).json({ restImage });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+const getRestaurantImages = async (req, res) => {
+  const { restId } = req.params;
+  try {
+    const restImages = await restaurantImages.findAll({
+      restId,
+      imageLink: req.body.imageLink,
+    });
+    return res.status(200).json({ restImages });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+const deleteRestaurantImage = async (req, res) => {
+  // const { restId } = req.params;
+  try {
+    const deletedImage = await restaurantImages.destroy({
+      where: { restImageId: req.body.restImageId },
+    });
+    return res.status(200).json({ deletedImage });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
 const getRestaurantDishes = async (req, res) => {
   const { restId } = req.params;
   // const { limit, offset } = getPaiganation(req.query.page, req.query.limit);
   try {
-    const dishes = await dish.findAll({ where: { restId } });
+    const dishes = await dish.findAll({
+      where: { restId },
+      include: [{ model: dishImages }],
+    });
     if (!dishes) {
       return res.status(404).json({ error: 'Restaurant not found!' });
     }
@@ -301,17 +347,66 @@ const deleteRestaurantDish = async (req, res) => {
   }
 };
 
+// Dish images
+const createDishImage = async (req, res) => {
+  const { dishId } = req.params;
+  try {
+    if (!req.body.imageLink) {
+      return res.status(400).json({ error: 'Image link not found!' });
+    }
+    const dishImage = await dishImages.create({
+      dishId,
+      imageLink: req.body.imageLink,
+    });
+    return res.status(200).json({ dishImage });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+// TODO: verify this function probably not required
+const getDishImages = async (req, res) => {
+  const { dishId } = req.params;
+  try {
+    const dishesImages = await dishImages.findAll({
+      dishId,
+      imageLink: req.body.imageLink,
+    });
+    return res.status(200).json({ dishesImages });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+const deleteDishImage = async (req, res) => {
+  // const { restId } = req.params;
+  try {
+    const deletedImage = await dishImages.destroy({
+      where: { dishImageId: req.body.dishImageId },
+    });
+    return res.status(200).json({ deletedImage });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   createRestaurant,
   loginRestaurant,
   getRestaurant,
   updateRestaurant,
   addRestaurantType,
+  addRestaurantImage,
+  getRestaurantImages,
+  deleteRestaurantImage,
   deleteRestaurant,
   getRestaurants,
   createDish,
   getRestaurantDishes,
   getRestaurantDish,
   updateRestaurantDish,
+  createDishImage,
+  getDishImages,
+  deleteDishImage,
   deleteRestaurantDish,
 };

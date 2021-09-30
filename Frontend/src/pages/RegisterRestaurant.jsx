@@ -125,6 +125,7 @@ function RegisterRestaurant() {
                       onChange={(e) => setname(e.target.value)}
                       onBlur={() => setnameBlurFlag(true)}
                       id="name"
+                      autoFocus
                       autoComplete="off"
                       placeholder="Enter restaurant name"
                       overrides={

@@ -106,9 +106,6 @@ const restaurant = sequelize.define('restaurant', {
   description: {
     type: Sequelize.STRING,
   },
-  profileImg: {
-    type: Sequelize.STRING,
-  },
   startTime: {
     type: Sequelize.TEXT,
   },
@@ -117,7 +114,7 @@ const restaurant = sequelize.define('restaurant', {
   },
   deliveryType: {
     type: Sequelize.ENUM,
-    values: ['Pickup', 'Delivery'],
+    values: ['Pickup', 'Delivery', 'Both'],
   },
 });
 
@@ -197,7 +194,8 @@ const dish = sequelize.define('dish', {
     type: Sequelize.STRING,
   },
   dishType: {
-    type: Sequelize.STRING,
+    type: Sequelize.ENUM,
+    values: ['Appetizer', 'Salad', 'Main course', 'Dessert', 'Beverage'],
   },
   category: {
     type: Sequelize.ENUM,
@@ -236,6 +234,29 @@ dish.hasMany(dishImages, {
 
 dishImages.belongsTo(dish, {
   foreignKey: 'dishId',
+  onDelete: 'cascade',
+  onUpdate: 'cascade',
+});
+
+const restaurantImages = sequelize.define('restaurantImages', {
+  restImageId: {
+    type: Sequelize.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  imageLink: {
+    type: Sequelize.STRING,
+  },
+});
+
+restaurant.hasMany(restaurantImages, {
+  foreignKey: 'restId',
+  onDelete: 'cascade',
+  onUpdate: 'cascade',
+});
+
+restaurantImages.belongsTo(restaurant, {
+  foreignKey: 'restId',
   onDelete: 'cascade',
   onUpdate: 'cascade',
 });
@@ -385,6 +406,7 @@ module.exports = {
   customer,
   customerAddress,
   restaurant,
+  restaurantImages,
   custFavs,
   restaurantType,
   dish,
