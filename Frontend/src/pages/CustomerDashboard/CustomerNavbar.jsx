@@ -1,137 +1,195 @@
 /* eslint-disable no-prototype-builtins */
 /* eslint-disable react/jsx-no-bind */
 // eslint-disable-next-line object-curly-newline
-import React, { useCallback, useEffect, useState } from 'react';
-import { useStyletron } from 'baseui';
-// import { StyledLink } from 'baseui/link';
-import { Layer } from 'baseui/layer';
-// eslint-disable-next-line camelcase
-import jwt_decode from 'jwt-decode';
-// eslint-disable-next-line object-curly-newline
-import { ChevronDown, Delete, Upload, Overflow } from 'baseui/icon';
-import { AppNavBar, setItemActive } from 'baseui/app-nav-bar';
+import React, { useEffect, useState } from 'react';
 import { Row } from 'react-bootstrap';
 import Menu from 'baseui/icon/menu';
-import { useDispatch } from 'react-redux';
 import toast from 'react-hot-toast';
-import { useHistory } from 'react-router';
-
-import axiosInstance from '../../services/apiConfig';
+import { Block } from 'baseui/block';
+import { ButtonGroup, SHAPE, MODE } from 'baseui/button-group';
+import { Button, KIND, SIZE } from 'baseui/button';
+import {
+  HeaderNavigation,
+  ALIGN,
+  StyledNavigationList,
+  StyledNavigationItem,
+} from 'baseui/header-navigation';
+import { StatefulSelect as Search, TYPE } from 'baseui/select';
 
 import UberEatsSvg from '../../components/UberEatsSvg';
-import { logoutCustomer } from '../../actions/customer';
 
 export default function CustomerNavbar() {
-  const [css] = useStyletron();
-  const [mainItems, setMainItems] = useState([
-    { icon: Upload, label: 'Primary A' },
-    { icon: Upload, label: 'Primary B' },
-    {
-      icon: ChevronDown,
-      label: 'Primary C',
-      navExitIcon: Delete,
-      children: [
-        { icon: Upload, label: 'Secondary A' },
-        { icon: Upload, label: 'Secondary B' },
-        { icon: Upload, label: 'Secondary C' },
-        { icon: Upload, label: 'Secondary D' },
-      ],
-    },
-    {
-      icon: ChevronDown,
-      label: 'Primary D',
-      navExitIcon: Delete,
-      children: [
-        {
-          icon: ChevronDown,
-          label: 'Secondary E',
-          children: [
-            { icon: Upload, label: 'Tertiary A' },
-            { icon: Upload, label: 'Tertiary B' },
-          ],
-        },
-        { icon: Upload, label: 'Secondary F' },
-      ],
-    },
-  ]);
-  // eslint-disable-next-line no-unused-vars
-  const [userItems, setUserItems] = useState([
-    { icon: Overflow, label: 'Sign out' },
-  ]);
-  const [userDetails, setUserDetails] = useState(null);
-  const history = useHistory();
-  const dispatch = useDispatch();
+  const [deliveryTypeselected, setDeliveryTypeselected] = useState(0);
+  const [locationObj, setLocationObj] = useState(null);
+  const getLocation = () => {
+    const options = {
+      enableHighAccuracy: true,
+      timeout: 5000,
+      maximumAge: 0,
+    };
 
-  const navLogoItems = (
-    <Row
-      style={{
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        width: '15vw',
-      }}
-    >
-      <Menu size={32} />
-      <UberEatsSvg />
-    </Row>
-  );
+    function success(pos) {
+      const crd = pos.coords;
+      const reqUrl = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${crd.latitude}&lon=${crd.longitude}`;
 
-  function handleMainItemSelect(item) {
-    setMainItems((prev) => setItemActive(prev, item));
-  }
-
-  const fetchCustomerData = useCallback(async () => {
-    const token = sessionStorage.getItem('token');
-    const decoded = jwt_decode(token);
-    try {
-      const response = await axiosInstance.get(`customers/${decoded.id}`, {
-        headers: { Authorization: token },
-      });
-      setUserDetails(response.data.user);
-    } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/customer');
-        }
-      }
+      const xmlHttp = new XMLHttpRequest();
+      xmlHttp.open('GET', reqUrl, false);
+      xmlHttp.send(null);
+      const responseObj = JSON.parse(xmlHttp.responseText);
+      console.log(responseObj);
+      setLocationObj(responseObj);
     }
-  }, []);
+
+    function error() {
+      toast.error('Error fetching current location!');
+    }
+
+    navigator.geolocation.getCurrentPosition(success, error, options);
+  };
+
+  // const fetchCustomerData = useCallback(async () => {
+  //   const token = sessionStorage.getItem('token');
+  //   const decoded = jwt_decode(token);
+  //   try {
+  //     const response = await axiosInstance.get(`customers/${decoded.id}`, {
+  //       headers: { Authorization: token },
+  //     });
+  //     setUserDetails(response.data.user);
+  //   } catch (error) {
+  //     if (error.hasOwnProperty('response')) {
+  //       if (error.response.status === 403) {
+  //         toast.error('Session expired. Please login again!');
+  //         history.push('/login/customer');
+  //       }
+  //     }
+  //   }
+  // }, []);
 
   useEffect(() => {
-    fetchCustomerData();
+    // fetchCustomerData();
+    getLocation();
   }, []);
 
   return (
     <>
-      <Layer>
-        <div
-          className={css({
-            boxSizing: 'border-box',
-            width: '100vw',
-            position: 'fixed',
-            top: '0',
-            left: '0',
-          })}
-        >
-          <AppNavBar
-            title={navLogoItems}
-            mainItems={mainItems}
-            userItems={userItems}
-            onMainItemSelect={handleMainItemSelect}
-            onUserItemSelect={(item) => {
-              console.log(item);
-              if (item.label === 'Sign out') {
-                console.log('bruhehehehe');
-                dispatch(logoutCustomer());
-                history.push('/');
-              }
+      <HeaderNavigation>
+        <StyledNavigationList $align={ALIGN.left}>
+          <Row
+            style={{
+              alignItems: 'center',
+              justifyContent: 'space-around',
+              width: '35vw',
+              marginLeft: '30px',
             }}
-            username={userDetails?.name ? userDetails?.name : ''}
-            usernameSubtitle="5.0"
-            userImgUrl=""
-          />
-        </div>
-      </Layer>
+          >
+            <Row style={{ alignItems: 'center' }}>
+              <Menu size={25} />
+              <Block style={{ marginLeft: '20px' }}>
+                <UberEatsSvg />
+              </Block>
+            </Row>
+            <Row style={{ fontSize: 'medium', marginTop: '10px' }}>
+              <div
+                style={{
+                  backgroundColor: '#EEEEEE',
+                  borderRadius: '100px',
+                  padding: '5px',
+                  height: '60px',
+                  boxSizing: 'border-box',
+                }}
+              >
+                <ButtonGroup
+                  mode={MODE.radio}
+                  shape={SHAPE.pill}
+                  selected={deliveryTypeselected}
+                  onClick={(event, index) => {
+                    setDeliveryTypeselected(index);
+                  }}
+                >
+                  <Button
+                    style={
+                      deliveryTypeselected === 0
+                        ? { backgroundColor: 'white', color: 'black' }
+                        : {}
+                    }
+                  >
+                    Delivery
+                  </Button>
+                  <Button
+                    style={
+                      deliveryTypeselected === 1
+                        ? { backgroundColor: 'white', color: 'black' }
+                        : {}
+                    }
+                  >
+                    Pickup
+                  </Button>
+                </ButtonGroup>
+              </div>
+              <Button
+                style={{
+                  borderRadius: '100px',
+                  marginLeft: '10px',
+                }}
+                kind={KIND.secondary}
+              >
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <i
+                    className="fa fa-map-marker"
+                    aria-hidden="true"
+                    style={{ marginBottom: '9px' }}
+                  />
+                  <p style={{ marginBottom: 0 }}>
+                    {locationObj?.address.residential
+                      ? locationObj.address.residential
+                      : 'Enter address'}
+                  </p>
+                </div>
+              </Button>
+            </Row>
+          </Row>
+        </StyledNavigationList>
+
+        <StyledNavigationList $align={ALIGN.left}>
+          <StyledNavigationItem style={{ width: '56vw', marginTop: '7px' }}>
+            <Search
+              placeholder="What are you craving?"
+              type={TYPE.search}
+              getOptionLabel={(props) => props.option.id || null}
+              onChange={() => {}}
+            />
+          </StyledNavigationItem>
+        </StyledNavigationList>
+
+        <StyledNavigationList
+          $align={ALIGN.right}
+          style={{ marginTop: '20px' }}
+        >
+          <p>
+            <Button shape={SHAPE.pill} size={SIZE.mini}>
+              <i
+                className="fa fa-shopping-cart fa-lg"
+                aria-hidden="true"
+                style={{
+                  marginTop: '5px',
+                  marginBottom: '5px',
+                  marginRight: '9px',
+                }}
+              />
+              {' '}
+              <div
+                style={{
+                  marginTop: '5px',
+                  marginBottom: '5px',
+                  marginLeft: '1px',
+                }}
+              >
+                0
+              </div>
+            </Button>
+          </p>
+        </StyledNavigationList>
+      </HeaderNavigation>
     </>
   );
 }
