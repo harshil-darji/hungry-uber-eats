@@ -82,7 +82,7 @@ router.get(
   restaurantController.getRestaurantImages,
 );
 router.delete(
-  '/restaurants/:restId/images',
+  '/restaurants/:restId/images/:restImageId',
   restaurantController.deleteRestaurantImage,
 );
 

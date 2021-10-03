@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 /* eslint-disable no-prototype-builtins */
-import * as React from 'react';
+import React, { useCallback, useState } from 'react';
 import { StatefulMenu, OptionProfile } from 'baseui/menu';
 import { useSelector } from 'react-redux';
 import { useHistory } from 'react-router';
@@ -14,11 +14,12 @@ export default function RestaurantProfileMenu() {
 
   const history = useHistory();
 
-  const [name, setname] = React.useState('');
-  const [address, setAddress] = React.useState('');
-  const [restImages, setRestImages] = React.useState(null);
+  const [name, setname] = useState('');
+  const [address, setAddress] = useState('');
+  const [restImages, setRestImages] = useState(null);
+  const [emailId, setEmail] = useState('');
 
-  const fetchRestaurantData = React.useCallback(async () => {
+  const fetchRestaurantData = useCallback(async () => {
     const token = sessionStorage.getItem('token');
     const decoded = jwt_decode(token);
     try {
@@ -26,6 +27,7 @@ export default function RestaurantProfileMenu() {
         headers: { Authorization: token },
       });
       setname(response.data.rest.name);
+      setEmail(response.data.rest.emailId);
       setAddress(response.data.rest.address ? response.data.rest.address : '');
     } catch (error) {
       if (error.hasOwnProperty('response')) {
@@ -68,7 +70,7 @@ export default function RestaurantProfileMenu() {
     {
       title: name || '',
       subtitle: address || '',
-      // body: 'Uber Everything',
+      body: emailId || '',
       imgUrl: restImages
         ? restImages[0].imageLink
         : 'https://avatars.dicebear.com/api/human/1.svg?width=285&mood=happy',

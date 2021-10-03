@@ -272,12 +272,15 @@ const getRestaurantImages = async (req, res) => {
 };
 
 const deleteRestaurantImage = async (req, res) => {
-  // const { restId } = req.params;
+  const { restImageId } = req.params;
   try {
     const deletedImage = await restaurantImages.destroy({
-      where: { restImageId: req.body.restImageId },
+      where: { restImageId },
     });
-    return res.status(200).json({ deletedImage });
+    if (deletedImage) {
+      return res.status(200).json({ deletedImage });
+    }
+    return res.status(404).json({ error: 'Image ID not found!' });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }

@@ -22,6 +22,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { uploadFile } from 'react-s3';
 import { Avatar } from 'baseui/avatar';
 import { ThemeProvider, createTheme, lightThemePrimitives } from 'baseui';
+import { Spinner } from 'baseui/spinner';
 
 import axiosInstance from '../../services/apiConfig';
 import {
@@ -250,50 +251,56 @@ function UpdateDishModal(props) {
             <ModalBody>
               <Row>
                 <Col xs={4}>
-                  <Carousel
-                    dynamicHeight
-                    showIndicators
-                    showThumbs={false}
-                    key={dishes}
-                  >
-                    {dishImages ? (
-                      dishImages.map((ele) => (
-                        <div key={ele.restImageId}>
-                          <img src={ele.imageLink} alt="Restaurant profile" />
+                  {isUploading ? (
+                    <Spinner />
+                  ) : (
+                    <Carousel
+                      dynamicHeight
+                      showIndicators
+                      showThumbs={false}
+                      key={dishes}
+                    >
+                      {dishImages ? (
+                        dishImages.map((ele) => (
+                          <div key={ele.restImageId}>
+                            <img src={ele.imageLink} alt="Restaurant profile" />
+                          </div>
+                        ))
+                      ) : (
+                        <div>
+                          <Avatar
+                            overrides={{
+                              Avatar: {
+                                style: ({ $theme }) => ({
+                                  borderTopLeftRadius: $theme.borders.radius100,
+                                  borderTopRightRadius:
+                                    $theme.borders.radius100,
+                                  borderBottomRightRadius:
+                                    $theme.borders.radius100,
+                                  borderBottomLeftRadius:
+                                    $theme.borders.radius100,
+                                }),
+                              },
+                              Root: {
+                                style: ({ $theme }) => ({
+                                  borderTopLeftRadius: $theme.borders.radius100,
+                                  borderTopRightRadius:
+                                    $theme.borders.radius100,
+                                  borderBottomRightRadius:
+                                    $theme.borders.radius100,
+                                  borderBottomLeftRadius:
+                                    $theme.borders.radius100,
+                                }),
+                              },
+                            }}
+                            name="user name #3"
+                            size="300px"
+                            src={dishImages} // width = 285
+                          />
                         </div>
-                      ))
-                    ) : (
-                      <div>
-                        <Avatar
-                          overrides={{
-                            Avatar: {
-                              style: ({ $theme }) => ({
-                                borderTopLeftRadius: $theme.borders.radius100,
-                                borderTopRightRadius: $theme.borders.radius100,
-                                borderBottomRightRadius:
-                                  $theme.borders.radius100,
-                                borderBottomLeftRadius:
-                                  $theme.borders.radius100,
-                              }),
-                            },
-                            Root: {
-                              style: ({ $theme }) => ({
-                                borderTopLeftRadius: $theme.borders.radius100,
-                                borderTopRightRadius: $theme.borders.radius100,
-                                borderBottomRightRadius:
-                                  $theme.borders.radius100,
-                                borderBottomLeftRadius:
-                                  $theme.borders.radius100,
-                              }),
-                            },
-                          }}
-                          name="user name #3"
-                          size="300px"
-                          src={dishImages} // width = 285
-                        />
-                      </div>
-                    )}
-                  </Carousel>
+                      )}
+                    </Carousel>
+                  )}
 
                   <hr />
                   <FileUploader
@@ -437,7 +444,6 @@ function UpdateDishModal(props) {
                 Update
               </ModalButton>
             </ModalFooter>
-
           </Modal>
           <Modal
             onClose={() => toggleConfirm(false)}

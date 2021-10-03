@@ -1,3 +1,7 @@
+/* eslint-disable react/jsx-curly-newline */
+/* eslint-disable implicit-arrow-linebreak */
+/* eslint-disable jsx-a11y/click-events-have-key-events */
+/* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable indent */
 /* eslint-disable no-undef */
 /* eslint-disable operator-linebreak */
@@ -145,7 +149,7 @@ function RestaurantSettings() {
       if (error.hasOwnProperty('response')) {
         if (error.response.status === 403) {
           toast.error('Session expired. Please login again!');
-          // history.push('/login/restaurant');
+          history.push('/login/restaurant');
         }
         dispatch(updateRestaurantFailure(error.response.data.error));
         toast.error(error.response.data.error);
@@ -218,7 +222,7 @@ function RestaurantSettings() {
       if (error.hasOwnProperty('response')) {
         if (error.response.status === 403) {
           toast.error('Session expired. Please login again!');
-          // history.push('/login/restaurant');
+          history.push('/login/restaurant');
         }
         toast.error(error.response.data.error);
       }
@@ -261,7 +265,7 @@ function RestaurantSettings() {
           if (error.hasOwnProperty('response')) {
             if (error.response.status === 403) {
               toast.error('Session expired. Please login again!');
-              // history.push('/login/restaurant');
+              history.push('/login/restaurant');
             }
             setIsUploading(false);
             dispatch(updateRestaurantFailure(error.response.data.error));
@@ -276,6 +280,29 @@ function RestaurantSettings() {
     getRestaurantImages();
     fetchRestaurantData();
   }, []);
+
+  const deleteRestaurantProfilePicture = async (restImageId) => {
+    try {
+      const token = sessionStorage.getItem('token');
+      const decoded = jwt_decode(token);
+      await axiosInstance.delete(
+        `restaurants/${decoded.id}/images/${restImageId}`,
+        {
+          headers: { Authorization: token },
+        },
+      );
+      toast.success('Image deleted!');
+      getRestaurantImages();
+    } catch (error) {
+      if (error.hasOwnProperty('response')) {
+        if (error.response.status === 403) {
+          toast.error('Session expired. Please login again!');
+          history.push('/login/restaurant');
+        }
+        toast.error(error.response.data.error);
+      }
+    }
+  };
 
   return (
     <>
@@ -312,10 +339,21 @@ function RestaurantSettings() {
               {isUploading ? (
                 <Spinner />
               ) : (
-                <Carousel dynamicHeight width="500px" showIndicators>
+                <Carousel
+                  dynamicHeight
+                  width="500px"
+                  showIndicators
+                  showThumbs={false}
+                >
                   {restImages ? (
                     restImages.map((ele) => (
-                      <div key={ele.restImageId}>
+                      <div
+                        key={ele.restImageId}
+                        id={ele.restImageId}
+                        onClick={(e) =>
+                          deleteRestaurantProfilePicture(e.target.id)
+                        }
+                      >
                         <img src={ele.imageLink} alt="Restaurant profile" />
                       </div>
                     ))
@@ -364,6 +402,7 @@ function RestaurantSettings() {
               ) : (
                 <>
                   <div style={{ marginTop: '25px' }}>
+                    <p>Click on image to delete it</p>
                     <ButtonContainer>
                       <ButtonRow>
                         <ButtonMod
