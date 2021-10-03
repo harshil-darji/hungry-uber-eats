@@ -312,7 +312,7 @@ function RestaurantSettings() {
               {isUploading ? (
                 <Spinner />
               ) : (
-                <Carousel width="500px" showIndicators>
+                <Carousel dynamicHeight width="500px" showIndicators>
                   {restImages ? (
                     restImages.map((ele) => (
                       <div key={ele.restImageId}>

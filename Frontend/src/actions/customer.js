@@ -45,3 +45,9 @@ export function loginCustomerFailure(payload) {
     payload,
   };
 }
+
+export function logoutCustomer() {
+  return {
+    type: 'LOGOUT_CUSTOMER',
+  };
+}

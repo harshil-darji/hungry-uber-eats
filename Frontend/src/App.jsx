@@ -11,7 +11,7 @@ import RegisterEmail from './pages/RegisterCustomer/RegisterEmail';
 import RegisterPasswd from './pages/RegisterCustomer/RegisterPasswd';
 import RegisterSubmit from './pages/RegisterCustomer/RegisterSubmit';
 import RegisterRestaurant from './pages/RegisterRestaurant';
-import Dashboard from './pages/Dashboard';
+import CustomerDashboard from './pages/CustomerDashboard/CustomerDashboard';
 // import ProtectedRoute from './components/GuardedRoute';
 import LoginEmail from './pages/LoginCustomer/LoginEmail';
 import LoginPasswd from './pages/LoginCustomer/LoginPasswd';
@@ -58,7 +58,7 @@ function App() {
                 component={RegisterRestaurant}
               />
               <Route path="/login/restaurant" component={LoginRestaurant} />
-              <Route path="/customer/dashboard" component={withAccess(Dashboard)} />
+              <Route path="/customer/dashboard" component={withAccess(CustomerDashboard)} />
               <Route
                 path="/restaurant"
                 component={withAccess(RestaurantDashboard)}

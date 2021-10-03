@@ -324,7 +324,7 @@ const updateRestaurantDish = async (req, res) => {
     });
     if (updated) {
       const updatedDish = await dish.findOne({ where: { restId, dishId } });
-      return res.status(200).json({ user: updatedDish });
+      return res.status(200).json({ updatedDish });
     }
     return res.status(404).json({ error: 'Dish not found!' });
   } catch (error) {

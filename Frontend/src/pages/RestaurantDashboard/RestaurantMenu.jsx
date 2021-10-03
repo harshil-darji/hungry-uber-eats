@@ -1,7 +1,7 @@
 import React from 'react';
 import { Col, Row } from 'react-bootstrap';
 import AddDishModal from './AddDishModal';
-import RestaurantDish from './RestaurantDish';
+import RestaurantDishes from './RestaurantDishes';
 
 const {
   ButtonContainer,
@@ -34,7 +34,7 @@ function RestaurantMenu() {
           </ButtonContainer>
         </Col>
       </Row>
-      <RestaurantDish />
+      <RestaurantDishes />
     </div>
   );
 }

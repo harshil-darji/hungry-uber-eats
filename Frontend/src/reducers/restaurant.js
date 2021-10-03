@@ -37,6 +37,9 @@ const restaurantReducer = (state = initialState, action) => {
       };
     case 'UPDATE_RESTAURANT_FAILURE':
       return { ...state, error: action.payload, rest: {} };
+    case 'LOGOUT_RESTAURANT':
+      sessionStorage.removeItem('token');
+      return initialState;
     default:
       return state;
   }

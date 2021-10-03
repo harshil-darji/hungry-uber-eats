@@ -6,7 +6,7 @@ import { useHistory } from 'react-router';
 // import { AppNavBar, setItemActive } from 'baseui/app-nav-bar';
 import { Button } from 'baseui/button';
 import { ThemeProvider, createTheme, lightThemePrimitives } from 'baseui';
-import logoImage from '../assets/img/ubereats-restaurants.png';
+import logoImage from '../assets/img/ubereats-restaurants-2.png';
 import '../css/RestaurantNavbar.css';
 
 export default function RestaurantNavbar() {
@@ -16,7 +16,7 @@ export default function RestaurantNavbar() {
       <div className="innerDiv">
         <img
           src={logoImage}
-          style={{ height: '52px', width: '55px', top: 0 }}
+          style={{ width: '110px', top: 0 }}
           alt="Logo"
         />
 

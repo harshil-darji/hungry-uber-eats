@@ -24,7 +24,7 @@ import {
   addDishImageFailure,
   addDishImageRequest,
   addDishImageSuccess,
-  updateDishes,
+  setDishUpdateFlag,
 } from '../../actions/dish';
 
 function AddDishModal(props) {
@@ -74,7 +74,7 @@ function AddDishModal(props) {
           headers: { Authorization: token },
         },
       );
-      dispatch(updateDishes(response.data.newDish));
+      dispatch(setDishUpdateFlag(true));
       const { dishId } = response.data.newDish;
       if (filesToUpload.length > 0) {
         setIsUploading(true);

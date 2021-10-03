@@ -8,7 +8,7 @@ import { Avatar } from 'baseui/avatar';
 import '../../../node_modules/react-responsive-carousel/lib/styles/carousel.css';
 
 import axiosInstance from '../../services/apiConfig';
-import RestaurantDish from './RestaurantDish';
+import RestaurantDishes from './RestaurantDishes';
 
 // TODO: Update profile pictures here
 
@@ -117,7 +117,7 @@ function RestaurantHome() {
       </div>
       <hr />
       <h1>Dishes</h1>
-      <RestaurantDish />
+      <RestaurantDishes />
     </div>
   );
 }

@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/no-static-element-interactions */
+/* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable react/jsx-one-expression-per-line */
 /* eslint-disable react/no-array-index-key */
 /* eslint-disable jsx-a11y/anchor-is-valid */
@@ -14,22 +16,28 @@ import { Card, StyledBody, StyledThumbnail } from 'baseui/card';
 
 import axiosInstance from '../../services/apiConfig';
 
-function RestaurantDish() {
+import '../../css/RestaurantDishes.css';
+import UpdateDishModal from './UpdateDishModal';
+
+function RestaurantDishes() {
   const history = useHistory();
+  // const dispatch = useDispatch();
   const [dishes, setDishes] = useState([]);
   const dishesFromState = useSelector((state) => state.dish);
+  const [selectedDishId, setSelectedDishId] = useState('');
+
+  const [modalIsOpen, setModalIsOpen] = useState(false);
 
   const fetchRestaurantDishes = useCallback(async () => {
     const token = sessionStorage.getItem('token');
     const decoded = jwt_decode(token);
     try {
       const response = await axiosInstance.get(
-        `/restaurants/${decoded.id}/dishes`,
+        `restaurants/${decoded.id}/dishes`,
         {
           headers: { Authorization: token },
         },
       );
-      console.log(response.data.dishes);
       setDishes(response.data.dishes);
     } catch (error) {
       if (error.hasOwnProperty('response')) {
@@ -47,26 +55,43 @@ function RestaurantDish() {
 
   return (
     <Container fluid>
+      {history.location.pathname !== '/restaurant/dashboard' ? (
+        <UpdateDishModal
+          setModalIsOpen={setModalIsOpen}
+          modalIsOpen={modalIsOpen}
+          dishes={dishes}
+          selectedDishId={selectedDishId}
+        />
+      ) : null}
       <Row>
         {dishes.length > 0 ? (
           dishes.map((dish, index) => (
             <Col xs={4} key={index} style={{ marginTop: '30px' }}>
-              <Card
-                // overrides={{ Root: { style: { width: '428px' } } }}
-                title={dish.name}
+              <div
+                onClick={() => {
+                  setSelectedDishId(dish.dishId);
+                  setModalIsOpen(true);
+                }}
+                key={dish.dishId}
               >
-                {dish.dishImages.length > 0 ? (
-                  <StyledThumbnail src={dish.dishImages[0].imageLink} />
-                ) : (
-                  <StyledThumbnail src="https://play-lh.googleusercontent.com/coMv1dl31PCfEs6essJoEUwVryaqKHKQvENdZ_WYpN-PXa8Qfitkg3grQxIVN22W5A" />
-                )}
-                <StyledBody>
-                  <span style={{ color: 'grey' }}>{dish.description}</span>
-                  <div style={{ position: 'absolute', bottom: 10 }}>
-                    ${dish.dishPrice}
-                  </div>
-                </StyledBody>
-              </Card>
+                <Card
+                  // overrides={{ Root: { style: { width: '428px' } } }}
+                  title={dish.name}
+                  className="dishCard"
+                >
+                  {dish.dishImages.length > 0 ? (
+                    <StyledThumbnail src={dish.dishImages[0].imageLink} />
+                  ) : (
+                    <StyledThumbnail src="https://play-lh.googleusercontent.com/coMv1dl31PCfEs6essJoEUwVryaqKHKQvENdZ_WYpN-PXa8Qfitkg3grQxIVN22W5A" />
+                  )}
+                  <StyledBody>
+                    <span style={{ color: 'grey' }}>{dish.description}</span>
+                    <div style={{ position: 'absolute', bottom: 10 }}>
+                      ${dish.dishPrice}
+                    </div>
+                  </StyledBody>
+                </Card>
+              </div>
             </Col>
           ))
         ) : (
@@ -77,4 +102,4 @@ function RestaurantDish() {
   );
 }
 
-export default RestaurantDish;
+export default RestaurantDishes;

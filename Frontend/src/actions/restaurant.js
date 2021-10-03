@@ -33,3 +33,7 @@ export function updateRestaurantSuccess(payload) {
 export function updateRestaurantFailure(payload) {
   return { type: 'UPDATE_RESTAURANT_FAILURE', payload };
 }
+
+export function logoutRestaurant() {
+  return { type: 'LOGOUT_RESTAURANT' };
+}

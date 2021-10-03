@@ -1,4 +1,6 @@
 const initialState = {
+  dishUpdateFlag: false,
+  dishDeleteFlag: false,
   dishes: [],
   dishImages: [],
   error: '',
@@ -6,8 +8,14 @@ const initialState = {
 
 const dishReducer = (state = initialState, action) => {
   switch (action.type) {
-    case 'UPDATE_DISHES':
-      return { ...state, dishes: [...state.dishes, action.payload] };
+    case 'SET_DISH_UPDATE_FLAG':
+      return { ...state, dishUpdateFlag: action.payload };
+    case 'SET_ALL_DISHES':
+      return { ...state, dishes: action.payload };
+    case 'DELETE_DISH_FLAG':
+      return { ...state, dishDeleteFlag: true };
+    // case 'UPDATE_DISHES':
+    //   return { ...state, dishes: [...state.dishes, action.payload] };
     case 'ADD_DISH_IMAGE_REQUEST':
       return state;
     case 'ADD_DISH_IMAGE_SUCCESS':

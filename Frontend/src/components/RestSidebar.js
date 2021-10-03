@@ -1,71 +1,21 @@
 /* eslint-disable no-prototype-builtins */
 /* eslint-disable camelcase */
-import React, { useCallback, useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
+import React from 'react';
 import { Nav } from 'react-bootstrap';
 import { useHistory, withRouter } from 'react-router';
-import { Avatar } from 'baseui/avatar';
-import jwt_decode from 'jwt-decode';
-import toast from 'react-hot-toast';
-
-import axiosInstance from '../services/apiConfig';
+import { useDispatch } from 'react-redux';
+// import { Avatar } from 'baseui/avatar';
 
 import '../css/Sidebar.css';
 import UberEatsSvg from './UberEatsSvg';
+import { logoutRestaurant } from '../actions/restaurant';
+import RestaurantProfileMenu from './RestaurantProfileMenu';
+
+const { ButtonContainer, ButtonRow, ButtonMod } = require('./Button');
 
 const Side = () => {
   const history = useHistory();
-  const restaurant = useSelector((state) => state.restaurant);
-
-  const [name, setname] = useState('');
-  const [address, setAddress] = useState('');
-  const [restImages, setRestImages] = useState(null);
-
-  const fetchRestaurantData = useCallback(async () => {
-    const token = sessionStorage.getItem('token');
-    const decoded = jwt_decode(token);
-    try {
-      const response = await axiosInstance.get(`/restaurants/${decoded.id}`, {
-        headers: { Authorization: token },
-      });
-      setname(response.data.rest.name);
-      setAddress(response.data.rest.address ? response.data.rest.address : '');
-    } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/restaurant');
-        }
-      }
-    }
-  }, []);
-
-  const getRestaurantImages = async () => {
-    try {
-      const token = sessionStorage.getItem('token');
-      const decoded = jwt_decode(token);
-      const response = await axiosInstance.get(
-        `restaurants/${decoded.id}/images`,
-        {
-          headers: { Authorization: token },
-        },
-      );
-      setRestImages(response.data.restImages);
-    } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          // history.push('/login/restaurant');
-        }
-        toast.error(error.response.data.error);
-      }
-    }
-  };
-
-  useEffect(() => {
-    getRestaurantImages();
-    fetchRestaurantData();
-  }, [restaurant]);
+  const dispatch = useDispatch();
 
   return (
     <Nav
@@ -125,6 +75,25 @@ const Side = () => {
           </Nav.Item>
         </div>
       </div>
+      <ButtonContainer>
+        <ButtonRow>
+          <ButtonMod
+            type="submit"
+            style={{
+              width: '80%',
+              justifyContent: 'center',
+              marginLeft: '20px',
+              marginTop: '20px',
+            }}
+            onClick={() => {
+              dispatch(logoutRestaurant());
+              history.push('/');
+            }}
+          >
+            Logout
+          </ButtonMod>
+        </ButtonRow>
+      </ButtonContainer>
       <div
         style={{
           position: 'absolute',
@@ -134,35 +103,7 @@ const Side = () => {
           justifyContent: 'space-between',
         }}
       >
-        {restImages ? (
-          <Avatar name="user" size="scale1400" src={restImages[0].imageLink} key="1" />
-        ) : (
-          <Avatar
-            name="user"
-            size="scale1400"
-            src="https://avatars.dicebear.com/api/human/1.svg?width=285&mood=happy"
-            key="1"
-          />
-        )}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-          }}
-        >
-          <div
-            className="row"
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              marginLeft: '5px',
-            }}
-          >
-            <div style={{ fontWeight: 'bolder' }}>{name}</div>
-          </div>
-          <div style={{ color: 'grey', marginLeft: '5px' }}>{address}</div>
-        </div>
+        <RestaurantProfileMenu />
       </div>
     </Nav>
   );
