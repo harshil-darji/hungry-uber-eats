@@ -1,0 +1,12 @@
+.hoverCursor:hover {
+  cursor: pointer;
+}
+
+hr {
+  border: 0;
+  clear: both;
+  display: block;
+  width: 96%;
+  background-color: #EEEEEE;
+  height: 1px;
+}

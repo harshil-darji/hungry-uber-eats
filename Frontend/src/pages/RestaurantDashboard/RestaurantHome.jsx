@@ -1,10 +1,12 @@
+/* eslint-disable indent */
+/* eslint-disable react/jsx-indent */
 /* eslint-disable no-prototype-builtins */
 /* eslint-disable camelcase */
 import React, { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useHistory } from 'react-router';
 import jwt_decode from 'jwt-decode';
-import { Avatar } from 'baseui/avatar';
+// import { Avatar } from 'baseui/avatar';
 import '../../../node_modules/react-responsive-carousel/lib/styles/carousel.css';
 
 import axiosInstance from '../../services/apiConfig';
@@ -67,37 +69,38 @@ function RestaurantHome() {
       {/* Restaurant Avatar, Title and address div */}
       <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
         <Carousel dynamicHeight width="500px" showIndicators showThumbs={false}>
-          {restImages ? (
-            restImages.map((ele) => (
-              <div key={ele.restImageId}>
-                <img src={ele.imageLink} alt="Restaurant profile" />
-              </div>
-            ))
-          ) : (
-            <Avatar
-              overrides={{
-                Avatar: {
-                  style: ({ $theme }) => ({
-                    borderTopLeftRadius: $theme.borders.radius100,
-                    borderTopRightRadius: $theme.borders.radius100,
-                    borderBottomRightRadius: $theme.borders.radius100,
-                    borderBottomLeftRadius: $theme.borders.radius100,
-                  }),
-                },
-                Root: {
-                  style: ({ $theme }) => ({
-                    borderTopLeftRadius: $theme.borders.radius100,
-                    borderTopRightRadius: $theme.borders.radius100,
-                    borderBottomRightRadius: $theme.borders.radius100,
-                    borderBottomLeftRadius: $theme.borders.radius100,
-                  }),
-                },
-              }}
-              name="user name #3"
-              size="318px"
-              src="https://avatars.dicebear.com/api/human/1.svg?width=285&mood=happy"
-            />
-          )}
+          {
+            restImages
+              ? restImages.map((ele) => (
+                  <div key={ele.restImageId}>
+                    <img src={ele.imageLink} alt="Restaurant profile" />
+                  </div>
+                ))
+              : null
+            // <Avatar
+            //   overrides={{
+            //     Avatar: {
+            //       style: ({ $theme }) => ({
+            //         borderTopLeftRadius: $theme.borders.radius100,
+            //         borderTopRightRadius: $theme.borders.radius100,
+            //         borderBottomRightRadius: $theme.borders.radius100,
+            //         borderBottomLeftRadius: $theme.borders.radius100,
+            //       }),
+            //     },
+            //     Root: {
+            //       style: ({ $theme }) => ({
+            //         borderTopLeftRadius: $theme.borders.radius100,
+            //         borderTopRightRadius: $theme.borders.radius100,
+            //         borderBottomRightRadius: $theme.borders.radius100,
+            //         borderBottomLeftRadius: $theme.borders.radius100,
+            //       }),
+            //     },
+            //   }}
+            //   name="user name #3"
+            //   size="318px"
+            //   src="https://avatars.dicebear.com/api/human/1.svg?width=285&mood=happy"
+            // />
+          }
         </Carousel>
         {/* Restaurant Avatar */}
         {/* Restaurant Title and address div */}

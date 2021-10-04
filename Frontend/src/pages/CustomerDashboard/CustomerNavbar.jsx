@@ -1,9 +1,18 @@
+/* eslint-disable react/jsx-one-expression-per-line */
+/* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
+/* eslint-disable jsx-a11y/click-events-have-key-events */
+/* eslint-disable react/jsx-curly-newline */
+/* eslint-disable implicit-arrow-linebreak */
+/* eslint-disable camelcase */
+/* eslint-disable baseui/deprecated-component-api */
 /* eslint-disable no-prototype-builtins */
 /* eslint-disable react/jsx-no-bind */
 // eslint-disable-next-line object-curly-newline
 import React, { useEffect, useState } from 'react';
-import { Row } from 'react-bootstrap';
-import Menu from 'baseui/icon/menu';
+import { useHistory } from 'react-router';
+import { useDispatch } from 'react-redux';
+import { Row, Nav } from 'react-bootstrap';
+import { Menu } from 'baseui/icon';
 import toast from 'react-hot-toast';
 import { Block } from 'baseui/block';
 import { ButtonGroup, SHAPE, MODE } from 'baseui/button-group';
@@ -15,12 +24,22 @@ import {
   StyledNavigationItem,
 } from 'baseui/header-navigation';
 import { StatefulSelect as Search, TYPE } from 'baseui/select';
+import { Drawer, ANCHOR } from 'baseui/drawer';
+import { ThemeProvider, createTheme, lightThemePrimitives } from 'baseui';
 
+import UberEatsSquareSvg from '../../components/UberEatsSquareSvg';
 import UberEatsSvg from '../../components/UberEatsSvg';
+import CustomerProfileMenu from '../../components/CustomerProfileMenu';
+import { logoutCustomer } from '../../actions/customer';
+import '../../css/CustomerNavbar.css';
 
 export default function CustomerNavbar() {
   const [deliveryTypeselected, setDeliveryTypeselected] = useState(0);
   const [locationObj, setLocationObj] = useState(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const history = useHistory();
+  const dispatch = useDispatch();
+
   const getLocation = () => {
     const options = {
       enableHighAccuracy: true,
@@ -36,7 +55,6 @@ export default function CustomerNavbar() {
       xmlHttp.open('GET', reqUrl, false);
       xmlHttp.send(null);
       const responseObj = JSON.parse(xmlHttp.responseText);
-      console.log(responseObj);
       setLocationObj(responseObj);
     }
 
@@ -47,43 +65,215 @@ export default function CustomerNavbar() {
     navigator.geolocation.getCurrentPosition(success, error, options);
   };
 
-  // const fetchCustomerData = useCallback(async () => {
-  //   const token = sessionStorage.getItem('token');
-  //   const decoded = jwt_decode(token);
-  //   try {
-  //     const response = await axiosInstance.get(`customers/${decoded.id}`, {
-  //       headers: { Authorization: token },
-  //     });
-  //     setUserDetails(response.data.user);
-  //   } catch (error) {
-  //     if (error.hasOwnProperty('response')) {
-  //       if (error.response.status === 403) {
-  //         toast.error('Session expired. Please login again!');
-  //         history.push('/login/customer');
-  //       }
-  //     }
-  //   }
-  // }, []);
-
   useEffect(() => {
-    // fetchCustomerData();
     getLocation();
   }, []);
 
+  const customerSignOut = () => {
+    dispatch(logoutCustomer());
+    history.push('/');
+  };
+
   return (
     <>
+      <Drawer
+        onClose={() => setIsOpen(false)}
+        autoFocus
+        style={{ width: '100%' }}
+        anchor={ANCHOR.left}
+        isOpen={isOpen}
+      >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            flexDirection: 'column',
+            minHeight: 'calc(100vh - 100px)',
+          }}
+        >
+          <div style={{ marginTop: '15px' }}>
+            <CustomerProfileMenu />
+            <Nav
+              style={{ marginTop: '-30px', marginLeft: '5px' }}
+              className="col-md-10 d-none d-md-block"
+              onSelect={(selectedKey) => history.push(selectedKey)}
+            >
+              <div style={{ marginTop: '15px' }}>
+                <Nav.Item>
+                  <Nav.Link eventKey="/restaurant/dashboard">
+                    <i className="fa fa-bookmark" aria-hidden="true" />
+                    Orders
+                  </Nav.Link>
+                </Nav.Item>
+                <Nav.Item>
+                  <Nav.Link eventKey="/restaurant/menu">
+                    <i className="fa fa-heart" aria-hidden="true" />
+                    Favourites
+                  </Nav.Link>
+                </Nav.Item>
+                <Nav.Item>
+                  <Nav.Link eventKey="/restaurant/settings">
+                    <i className="fa fa-briefcase" aria-hidden="true" />
+                    Wallet
+                  </Nav.Link>
+                </Nav.Item>
+                <Nav.Item>
+                  <Nav.Link eventKey="/restaurant/orders">
+                    <i className="fa fa-info-circle" aria-hidden="true" />
+                    Help
+                  </Nav.Link>
+                </Nav.Item>
+                <Nav.Item>
+                  <Nav.Link eventKey="/restaurant/orders">
+                    <i className="fa fa-tag" aria-hidden="true" />
+                    Promotions
+                  </Nav.Link>
+                </Nav.Item>
+                <Nav.Item>
+                  <Nav.Link
+                    eventKey="/restaurant/orders"
+                    style={{ color: 'green' }}
+                  >
+                    <i className="fa fa-ticket" aria-hidden="true" />
+                    Eats Pass
+                    <br />
+                    <span
+                      style={{
+                        color: 'grey',
+                        fontSize: '15px',
+                        marginLeft: '38px',
+                      }}
+                    >
+                      1 month free with subscription
+                    </span>
+                  </Nav.Link>
+                </Nav.Item>
+                <Nav.Item>
+                  <Nav.Link eventKey="/restaurant/orders">
+                    <i className="fa fa-gift" aria-hidden="true" />
+                    Invite friends
+                    <br />
+                    <span
+                      style={{
+                        color: 'grey',
+                        fontSize: '15px',
+                        marginLeft: '38px',
+                      }}
+                    >
+                      You get $10 off
+                    </span>
+                  </Nav.Link>
+                </Nav.Item>
+              </div>
+              <p
+                style={{
+                  color: 'grey',
+                  fontSize: '18px',
+                  marginLeft: '15px',
+                  marginTop: '20px',
+                }}
+                className="hoverCursor"
+                onClick={customerSignOut}
+              >
+                Sign out
+              </p>
+            </Nav>
+          </div>
+          <div style={{ marginTop: '150px' }}>
+            <hr />
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-start',
+                alignItems: 'center',
+              }}
+            >
+              <UberEatsSquareSvg />
+              <p style={{ marginLeft: '20px', fontSize: 'large' }}>
+                There&apos;s more to love not in the app. ;)
+              </p>
+            </div>
+
+            <div
+              style={{
+                marginLeft: '-1px',
+                marginTop: '20px',
+                display: 'flex',
+                justifyContent: 'flex-start',
+                alignItems: 'center',
+              }}
+            >
+              <Button
+                kind={KIND.secondary}
+                shape={SHAPE.pill}
+                size={SIZE.compact}
+              >
+                <a
+                  href="https://apps.apple.com/us/app/uber-eats-food-delivery/id1058959277"
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ color: 'black' }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <i
+                      className="fa fa-apple"
+                      aria-hidden="true"
+                      style={{ marginBottom: '8px' }}
+                    />
+                    <p style={{ marginBottom: 0 }}>iPhone</p>
+                  </div>
+                </a>
+              </Button>
+              <Button
+                kind={KIND.secondary}
+                shape={SHAPE.pill}
+                size={SIZE.compact}
+                style={{ marginLeft: '20px' }}
+              >
+                <a
+                  href="https://play.google.com/store/apps/details?id=com.ubercab.eats"
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ color: 'black' }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <i
+                      className="fa fa-apple"
+                      aria-hidden="true"
+                      style={{ marginBottom: '8px' }}
+                    />
+                    <p style={{ marginBottom: 0 }}>Android</p>
+                  </div>
+                </a>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Drawer>
+      {/* Navbar below */}
       <HeaderNavigation>
         <StyledNavigationList $align={ALIGN.left}>
           <Row
             style={{
               alignItems: 'center',
               justifyContent: 'space-around',
-              width: '35vw',
-              marginLeft: '30px',
+              width: '36vw',
+              marginLeft: '25px',
             }}
           >
             <Row style={{ alignItems: 'center' }}>
-              <Menu size={25} />
+              <ThemeProvider
+                theme={createTheme(lightThemePrimitives, {
+                  colors: { buttonMinimalHover: '#FFFFFF' },
+                })}
+              >
+                <Button kind={KIND.minimal} onClick={() => setIsOpen(true)}>
+                  <Menu size={25} />
+                </Button>
+              </ThemeProvider>
               <Block style={{ marginLeft: '20px' }}>
                 <UberEatsSvg />
               </Block>
@@ -175,16 +365,15 @@ export default function CustomerNavbar() {
                   marginBottom: '5px',
                   marginRight: '9px',
                 }}
-              />
-              {' '}
+              />{' '}
               <div
                 style={{
                   marginTop: '5px',
                   marginBottom: '5px',
-                  marginLeft: '1px',
+                  marginLeft: '15px',
                 }}
               >
-                0
+                10
               </div>
             </Button>
           </p>

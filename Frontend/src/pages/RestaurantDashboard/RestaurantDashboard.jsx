@@ -22,7 +22,6 @@ const RestaurantDashboard = ({ match }) => (
         />
       </Col>
     </Row>
-    asdasd
   </Container>
 );
 

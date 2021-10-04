@@ -386,37 +386,22 @@ function RestaurantSettings() {
                   )}
                 </Carousel>
               )}
-              {restImages ===
-              'https://avatars.dicebear.com/api/human/override.svg?width=285&mood=happy' ? (
-                <div style={{ marginTop: '20px' }}>
-                  <FileUploader
-                    onCancel={() => setIsUploading(false)}
-                    onDrop={(acceptedFiles) => {
-                      uploadFileAndUpdateTable(acceptedFiles);
-                    }}
-                    progressMessage={
-                      isUploading ? 'Uploading... hang tight.' : ''
-                    }
-                  />
-                </div>
-              ) : (
-                <>
-                  <div style={{ marginTop: '25px' }}>
-                    <p>Click on image to delete it</p>
-                    <ButtonContainer>
-                      <ButtonRow>
-                        <ButtonMod
-                          type="submit"
-                          style={{ width: '100%' }}
-                          onClick={() => setModalIsOpen(true)}
-                        >
-                          Upload new picture
-                        </ButtonMod>
-                      </ButtonRow>
-                    </ButtonContainer>
-                  </div>
-                </>
-              )}
+              <div style={{ marginTop: '25px' }}>
+                {restImages?.length > 0 ? (
+                  <p>Click on image to delete it</p>
+                ) : null}
+                <ButtonContainer>
+                  <ButtonRow>
+                    <ButtonMod
+                      type="submit"
+                      style={{ width: '100%' }}
+                      onClick={() => setModalIsOpen(true)}
+                    >
+                      Upload new profile picture
+                    </ButtonMod>
+                  </ButtonRow>
+                </ButtonContainer>
+              </div>
             </div>
 
             <div
@@ -600,7 +585,7 @@ function RestaurantSettings() {
 
                   <ButtonContainer>
                     <ButtonRow>
-                      <ButtonMod type="submit" style={{ width: '100%' }}>
+                      <ButtonMod type="submit" style={{ width: '100%', marginBottom: '10px' }}>
                         Submit
                       </ButtonMod>
                     </ButtonRow>

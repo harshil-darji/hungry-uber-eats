@@ -239,7 +239,7 @@ function UpdateDishModal(props) {
               Dialog: {
                 style: {
                   width: '40vw',
-                  height: '85vh',
+                  height: '93vh',
                   display: 'flex',
                   flexDirection: 'column',
                   position: 'fixed',

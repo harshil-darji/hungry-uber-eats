@@ -58,7 +58,7 @@ function App() {
                 component={RegisterRestaurant}
               />
               <Route path="/login/restaurant" component={LoginRestaurant} />
-              <Route path="/customer/dashboard" component={withAccess(CustomerDashboard)} />
+              <Route path="/customer" component={withAccess(CustomerDashboard)} />
               <Route
                 path="/restaurant"
                 component={withAccess(RestaurantDashboard)}

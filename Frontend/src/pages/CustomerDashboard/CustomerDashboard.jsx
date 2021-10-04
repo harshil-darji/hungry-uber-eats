@@ -1,12 +1,19 @@
 import React from 'react';
+import { Container, Row } from 'react-bootstrap';
+import { Route } from 'react-router';
+import CustomerHome from './CustomerHome';
 import CustomerNavbar from './CustomerNavbar';
 
-function CustomerDashboard() {
+function CustomerDashboard({ match }) {
   return (
-    <div>
-      <CustomerNavbar />
-      Customer Dashboard
-    </div>
+    <Container fluid>
+      <Row>
+        <CustomerNavbar />
+      </Row>
+      <Row>
+        <Route path={`${match.path}/dashboard`} component={CustomerHome} />
+      </Row>
+    </Container>
   );
 }
 

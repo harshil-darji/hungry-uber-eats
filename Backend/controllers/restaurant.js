@@ -262,8 +262,7 @@ const getRestaurantImages = async (req, res) => {
   const { restId } = req.params;
   try {
     const restImages = await restaurantImages.findAll({
-      restId,
-      imageLink: req.body.imageLink,
+      where: { restId },
     });
     return res.status(200).json({ restImages });
   } catch (error) {

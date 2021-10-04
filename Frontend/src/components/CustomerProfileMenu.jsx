@@ -2,82 +2,59 @@
 /* eslint-disable no-prototype-builtins */
 import React, { useCallback, useState } from 'react';
 import { StatefulMenu, OptionProfile } from 'baseui/menu';
-import { useSelector } from 'react-redux';
+// import { useSelector } from 'react-redux';
 import { useHistory } from 'react-router';
 import toast from 'react-hot-toast';
 import jwt_decode from 'jwt-decode';
 
 import axiosInstance from '../services/apiConfig';
+import customerDefaultProfile from '../assets/img/customer-default-profile.jpeg';
 
-import CustomerDefaultProfile from '../assets/img/customer-default-profile.jpeg';
-
-export default function RestaurantProfileMenu() {
-  const restaurant = useSelector((state) => state.restaurant);
+export default function CustomerProfileMenu() {
+  // const restaurant = useSelector((state) => state.restaurant);
 
   const history = useHistory();
 
   const [name, setname] = useState('');
-  const [address, setAddress] = useState('');
-  const [restImages, setRestImages] = useState(null);
+  // const [address, setAddress] = useState('');
+  const [profileImg, setProfileImg] = useState('');
   const [emailId, setEmail] = useState('');
 
-  const fetchRestaurantData = useCallback(async () => {
+  const fetchCustomerData = useCallback(async () => {
     const token = sessionStorage.getItem('token');
     const decoded = jwt_decode(token);
     try {
-      const response = await axiosInstance.get(`/restaurants/${decoded.id}`, {
+      const response = await axiosInstance.get(`customers/${decoded.id}`, {
         headers: { Authorization: token },
       });
-      setname(response.data.rest.name);
-      setEmail(response.data.rest.emailId);
-      setAddress(response.data.rest.address ? response.data.rest.address : '');
+      console.log(response);
+      setname(response.data.user.name);
+      setEmail(response.data.user.emailId);
+      setProfileImg(
+        response.data.user.profileImg
+          ? response.data.user.profileImg
+          : customerDefaultProfile,
+      );
     } catch (error) {
       if (error.hasOwnProperty('response')) {
         if (error.response.status === 403) {
           toast.error('Session expired. Please login again!');
-          history.push('/login/restaurant');
+          history.push('/login/customer');
         }
       }
     }
   }, []);
 
-  const getRestaurantImages = async () => {
-    try {
-      const token = sessionStorage.getItem('token');
-      const decoded = jwt_decode(token);
-      const response = await axiosInstance.get(
-        `restaurants/${decoded.id}/images`,
-        {
-          headers: { Authorization: token },
-        },
-      );
-      setRestImages(
-        response.data.restImages?.length > 0
-          ? response.data.restImages[0].imageLink
-          : CustomerDefaultProfile,
-      );
-    } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          // history.push('/login/restaurant');
-        }
-        toast.error(error.response.data.error);
-      }
-    }
-  };
-
   React.useEffect(() => {
-    getRestaurantImages();
-    fetchRestaurantData();
-  }, [restaurant]);
+    fetchCustomerData();
+  }, []);
 
   const ITEMS = [
     {
       title: name || '',
-      subtitle: address || '',
-      body: emailId || '',
-      imgUrl: restImages,
+      subtitle: emailId || '',
+      body: 'View account',
+      imgUrl: profileImg,
     },
   ];
 
