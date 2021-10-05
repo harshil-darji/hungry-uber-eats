@@ -72,12 +72,15 @@ const loginCustomer = async (req, res) => {
         .status(404)
         .json({ error: 'Email not found! Please register!' });
     }
-    bcrypt.compare(passwd, existingCustomer.passwd, (err) => {
+    bcrypt.compare(passwd, existingCustomer.passwd, (err, data) => {
       if (err) {
-        return res.status(401).json({ error: 'Invalid password!' });
+        return res.status(500).json({ error: err.message });
       }
-      const token = generateAccessToken(existingCustomer.custId, 'customer');
-      return res.status(200).json({ token, cust: existingCustomer });
+      if (data) {
+        const token = generateAccessToken(existingCustomer.custId, 'customer');
+        return res.status(200).json({ token, cust: existingCustomer });
+      }
+      return res.status(401).json({ error: 'Invalid password!' });
     });
   } catch (error) {
     return res.status(500).json({ error: error.message });

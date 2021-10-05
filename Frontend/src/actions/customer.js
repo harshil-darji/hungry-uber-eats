@@ -51,3 +51,15 @@ export function logoutCustomer() {
     type: 'LOGOUT_CUSTOMER',
   };
 }
+
+export function updateCustomerRequest() {
+  return {
+    type: 'UPDATE_CUSTOMER_REQUEST',
+  };
+}
+export function updateCustomerSuccess(payload) {
+  return { type: 'UPDATE_CUSTOMER_SUCCESS', payload };
+}
+export function updateCustomerFailure(payload) {
+  return { type: 'UPDATE_CUSTOMER_FAILURE', payload };
+}

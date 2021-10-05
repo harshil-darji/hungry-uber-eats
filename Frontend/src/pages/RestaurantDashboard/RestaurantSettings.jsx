@@ -81,7 +81,7 @@ function RestaurantSettings() {
   const [endTime, setEndTime] = useState('');
 
   const [contactNoBlurFlag, setcontactNoBlurFlag] = useState(false);
-  const [modalIsOpen, setModalIsOpen] = React.useState(false);
+  const [modalIsOpen, setModalIsOpen] = useState(false);
 
   const contactNoRegex = /^\([\d]{3}\) [\d]{3}-[\d]{4}$/;
 
@@ -307,7 +307,7 @@ function RestaurantSettings() {
   return (
     <>
       <Modal onClose={() => setModalIsOpen(false)} isOpen={modalIsOpen}>
-        <ModalHeader>Upload new profile picture</ModalHeader>
+        <ModalHeader>Upload profile picture</ModalHeader>
         <ModalBody>
           <FileUploader
             onCancel={() => {
@@ -412,10 +412,6 @@ function RestaurantSettings() {
                 marginLeft: '35px',
               }}
             >
-              <h1 style={{ fontWeight: 'bolder' }}>
-                Update restaurant details
-              </h1>
-              {/* <h1 style={{ fontWeight: 'bolder' }}>{restData.rest?.name}</h1> */}
               <form
                 onSubmit={handleSubmit}
                 style={{ marginTop: '30px' }}
@@ -585,7 +581,10 @@ function RestaurantSettings() {
 
                   <ButtonContainer>
                     <ButtonRow>
-                      <ButtonMod type="submit" style={{ width: '100%', marginBottom: '10px' }}>
+                      <ButtonMod
+                        type="submit"
+                        style={{ width: '100%', marginBottom: '10px' }}
+                      >
                         Submit
                       </ButtonMod>
                     </ButtonRow>

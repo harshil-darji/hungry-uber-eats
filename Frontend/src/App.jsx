@@ -58,10 +58,13 @@ function App() {
                 component={RegisterRestaurant}
               />
               <Route path="/login/restaurant" component={LoginRestaurant} />
-              <Route path="/customer" component={withAccess(CustomerDashboard)} />
               <Route
                 path="/restaurant"
                 component={withAccess(RestaurantDashboard)}
+              />
+              <Route
+                path="/customer"
+                component={withAccess(CustomerDashboard)}
               />
             </Container>
           </Switch>

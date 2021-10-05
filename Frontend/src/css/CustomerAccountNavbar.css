@@ -1,0 +1,9 @@
+.colorNav {
+  background-color: black;
+  color: white;
+}
+
+.whiteNavLink {
+  cursor: pointer;
+  color: white !important;
+}

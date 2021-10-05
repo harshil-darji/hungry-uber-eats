@@ -1,8 +1,8 @@
 /* eslint-disable camelcase */
 /* eslint-disable no-prototype-builtins */
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { StatefulMenu, OptionProfile } from 'baseui/menu';
-// import { useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useHistory } from 'react-router';
 import toast from 'react-hot-toast';
 import jwt_decode from 'jwt-decode';
@@ -10,10 +10,9 @@ import jwt_decode from 'jwt-decode';
 import axiosInstance from '../services/apiConfig';
 import customerDefaultProfile from '../assets/img/customer-default-profile.jpeg';
 
-export default function CustomerProfileMenu() {
-  // const restaurant = useSelector((state) => state.restaurant);
-
+export default function CustomerProfileMenu({ showViewAccount }) {
   const history = useHistory();
+  const customer = useSelector((state) => state.customer);
 
   const [name, setname] = useState('');
   // const [address, setAddress] = useState('');
@@ -27,7 +26,6 @@ export default function CustomerProfileMenu() {
       const response = await axiosInstance.get(`customers/${decoded.id}`, {
         headers: { Authorization: token },
       });
-      console.log(response);
       setname(response.data.user.name);
       setEmail(response.data.user.emailId);
       setProfileImg(
@@ -45,15 +43,15 @@ export default function CustomerProfileMenu() {
     }
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetchCustomerData();
-  }, []);
+  }, [customer]);
 
   const ITEMS = [
     {
       title: name || '',
       subtitle: emailId || '',
-      body: 'View account',
+      body: showViewAccount ? 'View account' : '',
       imgUrl: profileImg,
     },
   ];

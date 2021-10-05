@@ -166,7 +166,15 @@ const deleteRestaurant = async (req, res) => {
 const getRestaurants = async (req, res) => {
   try {
     // const { limit, offset } = getPaiganation(req.query.page, req.query.limit);
-    const restaurants = await restaurant.findAll({});
+    const restaurants = await restaurant.findAll({
+      include: [
+        {
+          model: restaurantImages,
+          attributes: { exclude: ['createdAt', 'updatedAt'] },
+        },
+      ],
+      attributes: { exclude: ['passwd', 'createdAt', 'updatedAt'] },
+    });
     if (!restaurants) {
       return res.status(200).json({ message: 'No restaurants found!' });
     }

@@ -1,0 +1,13 @@
+.links {
+  padding: 16px 24px 16px 24px;
+  font-size: 14px;
+}
+
+.bgcolor {
+  background-color: #d4e2fc;
+}
+
+.links:hover {
+  cursor: pointer;
+  background-color: #d4e2fc;
+}

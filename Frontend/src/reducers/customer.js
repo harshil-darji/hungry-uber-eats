@@ -37,6 +37,12 @@ const customerReducer = (state = initialState, action) => {
     case 'LOGOUT_CUSTOMER':
       sessionStorage.removeItem('token');
       return initialState;
+    case 'UPDATE_CUSTOMER_REQUEST':
+      return state;
+    case 'UPDATE_CUSTOMER_SUCCESS':
+      return { ...state, cust: action.payload };
+    case 'UPDATE_CUSTOMER_FAILURE':
+      return { ...state, error: action.payload };
     default:
       return state;
   }

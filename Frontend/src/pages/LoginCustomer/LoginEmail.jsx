@@ -71,6 +71,7 @@ function LoginEmail() {
     }
   };
 
+  // TODO: Add logic to sign in automatically if token exists and has not expired
   return (
     <ThemeProvider
       theme={createTheme(lightThemePrimitives, {

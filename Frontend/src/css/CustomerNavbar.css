@@ -1,3 +1,7 @@
+svg:hover {
+  cursor: pointer;
+}
+
 .hoverCursor:hover {
   cursor: pointer;
 }
@@ -7,6 +11,6 @@ hr {
   clear: both;
   display: block;
   width: 96%;
-  background-color: #EEEEEE;
+  background-color: #eeeeee;
   height: 1px;
 }

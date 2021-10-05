@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable react/jsx-one-expression-per-line */
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
@@ -92,46 +93,56 @@ export default function CustomerNavbar() {
           }}
         >
           <div style={{ marginTop: '15px' }}>
-            <CustomerProfileMenu />
+            <div
+              onClick={() => {
+                history.push('/customer/account');
+                setIsOpen(false);
+              }}
+            >
+              <CustomerProfileMenu showViewAccount />
+            </div>
             <Nav
               style={{ marginTop: '-30px', marginLeft: '5px' }}
               className="col-md-10 d-none d-md-block"
-              onSelect={(selectedKey) => history.push(selectedKey)}
+              onSelect={(selectedKey) => {
+                history.push(selectedKey);
+                setIsOpen(false);
+              }}
             >
               <div style={{ marginTop: '15px' }}>
                 <Nav.Item>
-                  <Nav.Link eventKey="/restaurant/dashboard">
+                  <Nav.Link eventKey="/customer/orders">
                     <i className="fa fa-bookmark" aria-hidden="true" />
                     Orders
                   </Nav.Link>
                 </Nav.Item>
                 <Nav.Item>
-                  <Nav.Link eventKey="/restaurant/menu">
+                  <Nav.Link eventKey="/customer/favourites">
                     <i className="fa fa-heart" aria-hidden="true" />
                     Favourites
                   </Nav.Link>
                 </Nav.Item>
                 <Nav.Item>
-                  <Nav.Link eventKey="/restaurant/settings">
+                  <Nav.Link eventKey="/customer/wallet">
                     <i className="fa fa-briefcase" aria-hidden="true" />
                     Wallet
                   </Nav.Link>
                 </Nav.Item>
                 <Nav.Item>
-                  <Nav.Link eventKey="/restaurant/orders">
+                  <Nav.Link eventKey="/customer/help">
                     <i className="fa fa-info-circle" aria-hidden="true" />
                     Help
                   </Nav.Link>
                 </Nav.Item>
                 <Nav.Item>
-                  <Nav.Link eventKey="/restaurant/orders">
+                  <Nav.Link eventKey="/customer/promotions">
                     <i className="fa fa-tag" aria-hidden="true" />
                     Promotions
                   </Nav.Link>
                 </Nav.Item>
                 <Nav.Item>
                   <Nav.Link
-                    eventKey="/restaurant/orders"
+                    eventKey="/customer/eatspass"
                     style={{ color: 'green' }}
                   >
                     <i className="fa fa-ticket" aria-hidden="true" />
@@ -149,7 +160,7 @@ export default function CustomerNavbar() {
                   </Nav.Link>
                 </Nav.Item>
                 <Nav.Item>
-                  <Nav.Link eventKey="/restaurant/orders">
+                  <Nav.Link eventKey="/customer/invite">
                     <i className="fa fa-gift" aria-hidden="true" />
                     Invite friends
                     <br />
@@ -274,7 +285,10 @@ export default function CustomerNavbar() {
                   <Menu size={25} />
                 </Button>
               </ThemeProvider>
-              <Block style={{ marginLeft: '20px' }}>
+              <Block
+                style={{ marginLeft: '20px' }}
+                onClick={() => history.push('/customer/dashboard')}
+              >
                 <UberEatsSvg />
               </Block>
             </Row>
