@@ -6,6 +6,7 @@ import CustomerHome from './CustomerHome';
 import CustomerNavbar from './CustomerNavbar';
 import CustomerFavourites from './CustomerFavourites';
 import CustomerAccountNavbar from './CustomerAccountNavbar';
+import RestaurantDetails from './RestaurantDetails';
 
 function CustomerDashboard({ match }) {
   const history = useHistory();
@@ -25,6 +26,7 @@ function CustomerDashboard({ match }) {
       <Row>
         <Route path={`${match.path}/dashboard`} component={CustomerHome} />
         <Route path={`${match.path}/account`} component={CustomerAccount} />
+        <Route path={`${match.path}/restaurants/:restId`} component={RestaurantDetails} />
         <Route
           path={`${match.path}/favourites`}
           component={CustomerFavourites}

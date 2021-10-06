@@ -1,7 +1,7 @@
 /* eslint-disable consistent-return */
 /* eslint-disable operator-linebreak */
 const bcrypt = require('bcrypt');
-// const { getPaiganation } = require('u-server-utils');
+const { getPaiganation } = require('u-server-utils');
 const { generateAccessToken } = require('../middleware/validateToken');
 const {
   restaurant,
@@ -68,12 +68,32 @@ const loginRestaurant = async (req, res) => {
 const getRestaurant = async (req, res) => {
   try {
     const { restId } = req.params;
-    if (String(req.headers.id) !== String(restId)) {
-      return res.status(401).json({ error: 'Unauthorized request!' });
-    }
+    // if (String(req.headers.id) !== String(restId)) {
+    //   return res.status(401).json({ error: 'Unauthorized request!' });
+    // }
     const rest = await restaurant.findOne({
       where: { restId },
-      include: [{ model: restaurantType }],
+      include: [
+        {
+          model: restaurantImages,
+          attributes: { exclude: ['createdAt', 'updatedAt'] },
+        },
+        {
+          model: restaurantType,
+          attributes: { exclude: ['createdAt', 'updatedAt'] },
+        },
+        {
+          model: dish,
+          include: [
+            {
+              model: dishImages,
+              attributes: { exclude: ['createdAt', 'updatedAt'] },
+            },
+          ],
+          attributes: { exclude: ['createdAt', 'updatedAt'] },
+        },
+      ],
+      attributes: { exclude: ['passwd', 'createdAt', 'updatedAt'] },
     });
     if (rest) {
       return res.status(200).json({ rest });
@@ -165,8 +185,10 @@ const deleteRestaurant = async (req, res) => {
 
 const getRestaurants = async (req, res) => {
   try {
-    // const { limit, offset } = getPaiganation(req.query.page, req.query.limit);
+    const { limit, offset } = getPaiganation(req.query.page, req.query.limit);
     const restaurants = await restaurant.findAll({
+      limit,
+      offset,
       include: [
         {
           model: restaurantImages,

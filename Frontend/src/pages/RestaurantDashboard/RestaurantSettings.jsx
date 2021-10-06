@@ -566,7 +566,7 @@ function RestaurantSettings() {
                       value={startTime}
                       onChange={(date) => setStartTime(date)}
                       step={1800}
-                      minTime={new Date('2021-09-28T07:00:00.000Z')}
+                      // minTime={new Date('2021-09-28T07:00:00.000Z')}
                     />
                   </FormControl>
 
@@ -575,7 +575,7 @@ function RestaurantSettings() {
                       value={endTime}
                       onChange={(date) => setEndTime(date)}
                       step={1800}
-                      minTime={new Date('2021-09-28T07:00:00.000Z')}
+                      // minTime={new Date('2021-09-28T07:00:00.000Z')}
                     />
                   </FormControl>
 

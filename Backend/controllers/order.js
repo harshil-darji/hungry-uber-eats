@@ -1,3 +1,5 @@
+/* eslint-disable no-param-reassign */
+/* eslint-disable no-prototype-builtins */
 const {
   cart,
   dish,
@@ -55,9 +57,7 @@ const initOrder = async (req, res) => {
       { transaction: t },
     );
     t.commit();
-    return res
-      .status(200)
-      .json({ orderEntry, message: 'Order initialized!' });
+    return res.status(200).json({ orderEntry, message: 'Order initialized!' });
   } catch (error) {
     await t.rollback();
     return res.status(500).json({ error: error.message });
@@ -74,14 +74,10 @@ const createOrder = async (req, res) => {
     const { orderType, orderAddress } = req.body;
     const orderPlacedTime = Date.now();
     if (!orderType) {
-      return res
-        .status(400)
-        .json({ error: 'Please select order type!' });
+      return res.status(400).json({ error: 'Please select order type!' });
     }
     if (orderType === 'Delivery' && !orderAddress) {
-      return res
-        .status(400)
-        .json({ error: 'Please enter your address!' });
+      return res.status(400).json({ error: 'Please enter your address!' });
     }
     const latestOrder = await order.findOne({
       where: { custId },
@@ -140,9 +136,37 @@ const getLatestOrder = async (req, res) => {
     }
     const latestOrder = await order.findOne({
       where: { custId },
+      include: [
+        {
+          model: orderDishes,
+          attributes: { exclude: ['createdAt', 'updatedAt', 'orderId'] },
+          include: [
+            {
+              model: dish,
+              attributes: { exclude: ['createdAt', 'updatedAt'] },
+            },
+          ],
+        },
+      ],
       order: [['createdAt', 'DESC']],
     });
-    return res.status(200).json({ latestOrder });
+    const orderDishesInfo = {};
+    latestOrder.orderDishes.forEach((orderDish) => {
+      if (!orderDishesInfo.hasOwnProperty(String(orderDish.dishId))) {
+        const temp = { ...orderDish.dish.dataValues, qty: 1 };
+        // orderDish.qty = 1;
+        orderDishesInfo[orderDish.dishId] = temp;
+      } else {
+        orderDishesInfo[orderDish.dishId].qty += 1;
+      }
+    });
+    const orderDishesArray = [];
+    Object.keys(orderDishesInfo).forEach((key) => {
+      orderDishesArray.push(orderDishesInfo[key]);
+    });
+    return res
+      .status(200)
+      .json({ latestOrder, orderDishesInfo: orderDishesArray });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
