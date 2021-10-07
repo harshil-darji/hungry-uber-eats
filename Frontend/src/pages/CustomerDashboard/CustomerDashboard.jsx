@@ -1,36 +1,49 @@
+/* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
 import { Container, Row } from 'react-bootstrap';
-import { Route, useHistory } from 'react-router';
+import { Route } from 'react-router';
 import CustomerAccount from './CustomerAccount';
 import CustomerHome from './CustomerHome';
 import CustomerNavbar from './CustomerNavbar';
 import CustomerFavourites from './CustomerFavourites';
-import CustomerAccountNavbar from './CustomerAccountNavbar';
 import RestaurantDetails from './RestaurantDetails';
+import CustomerCheckout from './CustomerCheckout';
+
+const RouteWithNavbar = ({
+  exact, path, component: Component, ...rest
+}) => (
+  <Route
+    exact={exact}
+    path={path}
+    {...rest}
+    render={(routeProps) => (
+      <Container fluid>
+        <Row>
+          <CustomerNavbar {...routeProps} />
+        </Row>
+        <Row>
+          <Component {...routeProps} />
+        </Row>
+      </Container>
+    )}
+  />
+);
 
 function CustomerDashboard({ match }) {
-  const history = useHistory();
-  const custAccountPathsRegex = /customer\/account(\/)*(.)*/;
-
   return (
     <Container fluid>
-      {!custAccountPathsRegex.test(history.location.pathname) ? (
-        <Row>
-          <CustomerNavbar />
-        </Row>
-      ) : (
-        <Row>
-          <CustomerAccountNavbar />
-        </Row>
-      )}
       <Row>
-        <Route path={`${match.path}/dashboard`} component={CustomerHome} />
+        <RouteWithNavbar path={`${match.path}/dashboard`} component={CustomerHome} />
         <Route path={`${match.path}/account`} component={CustomerAccount} />
-        <Route path={`${match.path}/restaurants/:restId`} component={RestaurantDetails} />
-        <Route
+        <RouteWithNavbar
+          path={`${match.path}/restaurants/:restId`}
+          component={RestaurantDetails}
+        />
+        <RouteWithNavbar
           path={`${match.path}/favourites`}
           component={CustomerFavourites}
         />
+        <Route path={`${match.path}/checkout`} component={CustomerCheckout} />
       </Row>
     </Container>
   );

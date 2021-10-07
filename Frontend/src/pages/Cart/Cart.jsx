@@ -194,6 +194,12 @@ function Cart(props) {
     getCartItems();
   }, [cart]);
 
+  const proceedToCheckout = () => {
+    // TODO: Initialize order here then proceed to checkout page
+    history.push('/customer/checkout');
+    setCartIsOpen(false);
+  };
+
   return (
     <>
       <Drawer
@@ -357,6 +363,7 @@ function Cart(props) {
                   <Button
                     style={{ width: '100%', marginTop: '20px' }}
                     size={SIZE.large}
+                    onClick={proceedToCheckout}
                   >
                     Go to Checkout •{' '}
                     ${cartPrice

@@ -3,6 +3,7 @@
 import React from 'react';
 import { Route, useHistory } from 'react-router';
 import { Col, Container, Row } from 'react-bootstrap';
+import CustomerAccountNavbar from './CustomerAccountNavbar';
 import '../../css/CustomerAccount.css';
 import CustomerAccountProfile from './CustomerAccountProfile';
 
@@ -11,6 +12,9 @@ function CustomerAccount({ match }) {
 
   return (
     <Container fluid>
+      <Row>
+        <CustomerAccountNavbar />
+      </Row>
       <Row>
         <Col
           xs={{ span: 2, offset: 2 }}
