@@ -325,6 +325,7 @@ order.belongsTo(restaurant, {
   onDelete: 'cascade',
 });
 
+// TODO: add quantity column
 const cart = sequelize.define('cart', {
   cartId: {
     type: Sequelize.INTEGER,

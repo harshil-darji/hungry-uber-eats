@@ -1,4 +1,11 @@
-const { cart, restaurant, dish } = require('../models/data-model');
+/* eslint-disable object-curly-newline */
+const {
+  cart,
+  restaurant,
+  dish,
+  sequelize,
+  dishImages,
+} = require('../models/data-model');
 
 const insertIntoCart = async (req, res) => {
   try {
@@ -9,9 +16,7 @@ const insertIntoCart = async (req, res) => {
     const { restId, dishId } = req.body;
     // If restaurant ID or Dish ID is not sent
     if (!restId) {
-      return res
-        .status(400)
-        .json({ error: 'Please select restaurant!' });
+      return res.status(400).json({ error: 'Please select restaurant!' });
     }
     if (!dishId) {
       return res.status(400).json({ error: 'Please select dish!' });
@@ -80,9 +85,7 @@ const resetCartWithDifferentRestaurant = async (req, res) => {
     const { restId, dishId } = req.body;
     // If restaurant ID or Dish ID is not sent
     if (!restId) {
-      return res
-        .status(400)
-        .json({ error: 'Please select restaurant!' });
+      return res.status(400).json({ error: 'Please select restaurant!' });
     }
     if (!dishId) {
       return res.status(400).json({ error: 'Please select dish!' });
@@ -118,13 +121,37 @@ const viewCart = async (req, res) => {
       return res.status(401).json({ error: 'Unauthorized request!' });
     }
     const cartItems = await cart.findAll({
-      include: [{ model: dish }],
+      attributes: [
+        [sequelize.fn('count', sequelize.col('dish.dishId')), 'dishCount'],
+      ],
+      include: [
+        {
+          model: dish,
+        },
+      ],
+      required: false,
       where: { custId },
+      group: ['cart.dishId'],
     });
     if (!cartItems) {
       return res.status(200).json({ message: 'No items in cart!' });
     }
-    return res.status(200).json({ cartItems });
+    const cartDishImages = await cart.findAll({
+      attributes: ['dishId'],
+      include: [
+        {
+          model: dish,
+          attributes: ['dishId'],
+          include: [{ model: dishImages }],
+        },
+      ],
+    });
+    const { restId } = cartItems[0].dish;
+    const rest = await restaurant.findOne({
+      where: { restId },
+      attributes: { exclude: ['createdAt', 'updatedAt', 'passwd'] },
+    });
+    return res.status(200).json({ cartItems, rest, cartDishImages });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -140,9 +167,7 @@ const deleteFromCart = async (req, res) => {
       where: { dishId },
     });
     if (!checkExistingDish) {
-      return res
-        .status(404)
-        .json({ error: 'No dish found in cart!' });
+      return res.status(404).json({ error: 'No dish found in cart!' });
     }
     const deletedCartItem = await cart.destroy({
       where: { custId, dishId },
@@ -152,9 +177,7 @@ const deleteFromCart = async (req, res) => {
         .status(200)
         .json({ message: 'Item removed from cart successfully!' });
     }
-    return res
-      .status(404)
-      .json({ error: 'Item could not be deleted!' });
+    return res.status(404).json({ error: 'Item could not be deleted!' });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }

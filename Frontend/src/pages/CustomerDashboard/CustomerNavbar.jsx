@@ -33,13 +33,17 @@ import UberEatsSvg from '../../components/UberEatsSvg';
 import CustomerProfileMenu from '../../components/CustomerProfileMenu';
 import { logoutCustomer } from '../../actions/customer';
 import '../../css/CustomerNavbar.css';
+import Cart from '../Cart/Cart';
 
 export default function CustomerNavbar() {
   const [deliveryTypeselected, setDeliveryTypeselected] = useState(0);
   const [locationObj, setLocationObj] = useState(null);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false); // This is for navigation sidebar on left side
+  const [cartIsOpen, setCartIsOpen] = useState(false); // this is drawer on right for cart
   const history = useHistory();
   const dispatch = useDispatch();
+
+  // const cart = useSelector((state) => state.cart);
 
   const getLocation = () => {
     const options = {
@@ -77,6 +81,7 @@ export default function CustomerNavbar() {
 
   return (
     <>
+      <Cart setCartIsOpen={setCartIsOpen} cartIsOpen={cartIsOpen} />
       <Drawer
         onClose={() => setIsOpen(false)}
         autoFocus
@@ -331,9 +336,10 @@ export default function CustomerNavbar() {
                 </ButtonGroup>
               </div>
               <Button
-                style={{
+                $style={{
                   borderRadius: '100px',
                   marginLeft: '10px',
+                  height: '60px',
                 }}
                 kind={KIND.secondary}
               >
@@ -370,7 +376,11 @@ export default function CustomerNavbar() {
           style={{ marginTop: '20px' }}
         >
           <p>
-            <Button shape={SHAPE.pill} size={SIZE.mini}>
+            <Button
+              onClick={() => setCartIsOpen(true)}
+              shape={SHAPE.pill}
+              size={SIZE.mini}
+            >
               <i
                 className="fa fa-shopping-cart fa-lg"
                 aria-hidden="true"
@@ -387,7 +397,7 @@ export default function CustomerNavbar() {
                   marginLeft: '15px',
                 }}
               >
-                10
+                {0}
               </div>
             </Button>
           </p>

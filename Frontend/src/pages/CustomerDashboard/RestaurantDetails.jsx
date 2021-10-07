@@ -10,6 +10,9 @@ import { useHistory } from 'react-router';
 import Carousel from 'react-responsive-carousel/lib/js/components/Carousel/index';
 import { Display3 } from 'baseui/typography';
 import { Col, Container, Row } from 'react-bootstrap';
+import { useSelector } from 'react-redux';
+// eslint-disable-next-line camelcase
+import jwt_decode from 'jwt-decode';
 
 import ticketSmall from '../../assets/img/ticket-small.png';
 import axiosInstance from '../../services/apiConfig';
@@ -20,7 +23,28 @@ import '../../css/RestaurantDetails.css';
 
 function RestaurantDetails({ match }) {
   const [restDetails, setRestDetails] = useState(null);
+  const [cartInfo, setCartInfo] = useState({});
+  const cart = useSelector((state) => state.cart);
+
   const history = useHistory();
+
+  const getCartItems = useCallback(async () => {
+    const token = sessionStorage.getItem('token');
+    const decoded = jwt_decode(token);
+    try {
+      const response = await axiosInstance.get(`customers/${decoded.id}/cart`, {
+        headers: { Authorization: token },
+      });
+      setCartInfo(response.data);
+    } catch (error) {
+      if (error.hasOwnProperty('response')) {
+        if (error.response.status === 403) {
+          toast.error('Session expired. Please login again!');
+          history.push('/login/customer');
+        }
+      }
+    }
+  }, []);
 
   const fetchRestaurants = useCallback(async () => {
     const token = sessionStorage.getItem('token');
@@ -42,11 +66,10 @@ function RestaurantDetails({ match }) {
     }
   }, []);
 
-  console.log(restDetails);
-
   useEffect(() => {
     fetchRestaurants();
-  }, []);
+    getCartItems();
+  }, [cart]);
 
   return (
     <Container fluid>
@@ -123,7 +146,12 @@ function RestaurantDetails({ match }) {
                 {restDetails
                   ? restDetails.dishes?.length > 0
                     ? restDetails.dishes.map((dish) => (
-                        <RestaurantDetailsCard dish={dish} />
+                        <RestaurantDetailsCard
+                          dish={dish}
+                          restName={restDetails.name}
+                          restId={restDetails.restId}
+                          cartInfo={cartInfo}
+                        />
                       ))
                     : null
                   : null}

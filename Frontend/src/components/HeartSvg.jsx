@@ -3,7 +3,7 @@ import * as React from 'react';
 const HeartSvg = () => (
   <svg
     fill="white"
-    width="40px"
+    width="30px"
     aria-hidden="true"
     focusable="false"
     viewBox="0 0 24 24"
