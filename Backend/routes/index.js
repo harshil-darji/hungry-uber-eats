@@ -108,6 +108,9 @@ router.post(
   cartController.resetCartWithDifferentRestaurant,
 );
 router.get('/customers/:custId/cart', cartController.viewCart);
+router.get('/customers/:custId/cart-quantity', cartController.getCartQuantity);
+router.put('/customers/:custId/cart/:dishId', cartController.updateDishQuantity);
+router.delete('/customers/:custId/clear-cart', cartController.clearCart);
 router.delete('/customers/:custId/cart/:dishId', cartController.deleteFromCart);
 
 // Order routes

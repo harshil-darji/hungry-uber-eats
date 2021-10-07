@@ -11,7 +11,7 @@
 // eslint-disable-next-line object-curly-newline
 import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { Row, Nav } from 'react-bootstrap';
 import { Menu } from 'baseui/icon';
 import toast from 'react-hot-toast';
@@ -27,6 +27,9 @@ import {
 import { StatefulSelect as Search, TYPE } from 'baseui/select';
 import { Drawer, ANCHOR } from 'baseui/drawer';
 import { ThemeProvider, createTheme, lightThemePrimitives } from 'baseui';
+import jwt_decode from 'jwt-decode';
+
+import axiosInstance from '../../services/apiConfig';
 
 import UberEatsSquareSvg from '../../components/UberEatsSquareSvg';
 import UberEatsSvg from '../../components/UberEatsSvg';
@@ -36,14 +39,16 @@ import '../../css/CustomerNavbar.css';
 import Cart from '../Cart/Cart';
 
 export default function CustomerNavbar() {
+  const history = useHistory();
+  const dispatch = useDispatch();
+
+  const cart = useSelector((state) => state.cart);
+
   const [deliveryTypeselected, setDeliveryTypeselected] = useState(0);
   const [locationObj, setLocationObj] = useState(null);
   const [isOpen, setIsOpen] = useState(false); // This is for navigation sidebar on left side
   const [cartIsOpen, setCartIsOpen] = useState(false); // this is drawer on right for cart
-  const history = useHistory();
-  const dispatch = useDispatch();
-
-  // const cart = useSelector((state) => state.cart);
+  const [totalDishesInCart, setTotalDishesInCart] = useState(0);
 
   const getLocation = () => {
     const options = {
@@ -73,6 +78,31 @@ export default function CustomerNavbar() {
   useEffect(() => {
     getLocation();
   }, []);
+
+  const getDishCountFromCart = async () => {
+    const token = sessionStorage.getItem('token');
+    const decoded = jwt_decode(token);
+    try {
+      const response = await axiosInstance.get(
+        `customers/${decoded.id}/cart-quantity`,
+        {
+          headers: { Authorization: token },
+        },
+      );
+      setTotalDishesInCart(response.data.totalDishesInCart);
+    } catch (error) {
+      if (error.hasOwnProperty('response')) {
+        if (error.response.status === 403) {
+          toast.error('Session expired. Please login again!');
+          history.push('/login/customer');
+        }
+      }
+    }
+  };
+
+  useEffect(() => {
+    getDishCountFromCart();
+  }, [cart]);
 
   const customerSignOut = () => {
     dispatch(logoutCustomer());
@@ -397,7 +427,7 @@ export default function CustomerNavbar() {
                   marginLeft: '15px',
                 }}
               >
-                {0}
+                {totalDishesInCart}
               </div>
             </Button>
           </p>

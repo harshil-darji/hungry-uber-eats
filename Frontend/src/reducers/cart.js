@@ -3,6 +3,7 @@ const initialState = {
   cartItems: [],
   error: '',
   cartItemDeleted: false,
+  cartUpdatedFlag: false,
   cartResetFlag: false,
 };
 
@@ -31,6 +32,27 @@ const cartReducer = (state = initialState, action) => {
       return { ...state, cartResetFlag: true, error: '' };
     case 'RESET_CART_FAILURE':
       return { ...state, cartResetFlag: false, error: action.payload };
+    case 'CLEAR_CART_REQUEST':
+      return state;
+    case 'CLEAR_CART_SUCCESS':
+      return {
+        ...state,
+        cartItems: [],
+        cartQty: 0,
+        error: '',
+      };
+    case 'CLEAR_CART_FAILURE':
+      return { ...state, error: action.payload };
+    case 'UPDATE_CART_REQUEST':
+      return state;
+    case 'UPDATE_CART_SUCCESS':
+      return {
+        ...state,
+        cartUpdatedFlag: true,
+        error: '',
+      };
+    case 'UPDATE_CART_FAILURE':
+      return { ...state, error: action.payload, cartUpdatedFlag: false };
     default:
       return state;
   }

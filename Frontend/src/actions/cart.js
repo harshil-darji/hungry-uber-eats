@@ -27,3 +27,23 @@ export function resetCartSuccess() {
 export function resetCartFailure(payload) {
   return { type: 'RESET_CART_FAILURE', payload };
 }
+
+export function clearCartRequest() {
+  return { type: 'CLEAR_CART_REQUEST' };
+}
+export function clearCartSuccess() {
+  return { type: 'CLEAR_CART_SUCCESS' };
+}
+export function clearCartFailure(payload) {
+  return { type: 'CLEAR_CART_FAILURE', payload };
+}
+
+export function updateCartRequest() {
+  return { type: 'UPDATE_CART_REQUEST' };
+}
+export function updateCartSuccess() {
+  return { type: 'UPDATE_CART_SUCCESS' };
+}
+export function updateCartFailure(payload) {
+  return { type: 'UPDATE_CART_FAILURE', payload };
+}

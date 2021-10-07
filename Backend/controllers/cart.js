@@ -133,8 +133,8 @@ const viewCart = async (req, res) => {
       where: { custId },
       group: ['cart.dishId'],
     });
-    if (!cartItems) {
-      return res.status(200).json({ message: 'No items in cart!' });
+    if (cartItems.length === 0) {
+      return res.status(200).json([]);
     }
     const cartDishImages = await cart.findAll({
       attributes: ['dishId'],
@@ -183,9 +183,72 @@ const deleteFromCart = async (req, res) => {
   }
 };
 
+const clearCart = async (req, res) => {
+  try {
+    const { custId } = req.params;
+    if (String(req.headers.id) !== String(custId)) {
+      return res.status(401).json({ error: 'Unauthorized request!' });
+    }
+    const deletedCartItems = await cart.destroy({
+      where: { custId },
+    });
+    if (deletedCartItems) {
+      return res.status(200).json({ message: 'Cart cleared successfully!' });
+    }
+    return res.status(404).json({ error: 'Cart could not be cleared!' });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+const getCartQuantity = async (req, res) => {
+  try {
+    const { custId } = req.params;
+    if (String(req.headers.id) !== String(custId)) {
+      return res.status(401).json({ error: 'Unauthorized request!' });
+    }
+    const cartItems = await cart.findAll({
+      where: { custId },
+    });
+    if (cartItems.length > 0) {
+      return res.status(200).json({ totalDishesInCart: cartItems.length });
+    }
+    return res.status(200).json({ totalDishesInCart: 0 });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+const updateDishQuantity = async (req, res) => {
+  try {
+    const { custId, dishId } = req.params;
+    const { restId, dishCount } = req.body;
+    if (String(req.headers.id) !== String(custId)) {
+      return res.status(401).json({ error: 'Unauthorized request!' });
+    }
+    await cart.destroy({
+      where: { custId, dishId },
+    });
+    // eslint-disable-next-line no-unused-vars
+    const cartRows = [...Array(dishCount)].map((_, i) => ({
+      restId,
+      dishId,
+      custId,
+    }));
+    await cart.bulkCreate(cartRows);
+
+    return res.status(200).json({ dishCount: cartRows.length });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   insertIntoCart,
   viewCart,
   deleteFromCart,
+  getCartQuantity,
+  updateDishQuantity,
+  clearCart,
   resetCartWithDifferentRestaurant,
 };
