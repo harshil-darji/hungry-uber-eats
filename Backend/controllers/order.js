@@ -43,7 +43,7 @@ const initOrder = async (req, res) => {
     dishDetails.forEach((dishD) => {
       price += dishD.dishPrice * dishIdAndQty[dishD.dishId];
     });
-    const taxPrice = Math.round(0.08 * price * 100) / 100;
+    const taxPrice = Math.round(0.02 * price * 100) / 100;
     const totalPrice = Math.round((price + taxPrice) * 100) / 100;
     const orderEntry = await order.create(
       {
@@ -83,6 +83,7 @@ const createOrder = async (req, res) => {
       where: { custId },
       order: [['createdAt', 'DESC']],
     });
+    // TODO: before placing the order, make sure to clear all previously INITIALIZED orders
     const updatedOrder = await order.update(
       { ...req.body, orderPlacedTime, orderStatus: 'Placed' },
       {

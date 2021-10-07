@@ -47,6 +47,7 @@ function Cart(props) {
   const cart = useSelector((state) => state.cart);
   const [cartInfo, setCartInfo] = useState(null);
   const [dishImages, setDishImages] = useState({});
+  const [cartPrice, setCartPrice] = useState('');
 
   const getCartItems = useCallback(async () => {
     const token = sessionStorage.getItem('token');
@@ -56,7 +57,6 @@ function Cart(props) {
         headers: { Authorization: token },
       });
       if (response.data.length === 0) {
-        console.log(response.data);
         setCartInfo(null);
         return;
       }
@@ -66,6 +66,15 @@ function Cart(props) {
         .sort((a, b) => (a.dish.name > b.dish.name ? 1 : -1));
       // set cartItems array to sorted array and rest as it is...
       setCartInfo({ ...response.data, cartItems: sortedCartItems });
+
+      // get final price of cart
+      const x = response.data.cartItems.map((a) => a.dish.dishPrice);
+      const y = response.data.cartItems.map((a) => a.dishCount);
+      const multiplyPriceWithQty = (a, b) => a.map((e, i) => e * b[i]);
+      const arrayOfPrices = multiplyPriceWithQty(x, y);
+      const price = arrayOfPrices.reduce((a, b) => a + b, 0);
+
+      setCartPrice(price);
 
       const tempDishObj = {};
       // IDK whats goin on here... Im just assigning dishimage from response.
@@ -86,6 +95,8 @@ function Cart(props) {
       }
     }
   }, []);
+
+  console.log(cartInfo);
 
   const clearCart = async () => {
     dispatch(clearCartRequest());
@@ -347,7 +358,10 @@ function Cart(props) {
                     style={{ width: '100%', marginTop: '20px' }}
                     size={SIZE.large}
                   >
-                    Go to Checkout &#9679; jajaja
+                    Go to Checkout •{' '}
+                    ${cartPrice
+                      ? Math.round((cartPrice + Number.EPSILON) * 100) / 100
+                      : ''}
                   </Button>
                 </>
               ) : null
