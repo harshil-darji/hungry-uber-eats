@@ -26,7 +26,6 @@ export default function withAccess(ComposedComponent) {
     };
 
     checkAndRedirect = () => {
-      console.log(this.props.history.location.pathname);
       const token = sessionStorage.getItem('token');
       if (!token) {
         this.goToLogin();

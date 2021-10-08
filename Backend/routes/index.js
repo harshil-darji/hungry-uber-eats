@@ -109,7 +109,10 @@ router.post(
 );
 router.get('/customers/:custId/cart', cartController.viewCart);
 router.get('/customers/:custId/cart-quantity', cartController.getCartQuantity);
-router.put('/customers/:custId/cart/:dishId', cartController.updateDishQuantity);
+router.put(
+  '/customers/:custId/cart/:dishId',
+  cartController.updateDishQuantity,
+);
 router.delete('/customers/:custId/clear-cart', cartController.clearCart);
 router.delete('/customers/:custId/cart/:dishId', cartController.deleteFromCart);
 
@@ -121,7 +124,7 @@ router.post(
   validate,
   orderController.createOrder,
 );
-router.get('/customers/:custId/latestOrder', orderController.getLatestOrder);
+router.get('/customers/:custId/latest-order', orderController.getLatestOrder);
 router.get(
   '/customers/:custId/orders/:orderId',
   orderController.getOrderDetailsById,
@@ -139,6 +142,10 @@ router.post(
 router.get(
   '/customers/:custId/addresses',
   customerController.getCustomerAddresses,
+);
+router.delete(
+  '/customers/:custId/addresses/:id',
+  customerController.deleteCustomerAddress,
 );
 
 module.exports = router;

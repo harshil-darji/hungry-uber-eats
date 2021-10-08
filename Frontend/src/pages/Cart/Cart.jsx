@@ -96,8 +96,6 @@ function Cart(props) {
     }
   }, []);
 
-  console.log(cartInfo);
-
   const clearCart = async () => {
     dispatch(clearCartRequest());
     const token = sessionStorage.getItem('token');
@@ -187,17 +185,36 @@ function Cart(props) {
         dispatch(updateCartFailure(error.response.data.error));
       }
     }
-    // make API call to update dish count for particular dish ID
   };
 
   useEffect(() => {
     getCartItems();
   }, [cart]);
 
-  const proceedToCheckout = () => {
-    // TODO: Initialize order here then proceed to checkout page
-    history.push('/customer/checkout');
-    setCartIsOpen(false);
+  const proceedToCheckout = async () => {
+    const token = sessionStorage.getItem('token');
+    const decoded = jwt_decode(token);
+    try {
+      await axiosInstance.post(
+        `customers/${decoded.id}/orders/init`,
+        {},
+        {
+          headers: { Authorization: token },
+        },
+      );
+      toast.success('Get ready for tasty food!');
+      setCartIsOpen(false);
+      history.push('/customer/checkout');
+    } catch (error) {
+      if (error.hasOwnProperty('response')) {
+        if (error.response.status === 403) {
+          toast.error('Session expired. Please login again!');
+          history.push('/login/customer');
+          return;
+        }
+        toast.error(error.response.data.error);
+      }
+    }
   };
 
   return (
@@ -365,8 +382,8 @@ function Cart(props) {
                     size={SIZE.large}
                     onClick={proceedToCheckout}
                   >
-                    Go to Checkout •{' '}
-                    ${cartPrice
+                    Go to Checkout • $
+                    {cartPrice
                       ? Math.round((cartPrice + Number.EPSILON) * 100) / 100
                       : ''}
                   </Button>

@@ -1,0 +1,19 @@
+.restImageWrapper {
+  margin-top: 10px;
+  display: inline-block;
+  overflow: hidden;
+  height: 250px;
+  width: 650px;
+}
+
+img:hover {
+  transform: scale(1.01);
+  -ms-transform: scale(1.01); /* IE 9 */
+  -moz-transform: scale(1.01); /* Firefox */
+  -webkit-transform: scale(1.01); /* Safari and Chrome */
+  -o-transform: scale(1.01); /* Opera */
+}
+
+.rowHover:hover {
+  background-color: rgb(235, 235, 235);
+}

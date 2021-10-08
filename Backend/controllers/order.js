@@ -6,6 +6,9 @@ const {
   sequelize,
   order,
   orderDishes,
+  restaurant,
+  restaurantImages,
+  restaurantType,
 } = require('../models/data-model');
 
 const initOrder = async (req, res) => {
@@ -43,7 +46,7 @@ const initOrder = async (req, res) => {
     dishDetails.forEach((dishD) => {
       price += dishD.dishPrice * dishIdAndQty[dishD.dishId];
     });
-    const taxPrice = Math.round(0.02 * price * 100) / 100;
+    const taxPrice = Math.round(0.06 * price * 100) / 100;
     const totalPrice = Math.round((price + taxPrice) * 100) / 100;
     const orderEntry = await order.create(
       {
@@ -76,7 +79,7 @@ const createOrder = async (req, res) => {
     if (!orderType) {
       return res.status(400).json({ error: 'Please select order type!' });
     }
-    if (orderType === 'Delivery' && !orderAddress) {
+    if (orderType === 'Delivery' && orderAddress.length === 0) {
       return res.status(400).json({ error: 'Please enter your address!' });
     }
     const latestOrder = await order.findOne({
@@ -118,6 +121,13 @@ const createOrder = async (req, res) => {
       },
       { transaction: t },
     );
+    // TODO: Implement below destroy initialized orders!
+    // await order.destroy(
+    //   {
+    //     where: { custId: parseInt(custId, 10), orderStatus: 'Initialized' },
+    //   },
+    //   { transaction: t },
+    // );
     t.commit();
     return res.status(200).json({
       updatedOrder,
@@ -148,9 +158,25 @@ const getLatestOrder = async (req, res) => {
             },
           ],
         },
+        {
+          model: restaurant,
+          include: [
+            {
+              model: restaurantImages,
+              attributes: { exclude: ['createdAt', 'updatedAt'] },
+            },
+            {
+              model: restaurantType,
+              attributes: { exclude: ['createdAt', 'updatedAt'] },
+            },
+          ],
+        },
       ],
       order: [['createdAt', 'DESC']],
     });
+    if (!latestOrder) {
+      return res.status(400).json({ error: 'No items in cart!' });
+    }
     const orderDishesInfo = {};
     latestOrder.orderDishes.forEach((orderDish) => {
       if (!orderDishesInfo.hasOwnProperty(String(orderDish.dishId))) {

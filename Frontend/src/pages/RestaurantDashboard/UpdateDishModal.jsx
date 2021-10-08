@@ -205,13 +205,12 @@ function UpdateDishModal(props) {
     const token = sessionStorage.getItem('token');
     const decoded = jwt_decode(token);
     try {
-      const response = await axiosInstance.delete(
+      await axiosInstance.delete(
         `restaurants/${decoded.id}/dishes/${selectedDishId}`,
         {
           headers: { Authorization: token },
         },
       );
-      console.log(response);
       dispatch(setDeleteDishFlag());
       toast.success('Dish deleted successfully!');
     } catch (error) {

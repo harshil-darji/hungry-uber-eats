@@ -8,6 +8,7 @@ import CustomerNavbar from './CustomerNavbar';
 import CustomerFavourites from './CustomerFavourites';
 import RestaurantDetails from './RestaurantDetails';
 import CustomerCheckout from './CustomerCheckout';
+import CustomerOrders from './CustomerOrders';
 
 const RouteWithNavbar = ({
   exact, path, component: Component, ...rest
@@ -44,6 +45,7 @@ function CustomerDashboard({ match }) {
           component={CustomerFavourites}
         />
         <Route path={`${match.path}/checkout`} component={CustomerCheckout} />
+        <Route path={`${match.path}/orders`} component={CustomerOrders} />
       </Row>
     </Container>
   );

@@ -191,6 +191,21 @@ const getCustomerAddresses = async (req, res) => {
   }
 };
 
+const deleteCustomerAddress = async (req, res) => {
+  try {
+    const { custId, id } = req.params;
+    const deleted = await customerAddress.destroy({
+      where: { custId, id },
+    });
+    if (deleted) {
+      return res.status(200).json({ message: 'Address deleted successfully!' });
+    }
+    return res.status(404).json({ error: 'Address not found!' });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   checkEmail,
   checkLoginEmail,
@@ -200,5 +215,6 @@ module.exports = {
   updateCustomer,
   addCustomerAddress,
   getCustomerAddresses,
+  deleteCustomerAddress,
   deleteCustomer,
 };

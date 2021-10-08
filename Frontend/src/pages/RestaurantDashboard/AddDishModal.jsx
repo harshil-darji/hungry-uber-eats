@@ -130,7 +130,6 @@ function AddDishModal(props) {
         }
         toast.error(error.response.data.error);
       }
-      console.log(error);
     }
   };
 

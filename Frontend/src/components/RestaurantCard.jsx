@@ -57,7 +57,6 @@ function RestaurantCard(props) {
                   })}
                 >
                   <Button
-                    onClick={() => console.log('bruhehee')}
                     size={SIZE.mini}
                     shape={SHAPE.circle}
                   >
