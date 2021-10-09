@@ -6,3 +6,15 @@ export default axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// axiosInstance.interceptors.response.use(
+//   (res) => res,
+//   (err) => {
+//     if (err.response.status === 403) {
+//       toast('Session expired! Please login again.');
+//     }
+//     return err;
+//   },
+// );
+
+// export default axiosInstance;

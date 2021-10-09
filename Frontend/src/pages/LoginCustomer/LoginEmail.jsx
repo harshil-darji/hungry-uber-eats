@@ -98,6 +98,7 @@ function LoginEmail() {
               }
             >
               <Input
+                autoFocus
                 autoComplete="off"
                 id="emailId"
                 value={emailValue}

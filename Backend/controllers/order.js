@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-prototype-builtins */
 const {
@@ -86,7 +87,6 @@ const createOrder = async (req, res) => {
       where: { custId },
       order: [['createdAt', 'DESC']],
     });
-    // TODO: before placing the order, make sure to clear all previously INITIALIZED orders
     const updatedOrder = await order.update(
       { ...req.body, orderPlacedTime, orderStatus: 'Placed' },
       {
@@ -115,20 +115,18 @@ const createOrder = async (req, res) => {
         },
       );
     });
-    await cart.destroy(
-      {
-        where: { custId },
+    await cart.destroy({
+      where: { custId },
+      transaction: t,
+    });
+    await order.destroy({
+      where: {
+        custId,
+        orderStatus: 'Initialized',
       },
-      { transaction: t },
-    );
-    // TODO: Implement below destroy initialized orders!
-    // await order.destroy(
-    //   {
-    //     where: { custId: parseInt(custId, 10), orderStatus: 'Initialized' },
-    //   },
-    //   { transaction: t },
-    // );
-    t.commit();
+      transaction: t,
+    });
+    await t.commit();
     return res.status(200).json({
       updatedOrder,
       message: 'Order placed successfully!',
@@ -222,12 +220,48 @@ const getCustomerOrders = async (req, res) => {
     if (String(req.headers.id) !== String(custId)) {
       return res.status(401).json({ error: 'Unauthorized request!' });
     }
-    const customerOrders = await order.findAll({
-      where: { custId },
-      include: [{ model: orderDishes, include: [{ model: dish }] }],
-      order: [['createdAt', 'DESC']],
-    });
-    return res.json({ customerOrders });
+
+    // const oIDs = await order.findAll({
+    //   where: { custId },
+    //   attributes: ['orderId'],
+    // });
+    // const orderIDs = oIDs.map((oID) => oID.orderId);
+    // const customerOrderDishes = await orderDishes.findAll({
+    //   attributes: [
+    //     [sequelize.fn('count', sequelize.col('dish.dishId')), 'dishCount'],
+    //   ],
+    //   include: [
+    //     {
+    //       model: dish,
+    //     },
+    //   ],
+    //   required: false,
+    //   where: { orderId: orderIDs },
+    //   group: ['orderDishes.dishId'],
+    // });
+    // const customerOrders = await order.findAll({
+    //   where: { custId },
+    //   include: [
+    //     {
+    //       model: orderDishes,
+    //       include: [{ model: dish }],
+    //     },
+    //   ],
+    //   order: [['createdAt', 'DESC']],
+    // });
+    // eslint-disable-next-line no-unused-vars
+    // const [customerOrders, m1] = await sequelize.query(
+    //   'SELECT dishes.*, orders.*, restaurants.*, COUNT(orderDishes.dishId) as dishCount FROM orderDishes JOIN dishes on orderDishes.dishId=dishes.dishId JOIN restaurants on restaurants.restId=dishes.restId JOIN orders on orderDishes.orderId = orders.orderId GROUP BY orderDishes.dishId, orders.orderId;',
+    // );
+    // eslint-disable-next-line no-unused-vars
+    const [orderDishCounts, m2] = await sequelize.query(
+      'select count(*) as totalDishCount, orders.orderId from orders join restaurants on orders.restId = restaurants.restId join restaurantImages on restaurantImages.restId = restaurants.restId join orderDishes on orders.orderId = orderDishes.orderId group by orders.orderId;',
+    );
+    // eslint-disable-next-line no-unused-vars
+    const [orderDetails, m3] = await sequelize.query(
+      'select restaurants.name, restaurantImages.imageLink, restaurantImages.restId, orders.orderId, orders.totalPrice, orders.orderPlacedTime from orders join restaurants on orders.restId = restaurants.restId join restaurantImages on restaurantImages.restId = restaurants.restId join orderDishes on orders.orderId = orderDishes.orderId group by orders.orderId, orders.orderPlacedTime, restaurantImages.imageLink, restaurantImages.restId, restaurants.name, orders.totalPrice;',
+    );
+    return res.json({ orderDishCounts, orderDetails });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }

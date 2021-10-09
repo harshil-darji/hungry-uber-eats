@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/no-static-element-interactions */
+/* eslint-disable jsx-a11y/click-events-have-key-events */
 import * as React from 'react';
 import { useHistory } from 'react-router';
 // import { StyledLink } from 'baseui/link';
@@ -14,11 +16,9 @@ export default function RestaurantNavbar() {
   return (
     <div className="nav navbar navbar-custom fixed-top">
       <div className="innerDiv">
-        <img
-          src={logoImage}
-          style={{ width: '110px', top: 0 }}
-          alt="Logo"
-        />
+        <div onClick={() => history.push('/')} style={{ cursor: 'pointer' }}>
+          <img src={logoImage} style={{ width: '110px', top: 0 }} alt="Logo" />
+        </div>
 
         <div>
           <i

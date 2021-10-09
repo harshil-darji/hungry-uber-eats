@@ -157,6 +157,7 @@ function CustomerCheckout() {
       );
       if (deliveryTypeselected === 'Delivery') {
         toast.success('Order placed! Tasty food is on the way!');
+        history.push('/customer/orders');
         return;
       }
       toast.success('Order placed!');
