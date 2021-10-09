@@ -1,3 +1,8 @@
+/* eslint-disable react/jsx-wrap-multilines */
+/* eslint-disable react/jsx-indent */
+/* eslint-disable indent */
+/* eslint-disable operator-linebreak */
+/* eslint-disable no-nested-ternary */
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable react/jsx-one-expression-per-line */
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
@@ -12,12 +17,13 @@
 import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
-import { Row, Nav } from 'react-bootstrap';
+import { Row, Nav, Col } from 'react-bootstrap';
 import { Menu } from 'baseui/icon';
 import toast from 'react-hot-toast';
 import { Block } from 'baseui/block';
 import { ButtonGroup, SHAPE, MODE } from 'baseui/button-group';
 import { Button, KIND, SIZE } from 'baseui/button';
+import { H2 } from 'baseui/typography';
 import {
   HeaderNavigation,
   ALIGN,
@@ -28,8 +34,18 @@ import { StatefulSelect as Search, TYPE } from 'baseui/select';
 import { Drawer, ANCHOR } from 'baseui/drawer';
 import { ThemeProvider, createTheme, lightThemePrimitives } from 'baseui';
 import jwt_decode from 'jwt-decode';
+import {
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  // ModalButton,
+} from 'baseui/modal';
+import { FormControl } from 'baseui/form-control';
+import { Input } from 'baseui/input';
 
 import axiosInstance from '../../services/apiConfig';
+import { setLocation } from '../../actions/searchFilter';
 
 import UberEatsSquareSvg from '../../components/UberEatsSquareSvg';
 import UberEatsSvg from '../../components/UberEatsSvg';
@@ -45,39 +61,43 @@ export default function CustomerNavbar() {
   const cart = useSelector((state) => state.cart);
 
   const [deliveryTypeselected, setDeliveryTypeselected] = useState(0);
-  const [locationObj, setLocationObj] = useState(null);
   const [isOpen, setIsOpen] = useState(false); // This is for navigation sidebar on left side
   const [cartIsOpen, setCartIsOpen] = useState(false); // this is drawer on right for cart
   const [totalDishesInCart, setTotalDishesInCart] = useState(0);
 
-  const getLocation = () => {
-    const options = {
-      enableHighAccuracy: true,
-      timeout: 5000,
-      maximumAge: 0,
-    };
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [inputCustomerAddress, setInputCustomerAddress] = useState('');
+  const [customerAddresses, setCustomerAddresses] = useState([]);
+  const [addressToSend, setAddressToSend] = useState('');
 
-    function success(pos) {
-      const crd = pos.coords;
-      const reqUrl = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${crd.latitude}&lon=${crd.longitude}`;
+  // const getLocation = () => {
+  //   const options = {
+  //     enableHighAccuracy: true,
+  //     timeout: 5000,
+  //     maximumAge: 0,
+  //   };
 
-      const xmlHttp = new XMLHttpRequest();
-      xmlHttp.open('GET', reqUrl, false);
-      xmlHttp.send(null);
-      const responseObj = JSON.parse(xmlHttp.responseText);
-      setLocationObj(responseObj);
-    }
+  //   function success(pos) {
+  //     const crd = pos.coords;
+  //     const reqUrl = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${crd.latitude}&lon=${crd.longitude}`;
 
-    function error() {
-      toast.error('Error fetching current location!');
-    }
+  //     const xmlHttp = new XMLHttpRequest();
+  //     xmlHttp.open('GET', reqUrl, false);
+  //     xmlHttp.send(null);
+  //     const responseObj = JSON.parse(xmlHttp.responseText);
+  //     setLocationObj(responseObj);
+  //   }
 
-    navigator.geolocation.getCurrentPosition(success, error, options);
-  };
+  //   function error() {
+  //     toast.error('Error fetching current location!');
+  //   }
 
-  useEffect(() => {
-    getLocation();
-  }, []);
+  //   navigator.geolocation.getCurrentPosition(success, error, options);
+  // };
+
+  // useEffect(() => {
+  //   getLocation();
+  // }, []);
 
   const getDishCountFromCart = async () => {
     const token = sessionStorage.getItem('token');
@@ -100,9 +120,96 @@ export default function CustomerNavbar() {
     }
   };
 
+  const getCustomerAddresses = async () => {
+    const token = sessionStorage.getItem('token');
+    const decoded = jwt_decode(token);
+    try {
+      const response = await axiosInstance.get(
+        `customers/${decoded.id}/addresses`,
+        {
+          headers: { Authorization: token },
+        },
+      );
+      setCustomerAddresses(response.data.existingAddresses);
+      // if (response.data.existingAddresses.length > 0) {
+      //   setAddressToSend(response.data.existingAddresses[0].address);
+      // }
+    } catch (error) {
+      // eslint-disable-next-line no-prototype-builtins
+      if (error.hasOwnProperty('response')) {
+        if (error.response.status === 403) {
+          toast.error('Session expired. Please login again!');
+          history.push('/login/customer');
+          return;
+        }
+        toast.error(error.response.data.error);
+      }
+    }
+  };
+
+  const saveCustomerAddress = async () => {
+    if (inputCustomerAddress.length === 0) {
+      setModalIsOpen(false);
+      return;
+    }
+    try {
+      const token = sessionStorage.getItem('token');
+      const decoded = jwt_decode(token);
+      await axiosInstance.post(
+        `customers/${decoded.id}/addresses`,
+        {
+          address: inputCustomerAddress,
+        },
+        {
+          headers: { Authorization: token },
+        },
+      );
+      getCustomerAddresses();
+      setInputCustomerAddress('');
+      toast.success('Address added');
+    } catch (error) {
+      if (error.hasOwnProperty('response')) {
+        if (error.response.status === 403) {
+          toast.error('Session expired. Please login again!');
+          history.push('/login/customer');
+          return;
+        }
+      }
+      toast.error(error.response.data.error);
+    }
+  };
+
+  const deleteCustomerAddress = async (id) => {
+    const token = sessionStorage.getItem('token');
+    const decoded = jwt_decode(token);
+    try {
+      await axiosInstance.delete(`customers/${decoded.id}/addresses/${id}`, {
+        headers: { Authorization: token },
+      });
+      getCustomerAddresses();
+      toast.success('Address deleted');
+    } catch (error) {
+      if (error.hasOwnProperty('response')) {
+        if (error.response.status === 403) {
+          toast.error('Session expired. Please login again!');
+          history.push('/login/customer');
+          return;
+        }
+      }
+      toast.error(error.response.data.error);
+    }
+  };
+
   useEffect(() => {
     getDishCountFromCart();
+    getCustomerAddresses();
   }, [cart]);
+
+  useEffect(() => {
+    if (addressToSend.length > 0) {
+      dispatch(setLocation(addressToSend));
+    }
+  }, [addressToSend]);
 
   const customerSignOut = () => {
     dispatch(logoutCustomer());
@@ -111,6 +218,108 @@ export default function CustomerNavbar() {
 
   return (
     <>
+      <Modal
+        onClose={() => setModalIsOpen(false)}
+        isOpen={modalIsOpen}
+        overrides={{
+          // eslint-disable-next-line baseui/deprecated-component-api
+          Backdrop: {
+            style: {
+              bottom: '-10px',
+            },
+          },
+        }}
+      >
+        <ModalHeader>
+          <H2 style={{ fontWeight: 'normal' }}>Deliver to</H2>
+        </ModalHeader>
+        <ModalBody>
+          <FormControl>
+            <Input
+              startEnhancer={
+                <i
+                  className="fa fa-map-marker fa-lg"
+                  style={{ marginBottom: '12px' }}
+                  aria-hidden="true"
+                />
+              }
+              size={SIZE.large}
+              required
+              id="address"
+              autoComplete="off"
+              placeholder="Enter delivery address"
+              value={inputCustomerAddress}
+              onChange={(e) => setInputCustomerAddress(e.target.value)}
+            />
+          </FormControl>
+
+          {customerAddresses
+            ? customerAddresses.length > 0
+              ? customerAddresses.map((address) => (
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      marginLeft: '10px',
+                      marginBottom: '5px',
+                      cursor: 'pointer',
+                    }}
+                    className="rowHover"
+                    onClick={() => {
+                      setAddressToSend(address.address);
+                      setModalIsOpen(false);
+                    }}
+                  >
+                    <i
+                      className="fa fa-map-marker fa-lg"
+                      aria-hidden="true"
+                      siz
+                      style={{ marginBottom: '9px' }}
+                    />
+                    <Col>
+                      <p style={{ fontWeight: 'bold' }}>
+                        {address.address || 'Enter address'}
+                      </p>
+                      <p style={{ marginTop: '-14px', fontSize: '14px' }}>
+                        Deliver here
+                      </p>
+                    </Col>
+                    <Button
+                      style={{ marginRight: '10px' }}
+                      onClick={() => deleteCustomerAddress(address.id)}
+                      kind={KIND.secondary}
+                      shape={SHAPE.circle}
+                      size={SIZE.default}
+                    >
+                      <i
+                        className="fa fa-trash fa-lg"
+                        style={{
+                          color: 'red',
+                          marginLeft: '20px',
+                          marginBottom: '10px',
+                        }}
+                        aria-hidden="true"
+                      />
+                    </Button>
+                  </div>
+                ))
+              : null
+            : null}
+        </ModalBody>
+        <ModalFooter>
+          <Button
+            $style={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+            }}
+            onClick={saveCustomerAddress}
+          >
+            <span style={{ justifyContent: 'center' }}>Done</span>
+          </Button>
+        </ModalFooter>
+      </Modal>
+
       <Cart setCartIsOpen={setCartIsOpen} cartIsOpen={cartIsOpen} />
       <Drawer
         onClose={() => setIsOpen(false)}
@@ -372,6 +581,7 @@ export default function CustomerNavbar() {
                   height: '60px',
                 }}
                 kind={KIND.secondary}
+                onClick={() => setModalIsOpen(true)}
               >
                 <div style={{ display: 'flex', alignItems: 'center' }}>
                   <i
@@ -380,9 +590,7 @@ export default function CustomerNavbar() {
                     style={{ marginBottom: '9px' }}
                   />
                   <p style={{ marginBottom: 0 }}>
-                    {locationObj?.address.residential
-                      ? locationObj.address.residential
-                      : 'Enter address'}
+                    {addressToSend || 'Enter address'}
                   </p>
                 </div>
               </Button>

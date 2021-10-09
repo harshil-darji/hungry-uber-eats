@@ -1,3 +1,4 @@
+/* eslint-disable no-prototype-builtins */
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 import { createTheme, lightThemePrimitives, ThemeProvider } from 'baseui';
@@ -6,6 +7,12 @@ import { useHistory } from 'react-router';
 import { H6 } from 'baseui/typography';
 import React from 'react';
 import { Card, Col } from 'react-bootstrap';
+// eslint-disable-next-line camelcase
+import jwt_decode from 'jwt-decode';
+import toast from 'react-hot-toast';
+
+import axiosInstance from '../services/apiConfig';
+
 import HeartSvg from './HeartSvg';
 import ticketSmall from '../assets/img/ticket-small.png';
 import restaurantDefaultImage from '../assets/img/rest-default.jpg';
@@ -17,6 +24,32 @@ function RestaurantCard(props) {
 
   const gotoRestaurantDetails = () => {
     history.push(`/customer/restaurants/${restData.restId}`);
+  };
+
+  const addRestToFavs = async (restId) => {
+    try {
+      const token = sessionStorage.getItem('token');
+      const decoded = jwt_decode(token);
+      await axiosInstance.post(
+        `customers/${decoded.id}/favourites`,
+        {
+          restId,
+        },
+        {
+          headers: { Authorization: token },
+        },
+      );
+      toast.success('Added to favourites!');
+    } catch (error) {
+      if (error.hasOwnProperty('response')) {
+        if (error.response.status === 403) {
+          toast.error('Session expired. Please login again!');
+          history.push('/login/customer');
+          return;
+        }
+      }
+      toast.error(error.response.data.error);
+    }
   };
 
   return (
@@ -36,8 +69,14 @@ function RestaurantCard(props) {
                   : restaurantDefaultImage
               }
             />
-            {/* TODO: add to favourites from here */}
-            <HeartSvg />
+            <div
+              onClick={(e) => {
+                addRestToFavs(restData.restId);
+                e.stopPropagation();
+              }}
+            >
+              <HeartSvg />
+            </div>
           </div>
           <Card.Body>
             <div style={{ position: 'absolute', left: 0, right: 0 }}>
@@ -56,10 +95,7 @@ function RestaurantCard(props) {
                     },
                   })}
                 >
-                  <Button
-                    size={SIZE.mini}
-                    shape={SHAPE.circle}
-                  >
+                  <Button size={SIZE.mini} shape={SHAPE.circle}>
                     {(Math.random() * (5.0 - 3.5) + 3.5).toFixed(1)}
                   </Button>
                 </ThemeProvider>

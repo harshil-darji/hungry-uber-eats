@@ -1,7 +1,7 @@
 /* eslint-disable consistent-return */
 /* eslint-disable operator-linebreak */
 const bcrypt = require('bcrypt');
-const { getPaiganation } = require('u-server-utils');
+// const { getPaiganation } = require('u-server-utils');
 const { generateAccessToken } = require('../middleware/validateToken');
 const {
   restaurant,
@@ -185,10 +185,31 @@ const deleteRestaurant = async (req, res) => {
 
 const getRestaurants = async (req, res) => {
   try {
-    const { limit, offset } = getPaiganation(req.query.page, req.query.limit);
+    // const { limit, offset } = getPaiganation(req.query.page, req.query.limit);
+
+    const { city } = req.query;
+    // const { type } = req.query;
+    const { deliveryType } = req.query;
+
+    const searchObject = {
+      city,
+      deliveryType,
+    };
+
+    const checkProperties = (obj) => {
+      Object.keys(obj).forEach((key) => {
+        if (obj[key] === null || obj[key] === '' || obj[key] === undefined) {
+          // eslint-disable-next-line no-param-reassign
+          delete obj[key];
+        }
+      });
+    };
+
+    checkProperties(searchObject);
+
     const restaurants = await restaurant.findAll({
-      limit,
-      offset,
+      // limit,
+      // offset,
       include: [
         {
           model: restaurantImages,
@@ -196,6 +217,7 @@ const getRestaurants = async (req, res) => {
         },
       ],
       attributes: { exclude: ['passwd', 'createdAt', 'updatedAt'] },
+      where: searchObject,
     });
     if (!restaurants) {
       return res.status(200).json({ message: 'No restaurants found!' });

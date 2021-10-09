@@ -1,3 +1,8 @@
+/* eslint-disable react/jsx-curly-newline */
+/* eslint-disable implicit-arrow-linebreak */
+/* eslint-disable jsx-a11y/click-events-have-key-events */
+/* eslint-disable jsx-a11y/no-static-element-interactions */
+/* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable react/jsx-indent */
 /* eslint-disable indent */
 /* eslint-disable no-nested-ternary */
@@ -9,7 +14,8 @@ import {
   HeaderNavigation,
   StyledNavigationList,
 } from 'baseui/header-navigation';
-import { Display3, H6 } from 'baseui/typography';
+// eslint-disable-next-line object-curly-newline
+import { Display4, H4, H6, Label1, LabelMedium } from 'baseui/typography';
 import React, { useEffect, useState } from 'react';
 import { Col } from 'react-bootstrap';
 import { useHistory } from 'react-router';
@@ -18,6 +24,13 @@ import { Button, SIZE } from 'baseui/button';
 import jwt_decode from 'jwt-decode';
 import toast from 'react-hot-toast';
 import _ from 'underscore';
+import {
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  // ModalButton,
+} from 'baseui/modal';
 
 import axiosInstance from '../../services/apiConfig';
 
@@ -29,6 +42,8 @@ function CustomerOrders() {
   const history = useHistory();
   const [orderDishCounts, setOrderDishCounts] = useState([]);
   const [orderRestImages, setOrderRestImages] = useState([]);
+  const [orderDetails, setOrderDetails] = useState(null);
+  const [modalIsOpen, setModalIsOpen] = useState(false);
 
   const getCustomerOrders = async () => {
     const token = sessionStorage.getItem('token');
@@ -63,8 +78,32 @@ function CustomerOrders() {
     }
   };
 
-  console.log(orderRestImages);
-  console.log(orderDishCounts);
+  console.log(orderDetails);
+
+  const getOrderDetails = async (orderId) => {
+    // eslint-disable-next-line no-unreachable
+    const token = sessionStorage.getItem('token');
+    const decoded = jwt_decode(token);
+    try {
+      const response = await axiosInstance.get(
+        `customers/${decoded.id}/orders/${orderId}`,
+        {
+          headers: { Authorization: token },
+        },
+      );
+      setOrderDetails(response.data.orderDetails);
+    } catch (error) {
+      // eslint-disable-next-line no-prototype-builtins
+      if (error.hasOwnProperty('response')) {
+        if (error.response.status === 403) {
+          toast.error('Session expired. Please login again!');
+          history.push('/login/customer');
+          return;
+        }
+        toast.error(error.response.data.error);
+      }
+    }
+  };
 
   useEffect(() => {
     getCustomerOrders();
@@ -72,6 +111,121 @@ function CustomerOrders() {
 
   return (
     <div>
+      <Modal
+        onClose={() => setModalIsOpen(false)}
+        isOpen={modalIsOpen}
+        overrides={{
+          // eslint-disable-next-line baseui/deprecated-component-api
+          Backdrop: {
+            style: {
+              bottom: '-10px',
+            },
+          },
+        }}
+      >
+        <ModalHeader>
+          <H6 style={{ fontWeight: 'normal', textAlign: 'center' }}>Receipt</H6>
+        </ModalHeader>
+        <ModalBody>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+            }}
+          >
+            <H4>Total</H4>
+            <H4>{orderDetails ? <>$ {orderDetails[0].totalPrice} </> : ''}</H4>
+          </div>
+          {orderDetails
+            ? orderDetails.length > 0
+              ? orderDetails.map((orderDetail) => (
+                  <div
+                    style={{
+                      marginRight: '10px',
+                      marginLeft: '10px',
+                      marginTop: '20px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'flex-start',
+                        }}
+                      >
+                        <div
+                          className="smallBox"
+                          style={{ textAlign: 'center' }}
+                        >
+                          {orderDetail.dishCount}
+                        </div>
+                        <Label1 style={{ marginLeft: '10px' }}>
+                          {orderDetail.name}
+                        </Label1>
+                      </div>
+                      <Label1>${orderDetail.dishPrice}</Label1>
+                    </div>
+
+                    <p
+                      style={{
+                        marginLeft: '35px',
+                        marginTop: '10px',
+                        fontSize: '16px',
+                      }}
+                    >
+                      {orderDetail.name} comes with{' '}
+                    </p>
+                    <p style={{ marginLeft: '35px' }}>{orderDetail.ingreds}</p>
+                  </div>
+                ))
+              : null
+            : null}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+            }}
+          >
+            <LabelMedium>Order status</LabelMedium>
+            <LabelMedium style={{ fontWeight: 'normal' }}>
+              {orderDetails ? orderDetails[0].orderStatus : ''}
+            </LabelMedium>
+          </div>
+          {orderDetails ? (
+            orderDetails[0].orderType === 'Delivery' ? (
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  marginTop: '10px',
+                }}
+              >
+                <LabelMedium>Delivered to</LabelMedium>
+                <LabelMedium style={{ fontWeight: 'normal' }}>
+                  {orderDetails ? orderDetails[0].orderAddress : ''}
+                </LabelMedium>
+              </div>
+            ) : null
+          ) : null}
+        </ModalBody>
+        <ModalFooter>
+          <Button
+            $style={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+            }}
+            onClick={() => setModalIsOpen(false)}
+          >
+            <span style={{ justifyContent: 'center' }}>Close</span>
+          </Button>
+        </ModalFooter>
+      </Modal>
       <HeaderNavigation>
         <StyledNavigationList $align={ALIGN.left}>
           <div
@@ -92,7 +246,7 @@ function CustomerOrders() {
         </StyledNavigationList>
       </HeaderNavigation>
       <div style={{ marginLeft: '50px', marginTop: '10px' }}>
-        <Display3>Past Orders</Display3>
+        <Display4>Past Orders</Display4>
 
         {orderRestImages
           ? orderRestImages.length > 0
@@ -115,13 +269,17 @@ function CustomerOrders() {
                     <Col xs={7}>
                       <H6>{orderRestImage.name}</H6>
                       <p>
-                        {orderDishCounts[orderRestImage.orderId]} item for $
+                        {orderDishCounts[orderRestImage.orderId]} items for $
                         {orderRestImage.totalPrice} &middot;{' '}
                         {new Date(orderRestImage.orderPlacedTime).toUTCString()}{' '}
                         &middot;{' '}
                         <span
                           className="hoverUnderline"
                           style={{ fontWeight: 'bold' }}
+                          onClick={async () => {
+                            await getOrderDetails(orderRestImage.orderId);
+                            setModalIsOpen(true);
+                          }}
                         >
                           View receipt
                         </span>
@@ -131,9 +289,11 @@ function CustomerOrders() {
                       <div style={{ justifyContent: 'center' }}>
                         <Button
                           size={SIZE.large}
-                          onClick={() => history.push(
+                          onClick={() =>
+                            history.push(
                               `/customer/restaurants${orderRestImage.restId}`,
-                            )}
+                            )
+                          }
                           $style={{
                             width: '100%',
                             display: 'flex',

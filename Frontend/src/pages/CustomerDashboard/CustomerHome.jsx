@@ -1,7 +1,8 @@
 /* eslint-disable no-prototype-builtins */
 /* eslint-disable camelcase */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 // eslint-disable-next-line object-curly-newline
+import { useSelector } from 'react-redux';
 import { useHistory } from 'react-router';
 import { Container, Row, Col } from 'react-bootstrap';
 import { H3, H4 } from 'baseui/typography';
@@ -15,16 +16,24 @@ import axiosInstance from '../../services/apiConfig';
 import cardImage from '../../assets/img/cardImage.png';
 import '../../css/CustomerHome.css';
 import RestaurantCard from '../../components/RestaurantCard';
+import IconsList from '../../components/IconsList';
 
 function CustomerHome() {
   const [restaurants, setRestaurants] = useState([]);
   const history = useHistory();
 
-  const fetchRestaurants = useCallback(async () => {
+  const searchFilter = useSelector((state) => state.searchFilter);
+
+  const fetchRestaurants = async () => {
     const token = sessionStorage.getItem('token');
     try {
       const response = await axiosInstance.get('restaurants/', {
-        headers: { Authorization: token },
+        params: {
+          city: searchFilter.location,
+        },
+        headers: {
+          Authorization: token,
+        },
       });
       setRestaurants(response.data.restaurants);
     } catch (error) {
@@ -35,14 +44,18 @@ function CustomerHome() {
         }
       }
     }
-  }, []);
+  };
 
   useEffect(() => {
     fetchRestaurants();
-  }, []);
+  }, [searchFilter]);
 
   return (
     <Container fluid>
+      <Row>
+        <IconsList />
+      </Row>
+      <hr />
       <Row>
         <div
           style={{
@@ -112,7 +125,7 @@ function CustomerHome() {
         </Col>
       </Row>
       <Row>
-        <Col sm={4}>
+        <Col sm={4} style={{ marginLeft: '30px' }}>
           <H3>All stores</H3>
         </Col>
         <Col>

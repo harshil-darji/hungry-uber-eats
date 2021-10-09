@@ -300,10 +300,10 @@ const getOrderDetailsById = async (req, res) => {
     if (String(req.headers.id) !== String(custId)) {
       return res.status(401).json({ error: 'Unauthorized request!' });
     }
-    const orderDetails = await order.findAll({
-      where: { custId, orderId },
-      order: [['createdAt', 'DESC']],
-    });
+    // eslint-disable-next-line no-unused-vars
+    const [orderDetails, m1] = await sequelize.query(
+      `SELECT dishes.*, orders.*, COUNT(orderDishes.dishId) as dishCount FROM orderDishes JOIN dishes on orderDishes.dishId=dishes.dishId JOIN restaurants on restaurants.restId=dishes.restId JOIN restaurantImages on restaurants.restId=restaurantImages.restId JOIN orders on orderDishes.orderId = orders.orderId WHERE orders.orderId=${orderId} AND orders.custId=${custId} GROUP BY orderDishes.dishId, orders.orderId, restaurantImages.imageLink;`,
+    );
     return res.status(200).json({ orderDetails });
   } catch (error) {
     return res.status(500).json({ error: error.message });

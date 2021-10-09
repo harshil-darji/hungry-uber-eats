@@ -241,7 +241,18 @@ function CustomerCheckout() {
   // TODO: add drawer menu left side on navbar if time persists bruh.
   return (
     <div>
-      <Modal onClose={() => setModalIsOpen(false)} isOpen={modalIsOpen}>
+      <Modal
+        onClose={() => setModalIsOpen(false)}
+        isOpen={modalIsOpen}
+        overrides={{
+          // eslint-disable-next-line baseui/deprecated-component-api
+          Backdrop: {
+            style: {
+              bottom: '-10px',
+            },
+          },
+        }}
+      >
         <ModalHeader>
           <H2 style={{ fontWeight: 'normal' }}>Deliver to</H2>
         </ModalHeader>

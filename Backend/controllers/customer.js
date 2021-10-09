@@ -1,5 +1,12 @@
+/* eslint-disable operator-linebreak */
 const bcrypt = require('bcrypt');
-const { customer, customerAddress } = require('../models/data-model');
+const {
+  customer,
+  customerAddress,
+  custFavs,
+  restaurant,
+  restaurantImages,
+} = require('../models/data-model');
 const { generateAccessToken } = require('../middleware/validateToken');
 
 const checkEmail = async (req, res) => {
@@ -22,10 +29,10 @@ const createCustomer = async (req, res) => {
   try {
     if (
       !(
-        req.body.emailId
-        && req.body.passwd
-        && req.body.name
-        && req.body.contactNo
+        req.body.emailId &&
+        req.body.passwd &&
+        req.body.name &&
+        req.body.contactNo
       )
     ) {
       return res.status(400).json({ error: 'Please enter all fields! ' });
@@ -206,6 +213,55 @@ const deleteCustomerAddress = async (req, res) => {
   }
 };
 
+const addRestaurantToFavs = async (req, res) => {
+  try {
+    const { custId } = req.params;
+    const { restId } = req.body;
+    if (String(req.headers.id) !== String(custId)) {
+      return res.status(401).json({ error: 'Unauthorized request!' });
+    }
+    const custFav = await custFavs.create({
+      custId,
+      restId,
+    });
+    return res.status(200).json({ custFav });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+const getRestaurantFavs = async (req, res) => {
+  try {
+    const { custId } = req.params;
+    if (String(req.headers.id) !== String(custId)) {
+      return res.status(401).json({ error: 'Unauthorized request!' });
+    }
+    const customerFavs = await custFavs.findAll({
+      where: { custId },
+      attributes: [],
+      include: [
+        {
+          model: restaurant,
+          attributes: { exclude: ['createdAt', 'updatedAt', 'passwd'] },
+          include: [
+            {
+              model: restaurantImages,
+              attributes: { exclude: ['createdAt', 'updatedAt'] },
+            },
+          ],
+        },
+      ],
+    });
+    const restaurants = [];
+    customerFavs.forEach((custFav) => {
+      restaurants.push(custFav.restaurant);
+    });
+    return res.status(200).json({ restaurants });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   checkEmail,
   checkLoginEmail,
@@ -217,4 +273,6 @@ module.exports = {
   getCustomerAddresses,
   deleteCustomerAddress,
   deleteCustomer,
+  addRestaurantToFavs,
+  getRestaurantFavs,
 };

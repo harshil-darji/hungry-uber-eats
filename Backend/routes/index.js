@@ -148,4 +148,8 @@ router.delete(
   customerController.deleteCustomerAddress,
 );
 
+// Customer restaurant favs
+router.get('/customers/:custId/favourites', customerController.getRestaurantFavs);
+router.post('/customers/:custId/favourites', customerController.addRestaurantToFavs);
+
 module.exports = router;
