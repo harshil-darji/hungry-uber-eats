@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/click-events-have-key-events */
+/* eslint-disable jsx-a11y/no-static-element-interactions */
 import React from 'react';
 import { FormControl } from 'baseui/form-control';
 import { Input } from 'baseui/input';
@@ -81,7 +83,9 @@ function RegisterEmail() {
     >
       <div className="centerColumn">
         <div className="emptyDiv" />
-        <UberEatsSvg />
+        <div onClick={() => history.push('/')}>
+          <UberEatsSvg />
+        </div>
         <form
           className="widthDiv"
           onSubmit={(e) => e.preventDefault()}

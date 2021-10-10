@@ -21,6 +21,7 @@ import '../css/CustomerHome.css';
 
 function RestaurantCard(props) {
   const { restData } = props;
+  console.log(restData);
   const history = useHistory();
 
   const gotoRestaurantDetails = () => {

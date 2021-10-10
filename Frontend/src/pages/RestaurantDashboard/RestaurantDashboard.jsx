@@ -5,6 +5,7 @@ import Sidebar from '../../components/RestSidebar';
 import '../../css/Sidebar.css';
 import RestaurantHome from './RestaurantHome';
 import RestaurantMenu from './RestaurantMenu';
+import RestaurantOrders from './RestaurantOrders';
 import RestaurantSettings from './RestaurantSettings';
 
 const RestaurantDashboard = ({ match }) => (
@@ -20,6 +21,7 @@ const RestaurantDashboard = ({ match }) => (
           path={`${match.path}/settings`}
           component={RestaurantSettings}
         />
+        <Route path={`${match.path}/orders`} component={RestaurantOrders} />
       </Col>
     </Row>
   </Container>

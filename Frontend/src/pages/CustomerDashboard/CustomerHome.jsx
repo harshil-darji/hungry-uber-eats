@@ -12,6 +12,7 @@ import { ThemeProvider, createTheme, lightThemePrimitives } from 'baseui';
 import toast from 'react-hot-toast';
 import { Radio, RadioGroup } from 'baseui/radio';
 import { Accordion, Panel } from 'baseui/accordion';
+import _ from 'underscore';
 
 import axiosInstance from '../../services/apiConfig';
 
@@ -27,6 +28,8 @@ function CustomerHome() {
   const [restType, setRestType] = useState('');
   const history = useHistory();
   const dispatch = useDispatch();
+
+  console.log(restaurants);
 
   const searchFilter = useSelector((state) => state.searchFilter);
 
@@ -54,9 +57,43 @@ function CustomerHome() {
     }
   };
 
+  const searchRestaurants = async () => {
+    const token = sessionStorage.getItem('token');
+    try {
+      const response = await axiosInstance.get('restaurants/search', {
+        params: {
+          searchQuery: searchFilter.searchQuery,
+        },
+        headers: {
+          Authorization: token,
+        },
+      });
+      const uniqueRestObjects = await _.uniq(
+        response.data.restaurants,
+        (x) => x.restId,
+      );
+      uniqueRestObjects.forEach((rest) => {
+        // eslint-disable-next-line no-param-reassign
+        rest.restaurantImages = [{ imageLink: rest.imageLink }];
+      });
+      setRestaurants(uniqueRestObjects);
+    } catch (error) {
+      if (error.hasOwnProperty('response')) {
+        if (error.response.status === 403) {
+          toast.error('Session expired. Please login again!');
+          history.push('/');
+        }
+      }
+    }
+  };
+
   useEffect(() => {
     fetchRestaurants();
-  }, [searchFilter]);
+  }, [searchFilter.city, searchFilter.deliveryType, searchFilter.restType]);
+
+  useEffect(() => {
+    searchRestaurants();
+  }, [searchFilter.searchQuery]);
 
   useEffect(() => {
     if (restType.length > 0) {
@@ -148,8 +185,9 @@ function CustomerHome() {
                 onChange={(e) => setRestType(e.target.value)}
                 value={restType}
               >
+                <Radio value="">Any</Radio>
                 <Radio value="Veg">Veg</Radio>
-                <Radio value="Non-Veg">Non-Veg</Radio>
+                <Radio value="Non-veg">Non-Veg</Radio>
                 <Radio value="Vegan">Vegan</Radio>
               </RadioGroup>
             </Panel>

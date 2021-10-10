@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/no-static-element-interactions */
+/* eslint-disable jsx-a11y/click-events-have-key-events */
 import React from 'react';
 import { FormControl } from 'baseui/form-control';
 import { Input } from 'baseui/input';
@@ -69,7 +71,9 @@ function RegisterPasswd() {
     >
       <div className="centerColumn">
         <div className="emptyDiv" />
-        <UberEatsSvg />
+        <div onClick={() => history.push('/')}>
+          <UberEatsSvg />
+        </div>
         <form
           className="widthDiv"
           onSubmit={(e) => e.preventDefault()}
@@ -79,7 +83,9 @@ function RegisterPasswd() {
           <div style={{ marginTop: '40px' }}>
             <FormControl
               label="Password"
-              error={passwdShouldShowError ? 'Please enter longer password!' : null}
+              error={
+                passwdShouldShowError ? 'Please enter longer password!' : null
+              }
             >
               <Input
                 id="passwd"

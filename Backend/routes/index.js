@@ -45,6 +45,7 @@ router.delete('/customers/:custId', customerController.deleteCustomer);
 
 // Restaurant routes
 router.get('/restaurants', restaurantController.getRestaurants);
+router.get('/restaurants/search', restaurantController.searchRestaurants);
 router.get('/restaurants/:restId', restaurantController.getRestaurant);
 router.put('/restaurants/:restId', restaurantController.updateRestaurant);
 router.delete('/restaurants/:restId', restaurantController.deleteRestaurant);

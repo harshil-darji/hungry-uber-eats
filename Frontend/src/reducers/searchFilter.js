@@ -2,6 +2,7 @@ const initialState = {
   city: null,
   deliveryType: null,
   restType: null,
+  searchQuery: '',
 };
 
 const searchFilterReducer = (state = initialState, action) => {
@@ -12,6 +13,8 @@ const searchFilterReducer = (state = initialState, action) => {
       return { ...state, deliveryType: action.payload };
     case 'SET_REST_TYPE':
       return { ...state, restType: action.payload };
+    case 'SET_SEARCH_QUERY':
+      return { ...state, searchQuery: action.payload };
     default:
       return state;
   }

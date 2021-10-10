@@ -9,3 +9,7 @@ export function setReduxRestType(payload) {
 export function setReduxDeliveryType(payload) {
   return { type: 'SET_DELIVERY_TYPE', payload };
 }
+
+export function setReduxSearchQuery(payload) {
+  return { type: 'SET_SEARCH_QUERY', payload };
+}

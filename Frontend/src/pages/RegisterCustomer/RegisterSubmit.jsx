@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/no-static-element-interactions */
+/* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable react/jsx-props-no-spreading */
 import React, { useState } from 'react';
 import { FormControl } from 'baseui/form-control';
@@ -8,6 +10,7 @@ import {
   createTheme,
   lightThemePrimitives,
 } from 'baseui';
+import { useHistory } from 'react-router';
 import { Alert } from 'baseui/icon';
 
 import { useDispatch, useSelector } from 'react-redux';
@@ -47,7 +50,7 @@ function Negative() {
 
 function RegisterSubmit(props) {
   const customer = useSelector((state) => state.customer);
-  // const history = useHistory();
+  const history = useHistory();
   const dispatch = useDispatch();
 
   const [name, setname] = useState('');
@@ -92,7 +95,9 @@ function RegisterSubmit(props) {
     >
       <div className="centerColumn">
         <div className="emptyDiv" />
-        <UberEatsSvg />
+        <div onClick={() => history.push('/')}>
+          <UberEatsSvg />
+        </div>
 
         <form
           onSubmit={handleSubmit}

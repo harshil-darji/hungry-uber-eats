@@ -203,12 +203,20 @@ const getRestaurantOrders = async (req, res) => {
     if (String(req.headers.id) !== String(restId)) {
       return res.status(401).json({ error: 'Unauthorized request!' });
     }
-    const restaurantOrders = await order.findAll({
-      where: { restId },
-      include: [{ model: orderDishes, include: [{ model: dish }] }],
-      order: [['createdAt', 'DESC']],
-    });
-    return res.json({ restaurantOrders });
+    // eslint-disable-next-line no-unused-vars
+    const [orderDishCounts, m2] = await sequelize.query(
+      `select count(*) as totalDishCount, orders.orderId from orders join restaurants on orders.restId = restaurants.restId join restaurantImages on restaurantImages.restId = restaurants.restId join orderDishes on orders.orderId = orderDishes.orderId where orders.restId=${restId} group by orders.orderId;`,
+    );
+    // eslint-disable-next-line no-unused-vars
+    const [orderDetails, m3] = await sequelize.query(
+      `select customers.name, customers.profileImg, orders.orderId, orders.totalPrice, orders.orderPlacedTime from orders join customers on orders.custId = customers.custId join orderDishes on orders.orderId = orderDishes.orderId where orders.restId=${restId} group by orders.orderId, orders.orderPlacedTime, customers.name, orders.totalPrice, customers.profileImg`,
+    );
+    // const restaurantOrders = await order.findAll({
+    //   where: { restId },
+    //   include: [{ model: orderDishes, include: [{ model: dish }] }],
+    //   order: [['createdAt', 'DESC']],
+    // });
+    return res.json({ orderDetails, orderDishCounts });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -255,11 +263,11 @@ const getCustomerOrders = async (req, res) => {
     // );
     // eslint-disable-next-line no-unused-vars
     const [orderDishCounts, m2] = await sequelize.query(
-      'select count(*) as totalDishCount, orders.orderId from orders join restaurants on orders.restId = restaurants.restId join restaurantImages on restaurantImages.restId = restaurants.restId join orderDishes on orders.orderId = orderDishes.orderId group by orders.orderId;',
+      `select count(*) as totalDishCount, orders.orderId from orders join restaurants on orders.restId = restaurants.restId join restaurantImages on restaurantImages.restId = restaurants.restId join orderDishes on orders.orderId = orderDishes.orderId where orders.custId=${custId} group by orders.orderId;`,
     );
     // eslint-disable-next-line no-unused-vars
     const [orderDetails, m3] = await sequelize.query(
-      'select restaurants.name, restaurantImages.imageLink, restaurantImages.restId, orders.orderId, orders.totalPrice, orders.orderPlacedTime from orders join restaurants on orders.restId = restaurants.restId join restaurantImages on restaurantImages.restId = restaurants.restId join orderDishes on orders.orderId = orderDishes.orderId group by orders.orderId, orders.orderPlacedTime, restaurantImages.imageLink, restaurantImages.restId, restaurants.name, orders.totalPrice;',
+      `select restaurants.name, restaurantImages.imageLink, restaurantImages.restId, orders.orderId, orders.totalPrice, orders.orderPlacedTime from orders join restaurants on orders.restId = restaurants.restId join restaurantImages on restaurantImages.restId = restaurants.restId join orderDishes on orders.orderId = orderDishes.orderId where orders.custId=${custId} group by orders.orderId, orders.orderPlacedTime, restaurantImages.imageLink, restaurantImages.restId, restaurants.name, orders.totalPrice;`,
     );
     return res.json({ orderDishCounts, orderDetails });
   } catch (error) {

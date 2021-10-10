@@ -291,6 +291,19 @@ const getRestaurants = async (req, res) => {
   }
 };
 
+const searchRestaurants = async (req, res) => {
+  try {
+    const { searchQuery } = req.query;
+    // eslint-disable-next-line no-unused-vars
+    const [restaurants, m1] =
+      await sequelize.query(`select * from restaurants join restaurantImages on restaurants.restId= restaurantImages.restId
+    WHERE name like "%${searchQuery}%" or description like "%${searchQuery}%";`);
+    return res.status(200).json({ restaurants });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
 const addRestaurantType = async (req, res) => {
   const t = await sequelize.transaction();
   try {
@@ -518,6 +531,7 @@ module.exports = {
   deleteRestaurantImage,
   deleteRestaurant,
   getRestaurants,
+  searchRestaurants,
   createDish,
   getRestaurantDishes,
   getRestaurantDish,

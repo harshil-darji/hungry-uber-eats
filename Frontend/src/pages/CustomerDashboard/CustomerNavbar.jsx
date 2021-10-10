@@ -45,7 +45,11 @@ import { FormControl } from 'baseui/form-control';
 import { Input } from 'baseui/input';
 
 import axiosInstance from '../../services/apiConfig';
-import { setLocation, setReduxDeliveryType } from '../../actions/searchFilter';
+import {
+  setLocation,
+  setReduxDeliveryType,
+  setReduxSearchQuery,
+} from '../../actions/searchFilter';
 
 import UberEatsSquareSvg from '../../components/UberEatsSquareSvg';
 import UberEatsSvg from '../../components/UberEatsSvg';
@@ -69,6 +73,7 @@ export default function CustomerNavbar() {
   const [inputCustomerAddress, setInputCustomerAddress] = useState('');
   const [customerAddresses, setCustomerAddresses] = useState([]);
   const [addressToSend, setAddressToSend] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // const getLocation = () => {
   //   const options = {
@@ -131,9 +136,9 @@ export default function CustomerNavbar() {
         },
       );
       setCustomerAddresses(response.data.existingAddresses);
-      // if (response.data.existingAddresses.length > 0) {
-      //   setAddressToSend(response.data.existingAddresses[0].address);
-      // }
+      if (response.data.existingAddresses.length > 0) {
+        setAddressToSend(response.data.existingAddresses[0].address);
+      }
     } catch (error) {
       // eslint-disable-next-line no-prototype-builtins
       if (error.hasOwnProperty('response')) {
@@ -206,9 +211,7 @@ export default function CustomerNavbar() {
   }, [cart]);
 
   useEffect(() => {
-    if (addressToSend.length > 0) {
-      dispatch(setLocation(addressToSend));
-    }
+    dispatch(setLocation(addressToSend));
   }, [addressToSend]);
 
   useEffect(() => {
@@ -219,6 +222,10 @@ export default function CustomerNavbar() {
       dispatch(setReduxDeliveryType('Pickup'));
     }
   }, [deliveryTypeselected]);
+
+  useEffect(() => {
+    dispatch(setReduxSearchQuery(searchQuery));
+  }, [searchQuery]);
 
   const customerSignOut = () => {
     dispatch(logoutCustomer());
@@ -315,7 +322,7 @@ export default function CustomerNavbar() {
                     />
                     <Col>
                       <p style={{ fontWeight: 'bold' }}>
-                        {address.address || 'All locations'}
+                        {address ? address.address : 'All locations'}
                       </p>
                       <p style={{ marginTop: '-14px', fontSize: '14px' }}>
                         Deliver here
@@ -640,8 +647,7 @@ export default function CustomerNavbar() {
             <Search
               placeholder="What are you craving?"
               type={TYPE.search}
-              getOptionLabel={(props) => props.option.id || null}
-              onChange={() => {}}
+              onInputChange={(e) => setSearchQuery(e.target.value)}
             />
           </StyledNavigationItem>
         </StyledNavigationList>

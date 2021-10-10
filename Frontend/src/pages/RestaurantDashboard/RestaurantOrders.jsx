@@ -8,14 +8,8 @@
 /* eslint-disable no-nested-ternary */
 /* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable react/jsx-one-expression-per-line */
-import { Block } from 'baseui/block';
-import {
-  ALIGN,
-  HeaderNavigation,
-  StyledNavigationList,
-} from 'baseui/header-navigation';
 // eslint-disable-next-line object-curly-newline
-import { Display4, H4, H6, Label1, LabelMedium } from 'baseui/typography';
+import { H6 } from 'baseui/typography';
 import React, { useEffect, useState } from 'react';
 import { Col } from 'react-bootstrap';
 import { useHistory } from 'react-router';
@@ -24,33 +18,29 @@ import { Button, SIZE } from 'baseui/button';
 import jwt_decode from 'jwt-decode';
 import toast from 'react-hot-toast';
 import _ from 'underscore';
-import {
-  Modal,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  // ModalButton,
-} from 'baseui/modal';
+import // Modal,
+// ModalHeader,
+// ModalBody,
+// ModalFooter,
+// ModalButton,
+'baseui/modal';
 
 import axiosInstance from '../../services/apiConfig';
 
-import UberEatsSvg from '../../components/UberEatsSvg';
-
-import '../../css/CustomerOrder.css';
-
-function CustomerOrders() {
+function RestaurantOrders() {
   const history = useHistory();
+
   const [orderDishCounts, setOrderDishCounts] = useState([]);
   const [orderRestImages, setOrderRestImages] = useState([]);
-  const [orderDetails, setOrderDetails] = useState(null);
-  const [modalIsOpen, setModalIsOpen] = useState(false);
+  // const [orderDetails, setOrderDetails] = useState(null);
+  // const [modalIsOpen, setModalIsOpen] = useState(false);
 
-  const getCustomerOrders = async () => {
+  const getRestaurantOrders = async () => {
     const token = sessionStorage.getItem('token');
     const decoded = jwt_decode(token);
     try {
       const response = await axiosInstance.get(
-        `customers/${decoded.id}/orders`,
+        `restaurants/${decoded.id}/orders`,
         {
           headers: { Authorization: token },
         },
@@ -78,38 +68,13 @@ function CustomerOrders() {
     }
   };
 
-  const getOrderDetails = async (orderId) => {
-    // eslint-disable-next-line no-unreachable
-    const token = sessionStorage.getItem('token');
-    const decoded = jwt_decode(token);
-    try {
-      const response = await axiosInstance.get(
-        `customers/${decoded.id}/orders/${orderId}`,
-        {
-          headers: { Authorization: token },
-        },
-      );
-      setOrderDetails(response.data.orderDetails);
-    } catch (error) {
-      // eslint-disable-next-line no-prototype-builtins
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/customer');
-          return;
-        }
-        toast.error(error.response.data.error);
-      }
-    }
-  };
-
   useEffect(() => {
-    getCustomerOrders();
+    getRestaurantOrders();
   }, []);
 
   return (
     <div>
-      <Modal
+      {/* <Modal
         onClose={() => setModalIsOpen(false)}
         isOpen={modalIsOpen}
         overrides={{
@@ -132,55 +97,70 @@ function CustomerOrders() {
             }}
           >
             <H4>Total</H4>
-            <H4>{orderDetails ? <>$ {orderDetails[0].totalPrice} </> : ''}</H4>
+            <H4>
+              {orderDetails ? (
+                <>
+                  $
+                  {' '}
+                  {orderDetails[0].totalPrice}
+                  {' '}
+                </>
+              ) : ''}
+            </H4>
           </div>
           {orderDetails
             ? orderDetails.length > 0
               ? orderDetails.map((orderDetail) => (
+                <div
+                  style={{
+                    marginRight: '10px',
+                    marginLeft: '10px',
+                    marginTop: '20px',
+                  }}
+                >
                   <div
                     style={{
-                      marginRight: '10px',
-                      marginLeft: '10px',
-                      marginTop: '20px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
                     }}
                   >
                     <div
                       style={{
                         display: 'flex',
-                        justifyContent: 'space-between',
+                        justifyContent: 'flex-start',
                       }}
                     >
                       <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'flex-start',
-                        }}
+                        className="smallBox"
+                        style={{ textAlign: 'center' }}
                       >
-                        <div
-                          className="smallBox"
-                          style={{ textAlign: 'center' }}
-                        >
-                          {orderDetail.dishCount}
-                        </div>
-                        <Label1 style={{ marginLeft: '10px' }}>
-                          {orderDetail.name}
-                        </Label1>
+                        {orderDetail.dishCount}
                       </div>
-                      <Label1>${orderDetail.dishPrice}</Label1>
+                      <Label1 style={{ marginLeft: '10px' }}>
+                        {orderDetail.name}
+                      </Label1>
                     </div>
-
-                    <p
-                      style={{
-                        marginLeft: '35px',
-                        marginTop: '10px',
-                        fontSize: '16px',
-                      }}
-                    >
-                      {orderDetail.name} comes with{' '}
-                    </p>
-                    <p style={{ marginLeft: '35px' }}>{orderDetail.ingreds}</p>
+                    <Label1>
+                      $
+                      {orderDetail.dishPrice}
+                    </Label1>
                   </div>
-                ))
+
+                  <p
+                    style={{
+                      marginLeft: '35px',
+                      marginTop: '10px',
+                      fontSize: '16px',
+                    }}
+                  >
+                    {orderDetail.name}
+                    {' '}
+                    comes with
+                    {' '}
+                  </p>
+                  <p style={{ marginLeft: '35px' }}>{orderDetail.ingreds}</p>
+                </div>
+              ))
               : null
             : null}
           <div
@@ -223,28 +203,8 @@ function CustomerOrders() {
             <span style={{ justifyContent: 'center' }}>Close</span>
           </Button>
         </ModalFooter>
-      </Modal>
-      <HeaderNavigation>
-        <StyledNavigationList $align={ALIGN.left}>
-          <div
-            style={{
-              alignItems: 'flex-start',
-              width: '100vw',
-            }}
-          >
-            <div style={{ alignItems: 'flex-start', display: 'flex' }}>
-              <Block
-                style={{ marginLeft: '20px' }}
-                onClick={() => history.push('/customer/dashboard')}
-              >
-                <UberEatsSvg />
-              </Block>
-            </div>
-          </div>
-        </StyledNavigationList>
-      </HeaderNavigation>
-      <div style={{ marginLeft: '50px', marginTop: '10px' }}>
-        <Display4>Past Orders</Display4>
+      </Modal> */}
+      <div style={{ marginLeft: '30px', marginTop: '30px' }}>
 
         {orderRestImages
           ? orderRestImages.length > 0
@@ -260,7 +220,7 @@ function CustomerOrders() {
                     <Col>
                       <img
                         className="col-sm-12"
-                        src={orderRestImage.imageLink}
+                        src={orderRestImage.profileImg}
                         alt="sans"
                       />
                     </Col>
@@ -275,8 +235,8 @@ function CustomerOrders() {
                           className="hoverUnderline"
                           style={{ fontWeight: 'bold' }}
                           onClick={async () => {
-                            await getOrderDetails(orderRestImage.orderId);
-                            setModalIsOpen(true);
+                            // await getOrderDetails(orderRestImage.orderId);
+                            // setModalIsOpen(true);
                           }}
                         >
                           View receipt
@@ -315,4 +275,4 @@ function CustomerOrders() {
   );
 }
 
-export default CustomerOrders;
+export default RestaurantOrders;

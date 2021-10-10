@@ -527,14 +527,14 @@ function CustomerCheckout() {
                   Add delivery instructions
                 </p> */}
               </Col>
-              <Button
+              {/* <Button
                 kind={KIND.secondary}
                 shape={SHAPE.pill}
                 size={SIZE.default}
                 style={{ height: '50px', width: '70px' }}
               >
                 Edit
-              </Button>
+              </Button> */}
             </div>
 
             <div
