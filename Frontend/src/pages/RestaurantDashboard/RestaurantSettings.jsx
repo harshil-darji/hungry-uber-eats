@@ -150,6 +150,7 @@ function RestaurantSettings() {
         if (error.response.status === 403) {
           toast.error('Session expired. Please login again!');
           history.push('/login/restaurant');
+          return;
         }
         dispatch(updateRestaurantFailure(error.response.data.error));
         toast.error(error.response.data.error);
@@ -223,6 +224,7 @@ function RestaurantSettings() {
         if (error.response.status === 403) {
           toast.error('Session expired. Please login again!');
           history.push('/login/restaurant');
+          return;
         }
         toast.error(error.response.data.error);
       }
@@ -266,6 +268,7 @@ function RestaurantSettings() {
             if (error.response.status === 403) {
               toast.error('Session expired. Please login again!');
               history.push('/login/restaurant');
+              return;
             }
             setIsUploading(false);
             dispatch(updateRestaurantFailure(error.response.data.error));
@@ -298,6 +301,7 @@ function RestaurantSettings() {
         if (error.response.status === 403) {
           toast.error('Session expired. Please login again!');
           history.push('/login/restaurant');
+          return;
         }
         toast.error(error.response.data.error);
       }

@@ -30,7 +30,7 @@ import {
   StyledNavigationList,
   StyledNavigationItem,
 } from 'baseui/header-navigation';
-import { StatefulSelect as Search, TYPE } from 'baseui/select';
+import { TYPE } from 'baseui/select';
 import { Drawer, ANCHOR } from 'baseui/drawer';
 import { ThemeProvider, createTheme, lightThemePrimitives } from 'baseui';
 import jwt_decode from 'jwt-decode';
@@ -644,10 +644,10 @@ export default function CustomerNavbar() {
 
         <StyledNavigationList $align={ALIGN.left}>
           <StyledNavigationItem style={{ width: '56vw', marginTop: '7px' }}>
-            <Search
+            <Input
               placeholder="What are you craving?"
               type={TYPE.search}
-              onInputChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </StyledNavigationItem>
         </StyledNavigationList>

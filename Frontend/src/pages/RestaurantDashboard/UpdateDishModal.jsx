@@ -137,7 +137,8 @@ function UpdateDishModal(props) {
                 if (error.hasOwnProperty('response')) {
                   if (error.response.status === 403) {
                     toast.error('Session expired. Please login again!');
-                    // history.push('/login/restaurant');
+                    history.push('/login/restaurant');
+                    return;
                   }
                   setIsUploading(false);
                   dispatch(addDishImageFailure(error.response.data.error));
@@ -156,6 +157,7 @@ function UpdateDishModal(props) {
         if (error.response.status === 403) {
           toast.error('Session expired. Please login again!');
           history.push('/login/restaurant');
+          return;
         }
         setIsUploading(false);
         toast.error(error.response.data.error);
@@ -218,6 +220,7 @@ function UpdateDishModal(props) {
         if (error.response.status === 403) {
           toast.error('Session expired. Please login again!');
           history.push('/login/restaurant');
+          return;
         }
       }
       toast.error(error.response.data.error);

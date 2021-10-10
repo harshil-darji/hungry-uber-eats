@@ -156,6 +156,7 @@ function RestaurantDetailsCard({ dish, cartInfo, restName, restId }) {
         if (error.response.status === 403) {
           toast.error('Session expired. Please login again!');
           history.push('/login/restaurant');
+          return;
         }
       }
       dispatch(addtoCartFailure(error.response.data.error));

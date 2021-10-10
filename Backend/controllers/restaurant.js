@@ -251,7 +251,6 @@ const getRestaurants = async (req, res) => {
 
       if (restaurants) {
         if (restaurantsFilteredByRestTypes.length === 0) {
-          console.log('bruh1');
           return res.status(200).json([]);
         }
 
@@ -266,7 +265,6 @@ const getRestaurants = async (req, res) => {
           }
         });
         restaurants = _.uniq(filteredRests, 'restId');
-        console.log('bruh2');
         return res.status(200).json({ restaurants });
       }
 
@@ -276,15 +274,12 @@ const getRestaurants = async (req, res) => {
       });
 
       restaurants = filteredRests;
-      console.log('bruh3');
       return res.status(200).json({ restaurants });
     }
 
     if (!restaurants) {
-      console.log('bruh4');
       return res.status(200).json({ message: 'No restaurants found!' });
     }
-    console.log('bruh5');
     return res.status(200).json({ restaurants });
   } catch (error) {
     return res.status(500).json({ error: error.message });
@@ -296,8 +291,8 @@ const searchRestaurants = async (req, res) => {
     const { searchQuery } = req.query;
     // eslint-disable-next-line no-unused-vars
     const [restaurants, m1] =
-      await sequelize.query(`select * from restaurants join restaurantImages on restaurants.restId= restaurantImages.restId
-    WHERE name like "%${searchQuery}%" or description like "%${searchQuery}%";`);
+      await sequelize.query(`select restaurants.*, restaurantImages.* from restaurants join restaurantImages on restaurants.restId= restaurantImages.restId join dishes on dishes.restId = restaurants.restId
+      WHERE restaurants.name like "%${searchQuery}%" or restaurants.description like "%${searchQuery}%" or dishes.name like "%${searchQuery}%";`);
     return res.status(200).json({ restaurants });
   } catch (error) {
     return res.status(500).json({ error: error.message });

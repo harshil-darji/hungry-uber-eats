@@ -52,7 +52,8 @@ function RestaurantHome() {
       if (error.hasOwnProperty('response')) {
         if (error.response.status === 403) {
           toast.error('Session expired. Please login again!');
-          // history.push('/login/restaurant');
+          history.push('/login/restaurant');
+          return;
         }
         toast.error(error.response.data.error);
       }
