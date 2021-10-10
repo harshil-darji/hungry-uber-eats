@@ -220,11 +220,17 @@ const addRestaurantToFavs = async (req, res) => {
     if (String(req.headers.id) !== String(custId)) {
       return res.status(401).json({ error: 'Unauthorized request!' });
     }
+    const customerFavExists = await custFavs.findOne({
+      where: { custId, restId },
+    });
+    if (customerFavExists) {
+      return res.status(200).json({ message: 'Restaurant already in favourites' });
+    }
     const custFav = await custFavs.create({
       custId,
       restId,
     });
-    return res.status(200).json({ custFav });
+    return res.status(200).json({ custFav, message: 'Added to favourites!' });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }

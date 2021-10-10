@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable no-prototype-builtins */
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
@@ -30,7 +31,7 @@ function RestaurantCard(props) {
     try {
       const token = sessionStorage.getItem('token');
       const decoded = jwt_decode(token);
-      await axiosInstance.post(
+      const response = await axiosInstance.post(
         `customers/${decoded.id}/favourites`,
         {
           restId,
@@ -39,7 +40,7 @@ function RestaurantCard(props) {
           headers: { Authorization: token },
         },
       );
-      toast.success('Added to favourites!');
+      toast.success(response.data.message);
     } catch (error) {
       if (error.hasOwnProperty('response')) {
         if (error.response.status === 403) {
@@ -53,7 +54,7 @@ function RestaurantCard(props) {
   };
 
   return (
-    <Col xs={3} style={{ marginTop: '80px' }}>
+    <Col xs={3} style={{ marginTop: '80px' }} {...props}>
       <div
         onClick={gotoRestaurantDetails}
         className="cardHover"

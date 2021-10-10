@@ -1,7 +1,9 @@
+/* eslint-disable no-unreachable */
 /* eslint-disable consistent-return */
 /* eslint-disable operator-linebreak */
 const bcrypt = require('bcrypt');
 // const { getPaiganation } = require('u-server-utils');
+const _ = require('underscore');
 const { generateAccessToken } = require('../middleware/validateToken');
 const {
   restaurant,
@@ -188,8 +190,15 @@ const getRestaurants = async (req, res) => {
     // const { limit, offset } = getPaiganation(req.query.page, req.query.limit);
 
     const { city } = req.query;
-    // const { type } = req.query;
-    const { deliveryType } = req.query;
+    const { restType } = req.query;
+    let { deliveryType } = req.query;
+
+    if (deliveryType === 'Pickup') {
+      deliveryType = ['Both', 'Pickup'];
+    }
+    if (deliveryType === 'Delivery') {
+      deliveryType = ['Both', 'Delivery'];
+    }
 
     const searchObject = {
       city,
@@ -207,7 +216,7 @@ const getRestaurants = async (req, res) => {
 
     checkProperties(searchObject);
 
-    const restaurants = await restaurant.findAll({
+    let restaurants = await restaurant.findAll({
       // limit,
       // offset,
       include: [
@@ -219,9 +228,63 @@ const getRestaurants = async (req, res) => {
       attributes: { exclude: ['passwd', 'createdAt', 'updatedAt'] },
       where: searchObject,
     });
+
+    if (restType && restType.length > 0) {
+      const restaurantsFilteredByRestTypes = await restaurantType.findAll({
+        // limit,
+        // offset,
+        include: [
+          {
+            model: restaurant,
+            attributes: { exclude: ['passwd', 'createdAt', 'updatedAt'] },
+            include: [
+              {
+                model: restaurantImages,
+                attributes: { exclude: ['createdAt', 'updatedAt'] },
+              },
+            ],
+          },
+        ],
+        attributes: { exclude: ['createdAt', 'updatedAt'] },
+        where: { restType },
+      });
+
+      if (restaurants) {
+        if (restaurantsFilteredByRestTypes.length === 0) {
+          console.log('bruh1');
+          return res.status(200).json([]);
+        }
+
+        const filteredRests = [];
+        restaurantsFilteredByRestTypes.forEach((restTypeObj) => {
+          const findFlag = _.find(
+            restaurants,
+            (item) => item.restId === restTypeObj.restaurant.restId,
+          );
+          if (findFlag) {
+            filteredRests.push(restTypeObj.restaurant);
+          }
+        });
+        restaurants = _.uniq(filteredRests, 'restId');
+        console.log('bruh2');
+        return res.status(200).json({ restaurants });
+      }
+
+      const filteredRests = [];
+      restaurantsFilteredByRestTypes.forEach((restTypeObj) => {
+        filteredRests.push(restTypeObj.restaurant);
+      });
+
+      restaurants = filteredRests;
+      console.log('bruh3');
+      return res.status(200).json({ restaurants });
+    }
+
     if (!restaurants) {
+      console.log('bruh4');
       return res.status(200).json({ message: 'No restaurants found!' });
     }
+    console.log('bruh5');
     return res.status(200).json({ restaurants });
   } catch (error) {
     return res.status(500).json({ error: error.message });

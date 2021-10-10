@@ -45,7 +45,7 @@ import { FormControl } from 'baseui/form-control';
 import { Input } from 'baseui/input';
 
 import axiosInstance from '../../services/apiConfig';
-import { setLocation } from '../../actions/searchFilter';
+import { setLocation, setReduxDeliveryType } from '../../actions/searchFilter';
 
 import UberEatsSquareSvg from '../../components/UberEatsSquareSvg';
 import UberEatsSvg from '../../components/UberEatsSvg';
@@ -211,6 +211,15 @@ export default function CustomerNavbar() {
     }
   }, [addressToSend]);
 
+  useEffect(() => {
+    if (deliveryTypeselected === 0) {
+      dispatch(setReduxDeliveryType('Delivery'));
+    }
+    if (deliveryTypeselected === 1) {
+      dispatch(setReduxDeliveryType('Pickup'));
+    }
+  }, [deliveryTypeselected]);
+
   const customerSignOut = () => {
     dispatch(logoutCustomer());
     history.push('/');
@@ -253,6 +262,34 @@ export default function CustomerNavbar() {
             />
           </FormControl>
 
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              marginLeft: '10px',
+              marginBottom: '5px',
+              cursor: 'pointer',
+            }}
+            className="rowHover"
+            onClick={() => {
+              setAddressToSend('');
+              setModalIsOpen(false);
+            }}
+          >
+            <i
+              className="fa fa-map-marker fa-lg"
+              aria-hidden="true"
+              siz
+              style={{ marginBottom: '9px' }}
+            />
+            <Col>
+              <p style={{ fontWeight: 'bold' }}>All locations</p>
+              <p style={{ marginTop: '-14px', fontSize: '14px' }}>
+                Show restaurants
+              </p>
+            </Col>
+          </div>
+
           {customerAddresses
             ? customerAddresses.length > 0
               ? customerAddresses.map((address) => (
@@ -278,7 +315,7 @@ export default function CustomerNavbar() {
                     />
                     <Col>
                       <p style={{ fontWeight: 'bold' }}>
-                        {address.address || 'Enter address'}
+                        {address.address || 'All locations'}
                       </p>
                       <p style={{ marginTop: '-14px', fontSize: '14px' }}>
                         Deliver here
@@ -590,7 +627,7 @@ export default function CustomerNavbar() {
                     style={{ marginBottom: '9px' }}
                   />
                   <p style={{ marginBottom: 0 }}>
-                    {addressToSend || 'Enter address'}
+                    {addressToSend || 'All locations'}
                   </p>
                 </div>
               </Button>

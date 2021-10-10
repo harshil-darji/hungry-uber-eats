@@ -2,25 +2,31 @@
 /* eslint-disable camelcase */
 import React, { useEffect, useState } from 'react';
 // eslint-disable-next-line object-curly-newline
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useHistory } from 'react-router';
 import { Container, Row, Col } from 'react-bootstrap';
-import { H3, H4 } from 'baseui/typography';
+import { H3, H4, H6 } from 'baseui/typography';
 import ArrowRight from 'baseui/icon/arrow-right';
 import { Button, SHAPE } from 'baseui/button';
 import { ThemeProvider, createTheme, lightThemePrimitives } from 'baseui';
 import toast from 'react-hot-toast';
+import { Radio, RadioGroup } from 'baseui/radio';
+import { Accordion, Panel } from 'baseui/accordion';
 
 import axiosInstance from '../../services/apiConfig';
 
 import cardImage from '../../assets/img/cardImage.png';
 import '../../css/CustomerHome.css';
 import RestaurantCard from '../../components/RestaurantCard';
+import IceCreamSvg from '../../components/IceCreamSvg';
 import IconsList from '../../components/IconsList';
+import { setReduxRestType } from '../../actions/searchFilter';
 
 function CustomerHome() {
   const [restaurants, setRestaurants] = useState([]);
+  const [restType, setRestType] = useState('');
   const history = useHistory();
+  const dispatch = useDispatch();
 
   const searchFilter = useSelector((state) => state.searchFilter);
 
@@ -29,7 +35,9 @@ function CustomerHome() {
     try {
       const response = await axiosInstance.get('restaurants/', {
         params: {
-          city: searchFilter.location,
+          city: searchFilter.city,
+          deliveryType: searchFilter.deliveryType,
+          restType: searchFilter.restType,
         },
         headers: {
           Authorization: token,
@@ -49,6 +57,12 @@ function CustomerHome() {
   useEffect(() => {
     fetchRestaurants();
   }, [searchFilter]);
+
+  useEffect(() => {
+    if (restType.length > 0) {
+      dispatch(setReduxRestType(restType));
+    }
+  }, [restType]);
 
   return (
     <Container fluid>
@@ -127,12 +141,43 @@ function CustomerHome() {
       <Row>
         <Col sm={4} style={{ marginLeft: '30px' }}>
           <H3>All stores</H3>
+          <Accordion>
+            <Panel style={{ backgroundColor: 'white' }} title="Restaurant type">
+              <RadioGroup
+                name="restType"
+                onChange={(e) => setRestType(e.target.value)}
+                value={restType}
+              >
+                <Radio value="Veg">Veg</Radio>
+                <Radio value="Non-Veg">Non-Veg</Radio>
+                <Radio value="Vegan">Vegan</Radio>
+              </RadioGroup>
+            </Panel>
+          </Accordion>
         </Col>
         <Col>
           <Row>
-            {restaurants?.length > 0
-              ? restaurants.map((rest) => <RestaurantCard restData={rest} />)
-              : null}
+            {restaurants?.length > 0 ? (
+              restaurants.map((rest) => <RestaurantCard restData={rest} />)
+            ) : (
+              <>
+                <Row
+                  style={{
+                    diplay: 'flex',
+                    justifyContent: 'center',
+                    width: '100%',
+                    marginTop: '20px',
+                    textAlign: 'center',
+                  }}
+                >
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <IceCreamSvg />
+                    <H6 style={{ marginTop: '10px' }}>Nothing to eat here!</H6>
+                    <p style={{ marginTop: '10px' }}>Try searching again!</p>
+                  </div>
+                </Row>
+              </>
+            )}
           </Row>
         </Col>
       </Row>

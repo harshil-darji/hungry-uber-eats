@@ -1,7 +1,9 @@
+/* eslint-disable indent */
+/* eslint-disable react/jsx-indent */
 /* eslint-disable no-prototype-builtins */
 import React, { useState, useEffect } from 'react';
 import { Display4 } from 'baseui/typography';
-import { Container, Row, Col } from 'react-bootstrap';
+import { Container, Row } from 'react-bootstrap';
 import toast from 'react-hot-toast';
 import { useHistory } from 'react-router';
 // eslint-disable-next-line camelcase
@@ -45,14 +47,12 @@ function CustomerFavourites() {
         <Row>
           <Display4>Recently added</Display4>
         </Row>
-        <Row>
-          <Col>
-            <Row>
-              {restaurants?.length > 0
-                ? restaurants.map((rest) => <RestaurantCard restData={rest} />)
-                : null}
-            </Row>
-          </Col>
+        <Row style={{ width: '90vw' }}>
+          {restaurants?.length > 0
+            ? restaurants.map((rest) => (
+                <RestaurantCard restData={rest} />
+              ))
+            : null}
         </Row>
       </div>
     </Container>

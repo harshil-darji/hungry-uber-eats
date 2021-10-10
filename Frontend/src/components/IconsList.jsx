@@ -5,13 +5,13 @@ function IconsList() {
   return (
     <div
       style={{
-        width: '80vw',
+        width: '70vw',
         justifyContent: 'center',
         display: 'flex',
         marginTop: '30px',
       }}
     >
-      <Col xs={3}> </Col>
+      <Col xs={5} />
       <Col
         style={{
           flexDirection: 'column',
