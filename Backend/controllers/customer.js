@@ -98,9 +98,9 @@ const loginCustomer = async (req, res) => {
 const getCustomer = async (req, res) => {
   try {
     const { custId } = req.params;
-    if (String(req.headers.id) !== String(custId)) {
-      return res.status(401).json({ error: 'Unauthorized request!' });
-    }
+    // if (String(req.headers.id) !== String(custId)) {
+    //   return res.status(401).json({ error: 'Unauthorized request!' });
+    // }
     const user = await customer.findOne({
       where: { custId },
     });

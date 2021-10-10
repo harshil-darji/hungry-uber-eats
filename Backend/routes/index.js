@@ -131,7 +131,9 @@ router.get(
   orderController.getOrderDetailsById,
 );
 router.get('/restaurants/:restId/orders', orderController.getRestaurantOrders);
+router.get('/restaurants/:restId/orders/:orderId', orderController.getRestaurantOrderDetailsById);
 router.get('/customers/:custId/orders', orderController.getCustomerOrders);
+router.put('/restaurants/:restId/orders/:orderId', orderController.updateOrder);
 
 // Customer addresses
 router.post(

@@ -3,6 +3,7 @@ import { Container, Row, Col } from 'react-bootstrap';
 import { Route } from 'react-router';
 import Sidebar from '../../components/RestSidebar';
 import '../../css/Sidebar.css';
+import CustomerProfile from './CustomerProfile';
 import RestaurantHome from './RestaurantHome';
 import RestaurantMenu from './RestaurantMenu';
 import RestaurantOrders from './RestaurantOrders';
@@ -22,6 +23,7 @@ const RestaurantDashboard = ({ match }) => (
           component={RestaurantSettings}
         />
         <Route path={`${match.path}/orders`} component={RestaurantOrders} />
+        <Route path={`${match.path}/customer/:custId`} component={CustomerProfile} />
       </Col>
     </Row>
   </Container>

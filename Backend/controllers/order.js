@@ -209,7 +209,7 @@ const getRestaurantOrders = async (req, res) => {
     );
     // eslint-disable-next-line no-unused-vars
     const [orderDetails, m3] = await sequelize.query(
-      `select customers.name, customers.profileImg, orders.orderId, orders.totalPrice, orders.orderPlacedTime from orders join customers on orders.custId = customers.custId join orderDishes on orders.orderId = orderDishes.orderId where orders.restId=${restId} group by orders.orderId, orders.orderPlacedTime, customers.name, orders.totalPrice, customers.profileImg`,
+      `select customers.name, customers.custId, customers.profileImg, orders.orderId, orders.totalPrice, orders.orderPlacedTime, orders.orderStatus, orders.orderType from orders join customers on orders.custId = customers.custId join orderDishes on orders.orderId = orderDishes.orderId where orders.restId=${restId} group by orders.orderId, orders.orderPlacedTime, customers.name, orders.totalPrice, customers.profileImg, orders.orderStatus, orders.orderType, customers.custId`,
     );
     // const restaurantOrders = await order.findAll({
     //   where: { restId },
@@ -277,11 +277,11 @@ const getCustomerOrders = async (req, res) => {
 
 const updateOrder = async (req, res) => {
   try {
-    const { restId } = req.params;
+    const { restId, orderId } = req.params;
     if (String(req.headers.id) !== String(restId)) {
       return res.status(401).json({ error: 'Unauthorized request!' });
     }
-    const { orderStatus, orderId } = req.body;
+    const { orderStatus } = req.body;
     if (!orderStatus) {
       return res
         .status(400)
@@ -290,10 +290,14 @@ const updateOrder = async (req, res) => {
     if (!orderId) {
       return res.status(400).json({ error: 'Order not found!' });
     }
-    const updatedOrder = await order.update({
-      orderStatus,
-      where: { orderId },
-    });
+    const updatedOrder = await order.update(
+      {
+        orderStatus,
+      },
+      {
+        where: { orderId },
+      },
+    );
     return res
       .status(200)
       .json({ message: 'Order status updated!', updatedOrder });
@@ -318,6 +322,22 @@ const getOrderDetailsById = async (req, res) => {
   }
 };
 
+const getRestaurantOrderDetailsById = async (req, res) => {
+  try {
+    const { orderId, restId } = req.params;
+    if (String(req.headers.id) !== String(restId)) {
+      return res.status(401).json({ error: 'Unauthorized request!' });
+    }
+    // eslint-disable-next-line no-unused-vars
+    const [orderDetails, m1] = await sequelize.query(
+      `SELECT dishes.*, orders.*, COUNT(orderDishes.dishId) as dishCount FROM orderDishes JOIN dishes on orderDishes.dishId=dishes.dishId JOIN restaurants on restaurants.restId=dishes.restId JOIN restaurantImages on restaurants.restId=restaurantImages.restId JOIN orders on orderDishes.orderId = orders.orderId WHERE orders.orderId=${orderId} AND orders.restId=${restId} GROUP BY orderDishes.dishId, orders.orderId, restaurantImages.imageLink;`,
+    );
+    return res.status(200).json({ orderDetails });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   initOrder,
   createOrder,
@@ -326,4 +346,5 @@ module.exports = {
   getRestaurantOrders,
   getCustomerOrders,
   getOrderDetailsById,
+  getRestaurantOrderDetailsById,
 };

@@ -280,7 +280,7 @@ const order = sequelize.define('order', {
       'Ready',
       'On the way',
       'Delivered',
-      'Pickup up',
+      'Picked up',
       'Cancelled',
     ],
   },
