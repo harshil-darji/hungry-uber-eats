@@ -38,8 +38,9 @@ function RestaurantOrders() {
   const [orderRestImages, setOrderRestImages] = useState([]);
   const [orderDetails, setOrderDetails] = useState(null);
   const [modalIsOpen, setModalIsOpen] = useState(false);
-
-  console.log(orderRestImages);
+  const [orderStatusFilter, setOrderStatusFilter] = useState([
+    { orderStatusFilter: 'Show all orders' },
+  ]);
 
   const getRestaurantOrders = async () => {
     const token = sessionStorage.getItem('token');
@@ -47,6 +48,44 @@ function RestaurantOrders() {
     try {
       const response = await axiosInstance.get(
         `restaurants/${decoded.id}/orders`,
+        {
+          headers: { Authorization: token },
+        },
+      );
+      const uniqueRestImages = await _.uniq(
+        response.data.orderDetails,
+        (x) => x.orderId,
+      );
+      setOrderRestImages(uniqueRestImages);
+      const orderDishCountsObj = {};
+      response.data.orderDishCounts.forEach((element) => {
+        orderDishCountsObj[element.orderId] = element.totalDishCount;
+      });
+      setOrderDishCounts(orderDishCountsObj);
+    } catch (error) {
+      // eslint-disable-next-line no-prototype-builtins
+      if (error.hasOwnProperty('response')) {
+        if (error.response.status === 403) {
+          toast.error('Session expired. Please login again!');
+          history.push('/login/restaurant');
+          return;
+        }
+        toast.error(error.response.data.error);
+      }
+    }
+  };
+
+  const getFilteredOrders = async (orderStatus) => {
+    const selectedOrderStatus = orderStatus[0].orderStatusFilter;
+    if (selectedOrderStatus === 'Show all orders') {
+      getRestaurantOrders();
+      return;
+    }
+    const token = sessionStorage.getItem('token');
+    const decoded = jwt_decode(token);
+    try {
+      const response = await axiosInstance.get(
+        `restaurants/${decoded.id}/orders/search/${selectedOrderStatus}`,
         {
           headers: { Authorization: token },
         },
@@ -85,7 +124,6 @@ function RestaurantOrders() {
           headers: { Authorization: token },
         },
       );
-      console.log(response.data);
       setOrderDetails(response.data.orderDetails);
     } catch (error) {
       // eslint-disable-next-line no-prototype-builtins
@@ -161,55 +199,54 @@ function RestaurantOrders() {
             <H4>Total</H4>
             <H4>{orderDetails ? <>$ {orderDetails[0].totalPrice} </> : ''}</H4>
           </div>
-          {orderDetails
-            ? orderDetails.length > 0
-              ? orderDetails.map((orderDetail) => (
+          {orderDetails ? (
+            orderDetails.length > 0 ? (
+              orderDetails.map((orderDetail) => (
+                <div
+                  style={{
+                    marginRight: '10px',
+                    marginLeft: '10px',
+                    marginTop: '20px',
+                  }}
+                >
                   <div
                     style={{
-                      marginRight: '10px',
-                      marginLeft: '10px',
-                      marginTop: '20px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
                     }}
                   >
                     <div
                       style={{
                         display: 'flex',
-                        justifyContent: 'space-between',
+                        justifyContent: 'flex-start',
                       }}
                     >
-                      <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'flex-start',
-                        }}
-                      >
-                        <div
-                          className="smallBox"
-                          style={{ textAlign: 'center' }}
-                        >
-                          {orderDetail.dishCount}
-                        </div>
-                        <Label1 style={{ marginLeft: '10px' }}>
-                          {orderDetail.name}
-                        </Label1>
+                      <div className="smallBox" style={{ textAlign: 'center' }}>
+                        {orderDetail.dishCount}
                       </div>
-                      <Label1>${orderDetail.dishPrice}</Label1>
+                      <Label1 style={{ marginLeft: '10px' }}>
+                        {orderDetail.name}
+                      </Label1>
                     </div>
-
-                    <p
-                      style={{
-                        marginLeft: '35px',
-                        marginTop: '10px',
-                        fontSize: '16px',
-                      }}
-                    >
-                      {orderDetail.name} comes with{' '}
-                    </p>
-                    <p style={{ marginLeft: '35px' }}>{orderDetail.ingreds}</p>
+                    <Label1>${orderDetail.dishPrice}</Label1>
                   </div>
-                ))
-              : null
-            : null}
+
+                  <p
+                    style={{
+                      marginLeft: '35px',
+                      marginTop: '10px',
+                      fontSize: '16px',
+                    }}
+                  >
+                    {orderDetail.name} comes with{' '}
+                  </p>
+                  <p style={{ marginLeft: '35px' }}>{orderDetail.ingreds}</p>
+                </div>
+              ))
+            ) : (
+              <h6>No such orders</h6>
+            )
+          ) : null}
           <div
             style={{
               display: 'flex',
@@ -259,6 +296,39 @@ function RestaurantOrders() {
           </Button>
         </div>
       </Modal>
+      <div
+        style={{
+          padding: '30px',
+          display: 'flex',
+          justifyContent: 'flex-start',
+          marginTop: '20px',
+        }}
+      >
+        <FormControl label="Filter order">
+          <Select
+            clearable={false}
+            escapeClearsValue={false}
+            options={[
+              { orderStatusFilter: 'Show all orders' },
+              { orderStatusFilter: 'Placed' },
+              { orderStatusFilter: 'Ready' },
+              { orderStatusFilter: 'Preparing' },
+              { orderStatusFilter: 'On the Way' },
+              { orderStatusFilter: 'Delivered' },
+              { orderStatusFilter: 'Picked up' },
+              { orderStatusFilter: 'Cancelled' },
+            ]}
+            valueKey="orderStatusFilter"
+            labelKey="orderStatusFilter"
+            placeholder="Filter order"
+            value={orderStatusFilter}
+            onChange={({ value }) => {
+              setOrderStatusFilter(value);
+              getFilteredOrders(value);
+            }}
+          />
+        </FormControl>
+      </div>
       <div style={{ marginLeft: '30px', marginTop: '30px' }}>
         {orderRestImages
           ? orderRestImages.length > 0
@@ -314,10 +384,13 @@ function RestaurantOrders() {
                         <FormControl>
                           {orderRestImage.orderStatus === 'Delivery' ? (
                             <Select
+                              clearable={false}
+                              escapeClearsValue={false}
                               options={[
                                 { orderStatus: 'Preparing' },
                                 { orderStatus: 'On the Way' },
                                 { orderStatus: 'Delivered' },
+                                { orderStatus: 'Cancelled' },
                               ]}
                               valueKey="orderStatus"
                               labelKey="orderStatus"
@@ -334,10 +407,13 @@ function RestaurantOrders() {
                             />
                           ) : (
                             <Select
+                              clearable={false}
+                              escapeClearsValue={false}
                               options={[
                                 { orderStatus: 'Preparing' },
                                 { orderStatus: 'Ready' },
                                 { orderStatus: 'Picked Up' },
+                                { orderStatus: 'Cancelled' },
                               ]}
                               valueKey="orderStatus"
                               labelKey="orderStatus"

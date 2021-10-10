@@ -338,6 +338,26 @@ const getRestaurantOrderDetailsById = async (req, res) => {
   }
 };
 
+const getOrderDetailsByOrderType = async (req, res) => {
+  try {
+    const { restId, orderStatus } = req.params;
+    if (String(req.headers.id) !== String(restId)) {
+      return res.status(401).json({ error: 'Unauthorized request!' });
+    }
+    // eslint-disable-next-line no-unused-vars
+    const [orderDishCounts, m2] = await sequelize.query(
+      `select count(*) as totalDishCount, orders.orderId from orders join restaurants on orders.restId = restaurants.restId join restaurantImages on restaurantImages.restId = restaurants.restId join orderDishes on orders.orderId = orderDishes.orderId where orders.restId=${restId} and orders.orderStatus="${orderStatus}" group by orders.orderId;`,
+    );
+    // eslint-disable-next-line no-unused-vars
+    const [orderDetails, m3] = await sequelize.query(
+      `select customers.name, customers.custId, customers.profileImg, orders.orderId, orders.totalPrice, orders.orderPlacedTime, orders.orderStatus, orders.orderType from orders join customers on orders.custId = customers.custId join orderDishes on orders.orderId = orderDishes.orderId where orders.restId=${restId} and orders.orderStatus="${orderStatus}" group by orders.orderId, orders.orderPlacedTime, customers.name, orders.totalPrice, customers.profileImg, orders.orderStatus, orders.orderType, customers.custId`,
+    );
+    return res.json({ orderDetails, orderDishCounts });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   initOrder,
   createOrder,
@@ -347,4 +367,5 @@ module.exports = {
   getCustomerOrders,
   getOrderDetailsById,
   getRestaurantOrderDetailsById,
+  getOrderDetailsByOrderType,
 };
