@@ -102,6 +102,7 @@ function RegisterEmail() {
               }
             >
               <Input
+                autoFocus
                 autoComplete="off"
                 id="emailId"
                 value={emailValue}

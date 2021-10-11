@@ -190,7 +190,7 @@ const getRestaurants = async (req, res) => {
     // const { limit, offset } = getPaiganation(req.query.page, req.query.limit);
 
     const { city } = req.query;
-    const { restType } = req.query;
+    let { restType } = req.query;
     let { deliveryType } = req.query;
 
     if (deliveryType === 'Pickup') {
@@ -198,6 +198,10 @@ const getRestaurants = async (req, res) => {
     }
     if (deliveryType === 'Delivery') {
       deliveryType = ['Both', 'Delivery'];
+    }
+
+    if (restType === 'Any' || restType === '') {
+      restType = ['Veg', 'Non-Veg', 'Vegan'];
     }
 
     const searchObject = {

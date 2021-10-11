@@ -111,6 +111,7 @@ function RegisterSubmit(props) {
               error={nameBlurFlag && !name.length ? 'Please enter name!' : null}
             >
               <Input
+                autoFocus
                 required
                 id="name"
                 autoComplete="off"

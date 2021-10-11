@@ -31,6 +31,8 @@ import {
   ModalFooter,
   // ModalButton,
 } from 'baseui/modal';
+import { FormControl } from 'baseui/form-control';
+import { Select } from 'baseui/select';
 
 import axiosInstance from '../../services/apiConfig';
 
@@ -44,6 +46,9 @@ function CustomerOrders() {
   const [orderRestImages, setOrderRestImages] = useState([]);
   const [orderDetails, setOrderDetails] = useState(null);
   const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [orderStatusFilter, setOrderStatusFilter] = useState([
+    { orderStatusFilter: 'Show all orders' },
+  ]);
 
   const getCustomerOrders = async () => {
     const token = sessionStorage.getItem('token');
@@ -71,6 +76,44 @@ function CustomerOrders() {
         if (error.response.status === 403) {
           toast.error('Session expired. Please login again!');
           history.push('/login/customer');
+          return;
+        }
+        toast.error(error.response.data.error);
+      }
+    }
+  };
+
+  const getFilteredOrders = async (orderStatus) => {
+    const selectedOrderStatus = orderStatus[0].orderStatusFilter;
+    if (selectedOrderStatus === 'Show all orders') {
+      getCustomerOrders();
+      return;
+    }
+    const token = sessionStorage.getItem('token');
+    const decoded = jwt_decode(token);
+    try {
+      const response = await axiosInstance.get(
+        `customers/${decoded.id}/orders/search/${selectedOrderStatus}`,
+        {
+          headers: { Authorization: token },
+        },
+      );
+      const uniqueRestImages = await _.uniq(
+        response.data.orderDetails,
+        (x) => x.orderId,
+      );
+      setOrderRestImages(uniqueRestImages);
+      const orderDishCountsObj = {};
+      response.data.orderDishCounts.forEach((element) => {
+        orderDishCountsObj[element.orderId] = element.totalDishCount;
+      });
+      setOrderDishCounts(orderDishCountsObj);
+    } catch (error) {
+      // eslint-disable-next-line no-prototype-builtins
+      if (error.hasOwnProperty('response')) {
+        if (error.response.status === 403) {
+          toast.error('Session expired. Please login again!');
+          history.push('/login/restaurant');
           return;
         }
         toast.error(error.response.data.error);
@@ -245,6 +288,40 @@ function CustomerOrders() {
       </HeaderNavigation>
       <div style={{ marginLeft: '50px', marginTop: '10px' }}>
         <Display4>Past Orders</Display4>
+
+        <div
+          style={{
+            padding: '30px',
+            display: 'flex',
+            justifyContent: 'flex-start',
+            marginTop: '20px',
+          }}
+        >
+          <FormControl label="Filter order">
+            <Select
+              clearable={false}
+              escapeClearsValue={false}
+              options={[
+                { orderStatusFilter: 'Show all orders' },
+                { orderStatusFilter: 'Placed' },
+                { orderStatusFilter: 'Ready' },
+                { orderStatusFilter: 'Preparing' },
+                { orderStatusFilter: 'On the Way' },
+                { orderStatusFilter: 'Delivered' },
+                { orderStatusFilter: 'Picked up' },
+                { orderStatusFilter: 'Cancelled' },
+              ]}
+              valueKey="orderStatusFilter"
+              labelKey="orderStatusFilter"
+              placeholder="Filter order"
+              value={orderStatusFilter}
+              onChange={({ value }) => {
+                setOrderStatusFilter(value);
+                getFilteredOrders(value);
+              }}
+            />
+          </FormControl>
+        </div>
 
         {orderRestImages
           ? orderRestImages.length > 0

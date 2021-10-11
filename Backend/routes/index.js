@@ -133,7 +133,8 @@ router.get(
 router.get('/restaurants/:restId/orders', orderController.getRestaurantOrders);
 router.get('/restaurants/:restId/orders/:orderId', orderController.getRestaurantOrderDetailsById);
 router.get('/customers/:custId/orders', orderController.getCustomerOrders);
-router.get('/restaurants/:restId/orders/search/:orderStatus', orderController.getOrderDetailsByOrderType);
+router.get('/customers/:custId/orders/search/:orderStatus', orderController.getCustOrderDetailsByOrderStatus);
+router.get('/restaurants/:restId/orders/search/:orderStatus', orderController.getRestOrderDetailsByOrderStatus);
 router.put('/restaurants/:restId/orders/:orderId', orderController.updateOrder);
 
 // Customer addresses

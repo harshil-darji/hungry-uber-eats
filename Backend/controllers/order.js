@@ -338,7 +338,7 @@ const getRestaurantOrderDetailsById = async (req, res) => {
   }
 };
 
-const getOrderDetailsByOrderType = async (req, res) => {
+const getRestOrderDetailsByOrderStatus = async (req, res) => {
   try {
     const { restId, orderStatus } = req.params;
     if (String(req.headers.id) !== String(restId)) {
@@ -358,6 +358,30 @@ const getOrderDetailsByOrderType = async (req, res) => {
   }
 };
 
+const getCustOrderDetailsByOrderStatus = async (req, res) => {
+  try {
+    const { custId, orderStatus } = req.params;
+    if (String(req.headers.id) !== String(custId)) {
+      return res.status(401).json({ error: 'Unauthorized request!' });
+    }
+    // eslint-disable-next-line no-unused-vars
+    const [orderDishCounts, m2] = await sequelize.query(
+      `select count(*) as totalDishCount, orders.orderId from orders join restaurants on orders.restId = restaurants.restId join restaurantImages on restaurantImages.restId = restaurants.restId join orderDishes on orders.orderId = orderDishes.orderId where orders.custId=${custId} and orders.orderStatus="${orderStatus}" group by orders.orderId;`,
+    );
+    // eslint-disable-next-line no-unused-vars
+    const [orderDetails, m3] = await sequelize.query(
+      `select restaurantImages.imageLink, orders.orderId, orders.orderPlacedTime, restaurants.name, orders.totalPrice, orders.orderStatus, orders.orderType, restaurants.restId
+      from orders join restaurants on orders.restId = restaurants.restId join restaurantImages on restaurants.restId = restaurantImages.restId 
+      join orderDishes on orders.orderId = orderDishes.orderId 
+      where orders.custId=${custId} and orders.orderStatus="${orderStatus}"
+      group by orders.orderId, restaurantImages.imageLink, orders.orderPlacedTime, restaurants.name, orders.totalPrice, orders.orderStatus, orders.orderType, restaurants.restId;`,
+    );
+    return res.json({ orderDetails, orderDishCounts });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   initOrder,
   createOrder,
@@ -367,5 +391,6 @@ module.exports = {
   getCustomerOrders,
   getOrderDetailsById,
   getRestaurantOrderDetailsById,
-  getOrderDetailsByOrderType,
+  getRestOrderDetailsByOrderStatus,
+  getCustOrderDetailsByOrderStatus,
 };

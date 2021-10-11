@@ -179,7 +179,7 @@ function CustomerHome() {
         <Col sm={4} style={{ marginLeft: '30px' }}>
           <H3>All stores</H3>
           <Accordion>
-            <Panel style={{ backgroundColor: 'white' }} title="Restaurant type">
+            <Panel style={{ backgroundColor: 'grey' }} title="Restaurant type">
               <RadioGroup
                 name="restType"
                 onChange={(e) => setRestType(e.target.value)}
@@ -208,10 +208,18 @@ function CustomerHome() {
                     textAlign: 'center',
                   }}
                 >
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      marginTop: '20px',
+                    }}
+                  >
                     <IceCreamSvg />
                     <H6 style={{ marginTop: '10px' }}>Nothing to eat here!</H6>
-                    <p style={{ marginTop: '10px' }}>Try searching again!</p>
+                    <p style={{ marginTop: '10px' }}>
+                      Try different filters for searching!
+                    </p>
                   </div>
                 </Row>
               </>

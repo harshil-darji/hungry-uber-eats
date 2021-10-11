@@ -88,6 +88,7 @@ function RegisterPasswd() {
               }
             >
               <Input
+                autoFocus
                 id="passwd"
                 autoComplete="off"
                 value={passwdValue}
