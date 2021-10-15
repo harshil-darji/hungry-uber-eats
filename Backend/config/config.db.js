@@ -4,4 +4,8 @@ module.exports = {
   PASSWORD: 'Bruh12345',
   DB: 'ubereats',
   dialect: 'mysql',
+  pool: {
+    max: 25,
+    min: 0,
+  },
 };

@@ -382,7 +382,7 @@ function RestaurantOrders() {
 
                       <div style={{ marginTop: '20px', width: '510px' }}>
                         <FormControl>
-                          {orderRestImage.orderStatus === 'Delivery' ? (
+                          {orderRestImage.orderType === 'Delivery' ? (
                             <Select
                               clearable={false}
                               escapeClearsValue={false}
