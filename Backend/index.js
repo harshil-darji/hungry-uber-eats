@@ -2,7 +2,32 @@ const express = require('express');
 const cors = require('cors');
 // const { getAccessMiddleware } = require('u-server-utils');
 
+const dotenv = require('dotenv');
+const path = require('path');
+
+dotenv.config({ path: path.join(__dirname, '.env') });
+
 const app = express();
+const expressSwagger = require('express-swagger-generator')(app);
+
+const mongoose = require('mongoose');
+
+const options = {
+  swaggerDefinition: {
+    info: {
+      description: 'Ubereats',
+      title: 'Swagger',
+      version: '2.0',
+    },
+    host: 'localhost:8080',
+    basePath: '/api',
+    produces: ['application/json'],
+    schemes: ['http', 'https'],
+  },
+  basedir: __dirname,
+  files: ['./routes/**/*.js'],
+};
+expressSwagger(options);
 
 app.use(cors());
 
@@ -10,7 +35,6 @@ app.use(express.json());
 
 app.use(express.urlencoded({ extended: true }));
 
-const { sequelize } = require('./models/data-model');
 const routes = require('./routes');
 
 const { authenticateToken } = require('./middleware/validateToken');
@@ -24,9 +48,15 @@ app.use('/api', routes);
 // app.use(getAccessMiddleware(accessController));
 
 // Start the connection
-try {
-  // conn.sync({ alter: true })
-  sequelize.sync().then(() => {
+
+const main = async () => {
+  try {
+    // Connect to the MongoDB cluster
+    await mongoose.connect(process.env.MONGO_URI, {
+      useNewUrlParser: 'true',
+    });
+    console.log('Mongo cluster connected');
+
     const PORT = 8080;
     app
       .listen(PORT, () => {
@@ -39,7 +69,9 @@ try {
           console.log(err);
         }
       });
-  });
-} catch (err) {
-  console.log(err);
-}
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+main().catch(console.error);

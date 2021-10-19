@@ -8,8 +8,6 @@ const {
 } = require('../controllers');
 
 const {
-  customerRegistrationValidationRules,
-  restaurantRegistrationValidationRules,
   dishValidationRules,
   validate,
   orderValidationRules,
@@ -22,22 +20,8 @@ const router = Router();
 router.get('/', (req, res) => res.send('This is root!'));
 
 // Register and Login routes
-router.post('/register/email', customerController.checkEmail); // check email doesnt already exist in db
-router.post('/login/email', customerController.checkLoginEmail); // check email exists for login
-router.post(
-  '/register/customers',
-  customerRegistrationValidationRules(),
-  validate,
-  customerController.createCustomer,
-);
-router.post(
-  '/register/restaurants',
-  restaurantRegistrationValidationRules(),
-  validate,
-  restaurantController.createRestaurant,
-);
-router.post('/login/customers', customerController.loginCustomer);
-router.post('/login/restaurants', restaurantController.loginRestaurant);
+router.use('/register', require('./register.router'));
+router.use('/login', require('./login.router'));
 
 router.get('/customers/:custId', customerController.getCustomer);
 router.put('/customers/:custId', customerController.updateCustomer);

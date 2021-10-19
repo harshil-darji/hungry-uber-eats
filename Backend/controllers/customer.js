@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable operator-linebreak */
 const bcrypt = require('bcrypt');
 const {
@@ -9,17 +10,19 @@ const {
 } = require('../models/data-model');
 const { generateAccessToken } = require('../middleware/validateToken');
 
+const Customer = require('../models/customer');
+
 const checkEmail = async (req, res) => {
   try {
-    const checkUser = await customer.findOne({
-      where: { emailId: req.body.emailId },
+    const checkUser = await Customer.findOne({
+      emailId: req.body.emailId,
     });
     if (checkUser) {
       return res.status(409).json({
         error: "There's already an account with this email. Please sign in.",
       });
     }
-    return res.status(200).json({ message: 'Email found!' });
+    return res.status(200).json({ message: 'Email valid for registration.' });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -38,8 +41,9 @@ const createCustomer = async (req, res) => {
       return res.status(400).json({ error: 'Please enter all fields! ' });
     }
     req.body.passwd = await bcrypt.hash(req.body.passwd, 12); // crypt the password
-    const cust = await customer.create(req.body);
-    const token = generateAccessToken(cust.custId, 'customer');
+    const newCustomer = new Customer(req.body);
+    const cust = await newCustomer.save();
+    const token = generateAccessToken(cust._id, 'customer');
     return res.status(201).json({
       cust,
       token,
@@ -51,8 +55,8 @@ const createCustomer = async (req, res) => {
 
 const checkLoginEmail = async (req, res) => {
   try {
-    const checkUser = await customer.findOne({
-      where: { emailId: req.body.emailId },
+    const checkUser = await Customer.findOne({
+      emailId: req.body.emailId,
     });
     if (checkUser) {
       return res.status(200).json({ message: 'Email valid!' });
@@ -71,9 +75,9 @@ const loginCustomer = async (req, res) => {
     if (!emailId || !passwd) {
       return res.status(401).json({ error: 'Please input all fields!' });
     }
-    const existingCustomer = await customer.findOne({
-      where: { emailId },
-    });
+    const existingCustomer = await Customer.findOne({
+      emailId,
+    }).select('passwd');
     if (!existingCustomer) {
       return res
         .status(404)
@@ -84,7 +88,7 @@ const loginCustomer = async (req, res) => {
         return res.status(500).json({ error: err.message });
       }
       if (data) {
-        const token = generateAccessToken(existingCustomer.custId, 'customer');
+        const token = generateAccessToken(existingCustomer._id, 'customer');
         return res.status(200).json({ token, cust: existingCustomer });
       }
       return res.status(401).json({ error: 'Invalid password!' });
@@ -224,7 +228,9 @@ const addRestaurantToFavs = async (req, res) => {
       where: { custId, restId },
     });
     if (customerFavExists) {
-      return res.status(200).json({ message: 'Restaurant already in favourites' });
+      return res
+        .status(200)
+        .json({ message: 'Restaurant already in favourites' });
     }
     const custFav = await custFavs.create({
       custId,
