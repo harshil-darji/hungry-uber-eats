@@ -115,6 +115,7 @@ function RestaurantSettings() {
       return;
     }
     const restTypes = [];
+    console.log(restType);
     restType.forEach((ele) => {
       restTypes.push(ele.restType);
     });
@@ -173,11 +174,13 @@ function RestaurantSettings() {
       setcontactNo(
         response.data.rest.contactNo ? response.data.rest.contactNo : '',
       );
-      setRestType(
-        response.data.rest.restaurantTypes
-          ? response.data.rest.restaurantTypes
-          : [],
-      );
+      const restTypes = [];
+      if (response.data.rest.restType) {
+        response.data.rest.restType.forEach((ele) => {
+          restTypes.push({ restType: ele });
+        });
+      }
+      setRestType(restTypes);
       setDeliveryType(
         response.data.rest.deliveryType
           ? [{ deliveryType: response.data.rest.deliveryType }]

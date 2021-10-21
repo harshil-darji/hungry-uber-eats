@@ -30,10 +30,10 @@ const router = Router();
 
 /**
  * @route POST /register/email
- * @summary Check if email is already registered for customer
+ * @summary Check if email is already registered
  * @group Register - Register operations
  * @param {CheckLogin.model} LoginModel.body.required
- * @returns {string} 200 - Email valid for registration
+ * @returns {string} 200 - Email valid
  * @returns {Error}  409 - Email already exists. Sign in
  * @returns {Error}  500 - Server error
  */

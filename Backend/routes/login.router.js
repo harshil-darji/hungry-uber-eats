@@ -31,7 +31,7 @@ router.post('/email', customerController.checkLoginEmail); // check email exists
  * @summary Login customer
  * @group Login - Login operations
  * @param {Login.model} Login.body.required
- * @returns {string} 200 - Login Successful
+ * @returns {object} 200 - Login Successful
  * @returns {Error}  401 - Invalid password / All fields not entered
  * @returns {Error}  404 - Email not found
  * @returns {Error}  500 - Server error

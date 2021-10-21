@@ -23,6 +23,14 @@ const options = {
     basePath: '/api',
     produces: ['application/json'],
     schemes: ['http', 'https'],
+    securityDefinitions: {
+      JWT: {
+        type: 'apiKey',
+        in: 'header',
+        name: 'Authorization',
+        description: 'Authorization token',
+      },
+    },
   },
   basedir: __dirname,
   files: ['./routes/**/*.js'],
@@ -54,6 +62,7 @@ const main = async () => {
     // Connect to the MongoDB cluster
     await mongoose.connect(process.env.MONGO_URI, {
       useNewUrlParser: 'true',
+      autoIndex: true,
     });
     console.log('Mongo cluster connected');
 

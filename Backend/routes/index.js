@@ -2,13 +2,11 @@ const { Router } = require('express');
 
 const {
   customerController,
-  restaurantController,
   orderController,
   cartController,
 } = require('../controllers');
 
 const {
-  dishValidationRules,
   validate,
   orderValidationRules,
   customerAddressValidationRules,
@@ -16,75 +14,14 @@ const {
 
 const router = Router();
 
-// Root route - temporary route
-router.get('/', (req, res) => res.send('This is root!'));
-
 // Register and Login routes
 router.use('/register', require('./register.router'));
 router.use('/login', require('./login.router'));
+router.use('/restaurants', require('./restaurant.router'));
 
 router.get('/customers/:custId', customerController.getCustomer);
 router.put('/customers/:custId', customerController.updateCustomer);
 router.delete('/customers/:custId', customerController.deleteCustomer);
-
-// Restaurant routes
-router.get('/restaurants', restaurantController.getRestaurants);
-router.get('/restaurants/search', restaurantController.searchRestaurants);
-router.get('/restaurants/:restId', restaurantController.getRestaurant);
-router.put('/restaurants/:restId', restaurantController.updateRestaurant);
-router.delete('/restaurants/:restId', restaurantController.deleteRestaurant);
-// Restaurant Dishes routes
-router.post(
-  '/restaurants/:restId/dishes',
-  dishValidationRules(),
-  validate,
-  restaurantController.createDish,
-);
-router.get(
-  '/restaurants/:restId/dishes',
-  restaurantController.getRestaurantDishes,
-);
-router.get(
-  '/restaurants/:restId/dishes/:dishId',
-  restaurantController.getRestaurantDish,
-);
-router.put(
-  '/restaurants/:restId/dishes/:dishId',
-  restaurantController.updateRestaurantDish,
-);
-router.delete(
-  '/restaurants/:restId/dishes/:dishId',
-  restaurantController.deleteRestaurantDish,
-);
-
-// Restaurant images
-router.post(
-  '/restaurants/:restId/images',
-  restaurantController.addRestaurantImage,
-);
-router.get(
-  '/restaurants/:restId/images',
-  restaurantController.getRestaurantImages,
-);
-router.delete(
-  '/restaurants/:restId/images/:restImageId',
-  restaurantController.deleteRestaurantImage,
-);
-
-// Dish images
-router.post(
-  '/restaurants/:restId/dishes/:dishId/images',
-  restaurantController.createDishImage,
-);
-// TODO: Verify this route probably not required
-router.get(
-  '/restaurants/:restId/dishes/:dishId/images',
-  restaurantController.getDishImages,
-);
-router.delete(
-  '/restaurants/:restId/dishes/:dishId/images',
-  restaurantController.deleteDishImage,
-);
 
 // Cart routes
 router.post('/customers/:custId/cart', cartController.insertIntoCart);

@@ -5,7 +5,8 @@ const path = require('path');
 
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
-const { customer, restaurant } = require('../models/data-model');
+const Customer = require('../models/customer');
+const Restaurant = require('../models/restaurant');
 
 const generateAccessToken = (id, role) => jwt.sign({ id, role }, process.env.TOKEN_SECRET, { expiresIn: '1h' });
 
@@ -23,7 +24,7 @@ const authenticateToken = (req, res, next) => {
   }
 
   const token = req.headers.authorization;
-  if (token === null) return res.status(401).json({ error: 'Unauthorised request!' });
+  if (!token) return res.status(401).json({ error: 'Unauthorised request!' });
 
   dotenv.config();
 
@@ -32,8 +33,8 @@ const authenticateToken = (req, res, next) => {
 
     const { id, role } = decoded;
     if (role === 'customer') {
-      const user = await customer.findOne({
-        where: { custId: id },
+      const user = await Customer.findOne({
+        _id: id,
       });
       if (user) {
         req.headers.id = id;
@@ -41,11 +42,11 @@ const authenticateToken = (req, res, next) => {
         next();
         return;
       }
-      return res.status(404).json({ error: 'User not found!' });
+      return res.status(404).json({ error: 'User does not exist!' });
     }
     if (role === 'restaurant') {
-      const rest = await restaurant.findOne({
-        where: { restId: id },
+      const rest = await Restaurant.findOne({
+        _id: id,
       });
       if (rest) {
         req.headers.id = id;
@@ -53,7 +54,7 @@ const authenticateToken = (req, res, next) => {
         next();
         return;
       }
-      return res.status(404).json({ error: 'Restaurant not found!' });
+      return res.status(404).json({ error: 'Restaurant does not exist!' });
     }
     return res.status(403).json({ error: 'Forbidden request!' });
   });

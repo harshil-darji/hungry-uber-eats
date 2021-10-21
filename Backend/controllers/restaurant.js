@@ -4,20 +4,22 @@
 /* eslint-disable operator-linebreak */
 const bcrypt = require('bcrypt');
 // const { getPaiganation } = require('u-server-utils');
-const _ = require('underscore');
+const mongoose = require('mongoose');
+
 const { generateAccessToken } = require('../middleware/validateToken');
-const {
-  restaurant,
-  dish,
-  restaurantType,
-  sequelize,
-  restaurantImages,
-  dishImages,
-} = require('../models/data-model');
 
 const Restaurant = require('../models/restaurant');
 
 // Restaurants
+
+const checkProperties = (obj) => {
+  Object.keys(obj).forEach((key) => {
+    if (obj[key] === null || obj[key] === '' || obj[key] === undefined) {
+      // eslint-disable-next-line no-param-reassign
+      delete obj[key];
+    }
+  });
+};
 
 const createRestaurant = async (req, res) => {
   try {
@@ -31,6 +33,7 @@ const createRestaurant = async (req, res) => {
       });
     }
     // Else create new restaurant
+    // TODO: Add logic for adding restaurant type!
     req.body.passwd = await bcrypt.hash(req.body.passwd, 12); // crypt the password
     const newRestaurant = new Restaurant(req.body);
     const rest = await newRestaurant.save();
@@ -77,30 +80,9 @@ const getRestaurant = async (req, res) => {
     // if (String(req.headers.id) !== String(restId)) {
     //   return res.status(401).json({ error: 'Unauthorized request!' });
     // }
-    const rest = await restaurant.findOne({
-      where: { restId },
-      include: [
-        {
-          model: restaurantImages,
-          attributes: { exclude: ['createdAt', 'updatedAt'] },
-        },
-        {
-          model: restaurantType,
-          attributes: { exclude: ['createdAt', 'updatedAt'] },
-        },
-        {
-          model: dish,
-          include: [
-            {
-              model: dishImages,
-              attributes: { exclude: ['createdAt', 'updatedAt'] },
-            },
-          ],
-          attributes: { exclude: ['createdAt', 'updatedAt'] },
-        },
-      ],
-      attributes: { exclude: ['passwd', 'createdAt', 'updatedAt'] },
-    });
+    const rest = await Restaurant.findById(
+      mongoose.Types.ObjectId(String(restId)),
+    );
     if (rest) {
       return res.status(200).json({ rest });
     }
@@ -113,61 +95,35 @@ const getRestaurant = async (req, res) => {
 };
 
 const updateRestaurant = async (req, res) => {
-  const t = await sequelize.transaction();
   try {
     const { restId } = req.params;
     if (String(req.headers.id) !== String(restId)) {
       return res.status(401).json({ error: 'Unauthorized request!' });
     }
-    const updated = await restaurant.update(
-      req.body,
-      {
-        where: { restId },
-      },
-      { transaction: t },
-    );
-    if (updated) {
-      const updatedRest = await restaurant.findOne({ where: { restId } });
-      if (req.body.restType) {
-        const enumVals = ['Veg', 'Non-veg', 'Vegan'];
-        req.body.restType.forEach((restType) => {
-          if (!enumVals.includes(restType)) {
-            return res
-              .status(400)
-              .json({ error: 'Invalid restaurant type(s) selected!' });
-          }
-        });
-        if (req.body.restType) {
-          await restaurantType.destroy(
-            {
-              where: { restId },
-            },
-            { transaction: t },
-          );
-          let restTypes = req.body.restType;
-          restTypes = restTypes.map((element) => ({
-            restId,
-            restType: element,
-          }));
-          await restaurantType.bulkCreate(restTypes, { transaction: t });
-        }
-        const rest = await restaurant.findOne(
-          {
-            where: { restId },
-            include: [{ model: restaurantType }],
-          },
-          { transaction: t },
-        );
-        t.commit();
-        return res.status(200).json({ rest });
-      }
-      await t.rollback();
-      return res.status(200).json({ rest: updatedRest });
+    if (req.body.restType) {
+      const { restType } = req.body;
+      delete req.body.restType;
+      await Restaurant.updateOne(
+        {
+          _id: mongoose.Types.ObjectId(String(restId)),
+        },
+        { $set: { restType: [] } },
+      );
+      await Restaurant.findOneAndUpdate(
+        { _id: mongoose.Types.ObjectId(String(restId)) },
+        { $addToSet: { restType } },
+        { new: true },
+      );
     }
-    await t.rollback();
-    return res.status(404).json({ error: 'Restaurant not found!' });
+    const rest = await Restaurant.findOneAndUpdate(
+      { _id: mongoose.Types.ObjectId(String(restId)) },
+      { $set: req.body },
+      { new: true },
+    );
+    return res.status(200).json({
+      rest,
+    });
   } catch (error) {
-    await t.rollback();
     return res.status(500).json({ error: error.message });
   }
 };
@@ -175,9 +131,9 @@ const updateRestaurant = async (req, res) => {
 const deleteRestaurant = async (req, res) => {
   try {
     const { restId } = req.params;
-    const deleted = await restaurant.destroy({
-      where: { restId },
-    });
+    const deleted = await Restaurant.findByIdAndDelete(
+      mongoose.Types.ObjectId(String(restId)),
+    );
     if (deleted) {
       return res
         .status(200)
@@ -205,89 +161,23 @@ const getRestaurants = async (req, res) => {
     }
 
     if (restType === 'Any' || restType === '') {
-      restType = ['Veg', 'Non-Veg', 'Vegan'];
+      restType = null;
     }
 
     const searchObject = {
       city,
       deliveryType,
-    };
-
-    const checkProperties = (obj) => {
-      Object.keys(obj).forEach((key) => {
-        if (obj[key] === null || obj[key] === '' || obj[key] === undefined) {
-          // eslint-disable-next-line no-param-reassign
-          delete obj[key];
-        }
-      });
+      restType,
     };
 
     checkProperties(searchObject);
 
-    let restaurants = await restaurant.findAll({
+    const restaurants = await Restaurant.find({
       // limit,
       // offset,
-      include: [
-        {
-          model: restaurantImages,
-          attributes: { exclude: ['createdAt', 'updatedAt'] },
-        },
-      ],
-      attributes: { exclude: ['passwd', 'createdAt', 'updatedAt'] },
-      where: searchObject,
+      ...searchObject,
     });
 
-    if (restType && restType.length > 0) {
-      const restaurantsFilteredByRestTypes = await restaurantType.findAll({
-        // limit,
-        // offset,
-        include: [
-          {
-            model: restaurant,
-            attributes: { exclude: ['passwd', 'createdAt', 'updatedAt'] },
-            include: [
-              {
-                model: restaurantImages,
-                attributes: { exclude: ['createdAt', 'updatedAt'] },
-              },
-            ],
-          },
-        ],
-        attributes: { exclude: ['createdAt', 'updatedAt'] },
-        where: { restType },
-      });
-
-      if (restaurants) {
-        if (restaurantsFilteredByRestTypes.length === 0) {
-          return res.status(200).json([]);
-        }
-
-        const filteredRests = [];
-        restaurantsFilteredByRestTypes.forEach((restTypeObj) => {
-          const findFlag = _.find(
-            restaurants,
-            (item) => item.restId === restTypeObj.restaurant.restId,
-          );
-          if (findFlag) {
-            filteredRests.push(restTypeObj.restaurant);
-          }
-        });
-        restaurants = _.uniq(filteredRests, 'restId');
-        return res.status(200).json({ restaurants });
-      }
-
-      const filteredRests = [];
-      restaurantsFilteredByRestTypes.forEach((restTypeObj) => {
-        filteredRests.push(restTypeObj.restaurant);
-      });
-
-      restaurants = filteredRests;
-      return res.status(200).json({ restaurants });
-    }
-
-    if (!restaurants) {
-      return res.status(200).json({ message: 'No restaurants found!' });
-    }
     return res.status(200).json({ restaurants });
   } catch (error) {
     return res.status(500).json({ error: error.message });
@@ -298,51 +188,13 @@ const searchRestaurants = async (req, res) => {
   try {
     const { searchQuery } = req.query;
     // eslint-disable-next-line no-unused-vars
-    const [restaurants, m1] =
-      await sequelize.query(`select restaurants.*, restaurantImages.* from restaurants join restaurantImages on restaurants.restId= restaurantImages.restId join dishes on dishes.restId = restaurants.restId
-      WHERE restaurants.name like "%${searchQuery}%" or restaurants.description like "%${searchQuery}%" or dishes.name like "%${searchQuery}%";`);
-    return res.status(200).json({ restaurants });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-};
-
-const addRestaurantType = async (req, res) => {
-  const t = await sequelize.transaction();
-  try {
-    const { restId } = req.params;
-    if (String(req.headers.id) !== String(restId)) {
-      return res.status(401).json({ error: 'Unauthorized request!' });
-    }
-    const rest = await restaurant.findOne({
-      where: { restId },
+    const restaurants = await Restaurant.find({
+      $or: [
+        { name: new RegExp(`.*${searchQuery}.*`, 'i') },
+        { description: new RegExp(`.*${searchQuery}.*`, 'i') },
+      ],
     });
-    if (rest) {
-      if (
-        req.body.restType !== 'Veg' &&
-        req.body.restType !== 'Non-veg' &&
-        req.body.restType !== 'Vegan'
-      ) {
-        return res
-          .status(400)
-          .json({ error: 'Invalid restaurant type selected!' });
-      }
-      await restaurantType.destroy(
-        {
-          where: { restId },
-        },
-        { transaction: t },
-      );
-      const restType = await restaurantType.create(
-        { ...req.body, restId },
-        { transaction: t },
-      );
-      t.commit();
-      return res.status(200).json({ restType });
-    }
-    return res
-      .status(404)
-      .json({ error: 'Restaurant with the specified ID does not exist!' });
+    return res.status(200).json({ restaurants });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -355,18 +207,13 @@ const createDish = async (req, res) => {
     if (String(req.headers.id) !== String(restId)) {
       return res.status(401).json({ error: 'Unauthorized request!' });
     }
-    const existingDish = await dish.findOne({
-      where: { restId, name: req.body.name },
-    });
-    if (existingDish) {
-      return res
-        .status(409)
-        .json({ error: `Dish ${req.body.name} already exists!` });
-    }
-    const body = { ...req.body, restId };
-    const newDish = await dish.create(body);
+    await Restaurant.findOneAndUpdate(
+      { _id: mongoose.Types.ObjectId(String(restId)) },
+      { $push: { dishes: req.body } },
+      { new: true },
+    );
     return res.status(201).json({
-      newDish,
+      message: 'Dish added',
     });
   } catch (error) {
     return res.status(500).json({ error: error.message });
@@ -379,11 +226,14 @@ const addRestaurantImage = async (req, res) => {
     if (!req.body.imageLink) {
       return res.status(400).json({ error: 'Image link not found!' });
     }
-    const restImage = await restaurantImages.create({
-      restId,
-      imageLink: req.body.imageLink,
+    const restImage = await Restaurant.findOneAndUpdate(
+      { _id: mongoose.Types.ObjectId(String(restId)) },
+      { $push: { restImages: req.body } },
+      { new: true },
+    );
+    return res.status(201).json({
+      restImage,
     });
-    return res.status(200).json({ restImage });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -392,25 +242,44 @@ const addRestaurantImage = async (req, res) => {
 const getRestaurantImages = async (req, res) => {
   const { restId } = req.params;
   try {
-    const restImages = await restaurantImages.findAll({
-      where: { restId },
+    const restData = await Restaurant.findOne({ _id: mongoose.Types.ObjectId(String(restId)) });
+    if (!restData) {
+      return res.status(404).json({ error: 'Restaurant not found!' });
+    }
+    return res.status(200).json({
+      restImages: restData.restImages,
     });
-    return res.status(200).json({ restImages });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
 };
 
 const deleteRestaurantImage = async (req, res) => {
-  const { restImageId } = req.params;
+  const { restId, restImageId } = req.params;
   try {
-    const deletedImage = await restaurantImages.destroy({
-      where: { restImageId },
-    });
-    if (deletedImage) {
-      return res.status(200).json({ deletedImage });
+    const existingImage = await Restaurant.find(
+      {
+        'restImages._id': mongoose.Types.ObjectId(String(restImageId)),
+      },
+      {
+        restImages: {
+          $elemMatch: { _id: mongoose.Types.ObjectId(String(restImageId)) },
+        },
+      },
+    );
+    if (!existingImage.length) {
+      return res.status(404).json({ error: 'Image not found!' });
     }
-    return res.status(404).json({ error: 'Image ID not found!' });
+    await Restaurant.findOneAndUpdate(
+      { _id: mongoose.Types.ObjectId(String(restId)) },
+      {
+        $pull: {
+          restImages: { _id: mongoose.Types.ObjectId(String(restImageId)) },
+        },
+      },
+      { new: true },
+    );
+    return res.status(200).json({ message: 'Image deleted successfully!' });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -420,14 +289,13 @@ const getRestaurantDishes = async (req, res) => {
   const { restId } = req.params;
   // const { limit, offset } = getPaiganation(req.query.page, req.query.limit);
   try {
-    const dishes = await dish.findAll({
-      where: { restId },
-      include: [{ model: dishImages }],
-    });
-    if (!dishes) {
+    const restData = await Restaurant.findOne({ _id: mongoose.Types.ObjectId(String(restId)) });
+    if (!restData) {
       return res.status(404).json({ error: 'Restaurant not found!' });
     }
-    return res.status(200).json({ dishes });
+    return res.status(200).json({
+      dishes: restData.dishes,
+    });
   } catch (error) {
     return res.status(500).send(error.message);
   }
@@ -435,11 +303,18 @@ const getRestaurantDishes = async (req, res) => {
 
 const getRestaurantDish = async (req, res) => {
   try {
-    const { restId, dishId } = req.params;
-    const existingDish = await dish.findOne({
-      where: { restId, dishId },
-    });
-    if (existingDish) return res.status(200).json({ existingDish });
+    const { dishId } = req.params;
+    const existingDish = await Restaurant.find(
+      {
+        'dishes._id': mongoose.Types.ObjectId(String(dishId)),
+      },
+      {
+        dishes: {
+          $elemMatch: { _id: mongoose.Types.ObjectId(String(dishId)) },
+        },
+      },
+    );
+    if (existingDish.length) return res.status(200).json({ existingDish });
     return res.status(404).json({ error: 'Dish not found!' });
   } catch (error) {
     return res.status(500).json({ error: error.message });
@@ -452,11 +327,21 @@ const updateRestaurantDish = async (req, res) => {
     if (String(req.headers.id) !== String(restId)) {
       return res.status(401).json({ error: 'Unauthorized request!' });
     }
-    const [updated] = await dish.update(req.body, {
-      where: { restId, dishId },
+    checkProperties(req.body);
+
+    const updatedObj = {};
+    Object.keys(req.body).forEach((key) => {
+      updatedObj[`dishes.$.${key}`] = req.body[key];
     });
-    if (updated) {
-      const updatedDish = await dish.findOne({ where: { restId, dishId } });
+
+    const updatedDish = await Restaurant.updateOne(
+      {
+        _id: mongoose.Types.ObjectId(String(restId)),
+        'dishes._id': mongoose.Types.ObjectId(String(dishId)),
+      },
+      { $set: updatedObj },
+    );
+    if (updatedDish) {
       return res.status(200).json({ updatedDish });
     }
     return res.status(404).json({ error: 'Dish not found!' });
@@ -468,67 +353,69 @@ const updateRestaurantDish = async (req, res) => {
 const deleteRestaurantDish = async (req, res) => {
   try {
     const { restId, dishId } = req.params;
-    const deletedDish = await dish.destroy({
-      where: { restId, dishId },
-    });
-    if (deletedDish) {
-      return res.status(200).json({ message: 'Dish deleted successfully!' });
+    const existingDish = await Restaurant.find(
+      {
+        'dishes._id': mongoose.Types.ObjectId(String(dishId)),
+      },
+      {
+        dishes: {
+          $elemMatch: { _id: mongoose.Types.ObjectId(String(dishId)) },
+        },
+      },
+    );
+    if (!existingDish.length) {
+      return res.status(404).json({ error: 'Dish not found!' });
     }
-    return res.status(404).json({ error: 'Dish not found!' });
+    await Restaurant.findOneAndUpdate(
+      { _id: mongoose.Types.ObjectId(String(restId)) },
+      { $pull: { dishes: { _id: mongoose.Types.ObjectId(String(dishId)) } } },
+      { new: true },
+    );
+    return res.status(200).json({ message: 'Dish deleted successfully!' });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
 };
 
 // Dish images
-const createDishImage = async (req, res) => {
-  const { dishId } = req.params;
-  try {
-    if (!req.body.imageLink) {
-      return res.status(400).json({ error: 'Image link not found!' });
-    }
-    const dishImage = await dishImages.create({
-      dishId,
-      imageLink: req.body.imageLink,
-    });
-    return res.status(200).json({ dishImage });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-};
+// TODO: Remove this api and directly use add dish api to add imagelink
+// const createDishImage = async (req, res) => {
+//   const { restId } = req.params;
+//   try {
+//     if (!req.body.imageLink) {
+//       return res.status(400).json({ error: 'Image link not found!' });
+//     }
+//     const dishImage = await Restaurant.findOneAndUpdate(
+//       { _id: restId },
+//       { $push: { 'dishes.dishImages': req.body } },
+//       // { new: true },
+//     );
+//     return res.status(201).json({
+//       dishImage,
+//     });
+//   } catch (error) {
+//     return res.status(500).json({ error: error.message });
+//   }
+// };
 
-// TODO: verify this function probably not required
-const getDishImages = async (req, res) => {
-  const { dishId } = req.params;
-  try {
-    const dishesImages = await dishImages.findAll({
-      dishId,
-      imageLink: req.body.imageLink,
-    });
-    return res.status(200).json({ dishesImages });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-};
-
-const deleteDishImage = async (req, res) => {
-  // const { restId } = req.params;
-  try {
-    const deletedImage = await dishImages.destroy({
-      where: { dishImageId: req.body.dishImageId },
-    });
-    return res.status(200).json({ deletedImage });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-};
+// TODO: Add API to delete dish image
+// const deleteDishImage = async (req, res) => {
+//   // const { restId } = req.params;
+//   try {
+//     const deletedImage = await dishImages.destroy({
+//       where: { dishImageId: req.body.dishImageId },
+//     });
+//     return res.status(200).json({ deletedImage });
+//   } catch (error) {
+//     return res.status(500).json({ error: error.message });
+//   }
+// };
 
 module.exports = {
   createRestaurant,
   loginRestaurant,
   getRestaurant,
   updateRestaurant,
-  addRestaurantType,
   addRestaurantImage,
   getRestaurantImages,
   deleteRestaurantImage,
@@ -539,8 +426,5 @@ module.exports = {
   getRestaurantDishes,
   getRestaurantDish,
   updateRestaurantDish,
-  createDishImage,
-  getDishImages,
-  deleteDishImage,
   deleteRestaurantDish,
 };
