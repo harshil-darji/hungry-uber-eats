@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable implicit-arrow-linebreak */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
@@ -351,12 +352,16 @@ function RestaurantSettings() {
                   width="500px"
                   showIndicators
                   showThumbs={false}
+                  autoPlay
+                  infiniteLoop
+                  interval={3000}
+                  transitionTime={900}
                 >
                   {restImages ? (
                     restImages.map((ele) => (
                       <div
-                        key={ele.restImageId}
-                        id={ele.restImageId}
+                        key={ele._id}
+                        id={ele._id}
                         onClick={(e) =>
                           deleteRestaurantProfilePicture(e.target.id)
                         }

@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable operator-linebreak */
 /* eslint-disable camelcase */
 /* eslint-disable no-prototype-builtins */
@@ -90,86 +91,72 @@ function UpdateDishModal(props) {
       ingreds += `${ele.ingredients},`;
     });
     try {
-      const dishObj = {
-        name,
-        description,
-        dishPrice: parseFloat(dishPrice),
-        ingreds,
-        category: category[0].category,
-        dishType: dishType[0].dishType,
-      };
-      let token = sessionStorage.getItem('token');
-      let decoded = jwt_decode(token);
-      let response = await axiosInstance.put(
-        `restaurants/${decoded.id}/dishes/${selectedDishId}`,
-        dishObj,
-        {
-          headers: { Authorization: token },
-        },
-      );
-      dispatch(setDishUpdateFlag(true));
-      toast.success('Dish updated successfully!');
-      const { dishId } = response.data.updatedDish;
+      const tempDishImages = [];
       if (filesToUpload.length > 0) {
-        setIsUploading(true);
-        await filesToUpload.forEach((file) => {
-          dispatch(addDishImageRequest());
-          uploadFile(file, config)
-            .then(async (data) => {
-              try {
-                const dishImageObj = {
-                  imageLink: data.location,
-                };
-                token = sessionStorage.getItem('token');
-                decoded = jwt_decode(token);
-                response = await axiosInstance.post(
-                  `restaurants/${decoded.id}/dishes/${dishId}/images`,
-                  dishImageObj,
-                  {
-                    headers: { Authorization: token },
-                  },
-                );
-                dispatch(addDishImageSuccess(response.data.dishImage));
-                setFilesToUpload([]);
-                toast.success('Dish images added!');
-                setIsUploading(false);
-              } catch (error) {
-                if (error.hasOwnProperty('response')) {
-                  if (error.response.status === 403) {
-                    toast.error('Session expired. Please login again!');
-                    history.push('/login/restaurant');
-                    return;
-                  }
-                  setIsUploading(false);
-                  dispatch(addDishImageFailure(error.response.data.error));
-                  toast.error(error.response.data.error);
-                }
-              }
-            })
-            .catch((err) => {
-              setIsUploading(false);
-              toast.error(err);
-            });
+        const bar = new Promise((resolve, reject) => {
+          filesToUpload.forEach(async (file, index) => {
+            try {
+              await uploadFile(file, config).then(async (data) => {
+                tempDishImages.push({ imageLink: data.location });
+                if (index === filesToUpload.length - 1) resolve();
+              });
+            } catch (error) {
+              toast.error(error.statusText);
+              reject(error);
+            }
+          });
+        });
+        bar.then(async () => {
+          let dishImagesObj = null;
+          if (tempDishImages.length > 0) {
+            dispatch(addDishImageRequest());
+            dishImagesObj = [...dishImages, ...tempDishImages];
+          }
+          const dishObj = {
+            name,
+            description,
+            dishPrice: parseFloat(dishPrice),
+            ingreds,
+            category: category[0].category,
+            dishType: dishType[0].dishType,
+            dishImages: dishImagesObj,
+          };
+          const token = sessionStorage.getItem('token');
+          const decoded = jwt_decode(token);
+          const response = await axiosInstance.put(
+            `restaurants/${decoded.id}/dishes/${selectedDishId}`,
+            dishObj,
+            {
+              headers: { Authorization: token },
+            },
+          );
+          if (tempDishImages.length > 0) {
+            dispatch(addDishImageSuccess(response.data));
+            setFilesToUpload([]);
+            setIsUploading(false);
+          }
+          dispatch(setDishUpdateFlag(true));
+          toast.success('Dish updated successfully!');
         });
       }
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/restaurant');
-          return;
-        }
-        setIsUploading(false);
-        toast.error(error.response.data.error);
-      }
+      dispatch(addDishImageFailure());
+      console.log(error);
+      // if (error.hasOwnProperty('response')) {
+      //   if (error.response.status === 403) {
+      //     toast.error('Session expired. Please login again!');
+      //     history.push('/login/restaurant');
+      //     return;
+      //   }
+      //   setIsUploading(false);
+      //   toast.error(error.response.data.error);
+      // }
     }
   };
 
   useEffect(() => {
     if (dishes && selectedDishId) {
-      let selectedDish = dishes.filter(
-        (dish) => dish.dishId === selectedDishId,
-      );
+      let selectedDish = dishes.filter((dish) => dish._id === selectedDishId);
       if (selectedDish.length > 0) {
         [selectedDish] = selectedDish;
         setIsUploading(false);
@@ -264,7 +251,7 @@ function UpdateDishModal(props) {
                     >
                       {dishImages ? (
                         dishImages.map((ele) => (
-                          <div key={ele.restImageId}>
+                          <div key={ele._id}>
                             <img src={ele.imageLink} alt="Restaurant profile" />
                           </div>
                         ))

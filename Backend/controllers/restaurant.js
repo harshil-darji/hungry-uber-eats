@@ -33,7 +33,6 @@ const createRestaurant = async (req, res) => {
       });
     }
     // Else create new restaurant
-    // TODO: Add logic for adding restaurant type!
     req.body.passwd = await bcrypt.hash(req.body.passwd, 12); // crypt the password
     const newRestaurant = new Restaurant(req.body);
     const rest = await newRestaurant.save();
@@ -207,12 +206,14 @@ const createDish = async (req, res) => {
     if (String(req.headers.id) !== String(restId)) {
       return res.status(401).json({ error: 'Unauthorized request!' });
     }
+    const dishId = new mongoose.Types.ObjectId();
     await Restaurant.findOneAndUpdate(
       { _id: mongoose.Types.ObjectId(String(restId)) },
-      { $push: { dishes: req.body } },
+      { $push: { dishes: { _id: dishId, ...req.body } } },
       { new: true },
     );
     return res.status(201).json({
+      dishId,
       message: 'Dish added',
     });
   } catch (error) {
@@ -242,7 +243,9 @@ const addRestaurantImage = async (req, res) => {
 const getRestaurantImages = async (req, res) => {
   const { restId } = req.params;
   try {
-    const restData = await Restaurant.findOne({ _id: mongoose.Types.ObjectId(String(restId)) });
+    const restData = await Restaurant.findOne({
+      _id: mongoose.Types.ObjectId(String(restId)),
+    });
     if (!restData) {
       return res.status(404).json({ error: 'Restaurant not found!' });
     }
@@ -289,7 +292,9 @@ const getRestaurantDishes = async (req, res) => {
   const { restId } = req.params;
   // const { limit, offset } = getPaiganation(req.query.page, req.query.limit);
   try {
-    const restData = await Restaurant.findOne({ _id: mongoose.Types.ObjectId(String(restId)) });
+    const restData = await Restaurant.findOne({
+      _id: mongoose.Types.ObjectId(String(restId)),
+    });
     if (!restData) {
       return res.status(404).json({ error: 'Restaurant not found!' });
     }

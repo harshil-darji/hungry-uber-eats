@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable react/jsx-one-expression-per-line */
@@ -69,10 +70,10 @@ function RestaurantDishes() {
             <Col xs={4} key={index} style={{ marginTop: '30px' }}>
               <div
                 onClick={() => {
-                  setSelectedDishId(dish.dishId);
+                  setSelectedDishId(dish._id);
                   setModalIsOpen(true);
                 }}
-                key={dish.dishId}
+                key={dish._id}
               >
                 <Card
                   // overrides={{ Root: { style: { width: '428px' } } }}
