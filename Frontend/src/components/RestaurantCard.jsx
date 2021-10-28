@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable no-prototype-builtins */
 /* eslint-disable jsx-a11y/no-static-element-interactions */
@@ -25,7 +26,7 @@ function RestaurantCard(props) {
   const history = useHistory();
 
   const gotoRestaurantDetails = () => {
-    history.push(`/customer/restaurants/${restData.restId}`);
+    history.push(`/customer/restaurants/${restData._id}`);
   };
 
   const addRestToFavs = async (restId) => {
@@ -43,14 +44,7 @@ function RestaurantCard(props) {
       );
       toast.success(response.data.message);
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/customer');
-          return;
-        }
-      }
-      toast.error(error.response.data.error);
+      console.log(error);
     }
   };
 
@@ -66,14 +60,14 @@ function RestaurantCard(props) {
             <Card.Img
               variant="top"
               src={
-                restData.restaurantImages?.length > 0
-                  ? restData.restaurantImages[0].imageLink
+                restData.restImages?.length > 0
+                  ? restData.restImages[0].imageLink
                   : restaurantDefaultImage
               }
             />
             <div
               onClick={(e) => {
-                addRestToFavs(restData.restId);
+                addRestToFavs(restData._id);
                 e.stopPropagation();
               }}
             >

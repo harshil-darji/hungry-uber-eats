@@ -3,15 +3,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { StatefulMenu, OptionProfile } from 'baseui/menu';
 import { useSelector } from 'react-redux';
-import { useHistory } from 'react-router';
-import toast from 'react-hot-toast';
 import jwt_decode from 'jwt-decode';
 
 import axiosInstance from '../services/apiConfig';
 import customerDefaultProfile from '../assets/img/customer-default-profile.jpeg';
 
 export default function CustomerProfileMenu({ showViewAccount }) {
-  const history = useHistory();
   const customer = useSelector((state) => state.customer);
 
   const [name, setname] = useState('');
@@ -34,12 +31,7 @@ export default function CustomerProfileMenu({ showViewAccount }) {
           : customerDefaultProfile,
       );
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/customer');
-        }
-      }
+      console.log(error);
     }
   }, []);
 

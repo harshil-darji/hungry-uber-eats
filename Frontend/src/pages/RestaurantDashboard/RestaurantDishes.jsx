@@ -7,7 +7,6 @@
 /* eslint-disable no-prototype-builtins */
 /* eslint-disable camelcase */
 import React, { useCallback, useEffect, useState } from 'react';
-import toast from 'react-hot-toast';
 import { useHistory } from 'react-router';
 import jwt_decode from 'jwt-decode';
 // import { Card, StyledBody } from 'baseui/card';
@@ -41,12 +40,7 @@ function RestaurantDishes() {
       );
       setDishes(response.data.dishes);
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/restaurant');
-        }
-      }
+      console.log(error);
     }
   }, []);
 

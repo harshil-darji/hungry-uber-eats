@@ -40,6 +40,9 @@ const RestaurantSchema = mongoose.Schema({
     type: String,
     enum: ['Pickup', 'Delivery', 'Both'],
   },
+  rating: {
+    type: Number,
+  },
   restImages: [{ imageLink: { type: String } }],
   restType: [String],
   dishes: [

@@ -3,8 +3,6 @@
 /* eslint-disable no-prototype-builtins */
 /* eslint-disable camelcase */
 import React, { useCallback, useEffect, useState } from 'react';
-import toast from 'react-hot-toast';
-import { useHistory } from 'react-router';
 import jwt_decode from 'jwt-decode';
 // import { Avatar } from 'baseui/avatar';
 import '../../../node_modules/react-responsive-carousel/lib/styles/carousel.css';
@@ -15,7 +13,6 @@ import RestaurantDishes from './RestaurantDishes';
 const { Carousel } = require('react-responsive-carousel');
 
 function RestaurantHome() {
-  const history = useHistory();
   const [restData, setRestData] = useState({ rest: null });
   const [restImages, setRestImages] = useState(null);
 
@@ -28,12 +25,7 @@ function RestaurantHome() {
       });
       setRestData({ rest: response.data.rest });
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/restaurant');
-        }
-      }
+      console.log(error);
     }
   }, []);
 
@@ -49,14 +41,7 @@ function RestaurantHome() {
       );
       setRestImages(response.data.restImages);
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/restaurant');
-          return;
-        }
-        toast.error(error.response.data.error);
-      }
+      console.log(error);
     }
   };
 

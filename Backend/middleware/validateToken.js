@@ -42,7 +42,7 @@ const authenticateToken = (req, res, next) => {
         next();
         return;
       }
-      return res.status(404).json({ error: 'User does not exist!' });
+      return res.status(403).json({ error: 'User does not exist!' });
     }
     if (role === 'restaurant') {
       const rest = await Restaurant.findOne({
@@ -54,7 +54,7 @@ const authenticateToken = (req, res, next) => {
         next();
         return;
       }
-      return res.status(404).json({ error: 'Restaurant does not exist!' });
+      return res.status(403).json({ error: 'Restaurant does not exist!' });
     }
     return res.status(403).json({ error: 'Forbidden request!' });
   });

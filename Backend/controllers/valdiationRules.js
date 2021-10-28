@@ -14,10 +14,7 @@ const customerRegistrationValidationRules = () => [
     .withMessage('Password length should be at least 5.')
     .isString(),
   body('name').exists().withMessage('Please enter name!').isString(),
-  body('contactNo')
-    .exists()
-    .withMessage('Please enter contact no!')
-    .isString(),
+  body('contactNo').exists().withMessage('Please enter contact no!').isString(),
 ];
 
 const restaurantRegistrationValidationRules = () => [
@@ -37,10 +34,7 @@ const restaurantRegistrationValidationRules = () => [
 ];
 
 const dishValidationRules = () => [
-  body('name')
-    .exists()
-    .withMessage('Please enter dish name!')
-    .isString(),
+  body('name').exists().withMessage('Please enter dish name!').isString(),
 ];
 
 const orderValidationRules = () => [
@@ -48,16 +42,12 @@ const orderValidationRules = () => [
     .exists()
     .withMessage('Please specify order type!')
     .isString(),
-  body('orderAddress')
-    .optional({ nullable: true })
-    .isString(),
+  body('orderAddress').optional({ nullable: true }).isString(),
 ];
 
 const customerAddressValidationRules = () => [
-  body('address')
-    .exists()
-    .withMessage('Please enter address!')
-    .isString(),
+  body('address').exists().withMessage('Please enter address!').isString(),
+  body('city').exists().withMessage('Please select city!').isString(),
 ];
 
 const validate = (req, res, next) => {
@@ -66,9 +56,7 @@ const validate = (req, res, next) => {
     return next();
   }
   const extractedErrors = [];
-  errors
-    .array()
-    .map((err) => extractedErrors.push({ [err.param]: err.msg }));
+  errors.array().map((err) => extractedErrors.push({ [err.param]: err.msg }));
   return res.status(422).json({
     errors: extractedErrors,
   });

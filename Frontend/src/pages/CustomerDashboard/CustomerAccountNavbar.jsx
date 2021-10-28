@@ -1,8 +1,6 @@
 /* eslint-disable camelcase */
 /* eslint-disable no-prototype-builtins */
 import React, { useCallback, useEffect, useState } from 'react';
-import { useHistory } from 'react-router';
-import toast from 'react-hot-toast';
 import jwt_decode from 'jwt-decode';
 import { Container, Nav, Navbar } from 'react-bootstrap';
 
@@ -12,7 +10,6 @@ import '../../css/CustomerAccountNavbar.css';
 
 function CustomerAccountNavbar() {
   const [name, setName] = useState('');
-  const history = useHistory();
 
   const fetchCustomerData = useCallback(async () => {
     const token = sessionStorage.getItem('token');
@@ -24,12 +21,7 @@ function CustomerAccountNavbar() {
       const { user } = response.data;
       setName(user.name);
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/customer');
-        }
-      }
+      console.log(error);
     }
   }, []);
 

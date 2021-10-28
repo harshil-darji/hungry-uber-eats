@@ -87,12 +87,7 @@ function Cart(props) {
       });
       setDishImages(tempDishObj);
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/customer');
-        }
-      }
+      console.log(error);
     }
   }, []);
 
@@ -110,15 +105,8 @@ function Cart(props) {
       dispatch(clearCartSuccess());
       toast.success('Cart cleared!');
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/customer');
-          return;
-        }
-        toast.error(error.response.data.error);
-        dispatch(clearCartFailure(error.response.data.error));
-      }
+      console.log(error);
+      dispatch(clearCartFailure(error.message));
     }
   };
 
@@ -137,15 +125,8 @@ function Cart(props) {
         );
         dispatch(deleteFromCartSuccess());
       } catch (error) {
-        if (error.hasOwnProperty('response')) {
-          if (error.response.status === 403) {
-            toast.error('Session expired. Please login again!');
-            history.push('/login/customer');
-            return;
-          }
-          toast.error(error.response.data.error);
-          dispatch(deleteFromFailure(error.response.data.error));
-        }
+        console.log(error);
+        dispatch(deleteFromFailure(error.message));
       }
       return;
     }
@@ -175,15 +156,8 @@ function Cart(props) {
       dispatch(updateCartSuccess());
       toast.success('Quantity updated!');
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/customer');
-          return;
-        }
-        toast.error(error.response.data.error);
-        dispatch(updateCartFailure(error.response.data.error));
-      }
+      console.log(error);
+      dispatch(updateCartFailure(error.message));
     }
   };
 
@@ -206,14 +180,7 @@ function Cart(props) {
       setCartIsOpen(false);
       history.push('/customer/checkout');
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/customer');
-          return;
-        }
-        toast.error(error.response.data.error);
-      }
+      console.log(error);
     }
   };
 

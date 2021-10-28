@@ -1,18 +1,18 @@
+/* eslint-disable no-nested-ternary */
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable no-prototype-builtins */
 /* eslint-disable camelcase */
 import React, { useEffect, useState } from 'react';
 // eslint-disable-next-line object-curly-newline
 import { useDispatch, useSelector } from 'react-redux';
-import { useHistory } from 'react-router';
 import { Container, Row, Col } from 'react-bootstrap';
 import { H3, H4, H6 } from 'baseui/typography';
 import ArrowRight from 'baseui/icon/arrow-right';
 import { Button, SHAPE } from 'baseui/button';
 import { ThemeProvider, createTheme, lightThemePrimitives } from 'baseui';
-import toast from 'react-hot-toast';
 import { Radio, RadioGroup } from 'baseui/radio';
 import { Accordion, Panel } from 'baseui/accordion';
-import _ from 'underscore';
+import { Spinner } from 'baseui/spinner';
 
 import axiosInstance from '../../services/apiConfig';
 
@@ -26,14 +26,14 @@ import { setReduxRestType } from '../../actions/searchFilter';
 function CustomerHome() {
   const [restaurants, setRestaurants] = useState([]);
   const [restType, setRestType] = useState('');
-  const history = useHistory();
   const dispatch = useDispatch();
 
-  console.log(restaurants);
+  const [isLoading, setIsLoading] = useState(false);
 
   const searchFilter = useSelector((state) => state.searchFilter);
 
   const fetchRestaurants = async () => {
+    setIsLoading(true);
     const token = sessionStorage.getItem('token');
     try {
       const response = await axiosInstance.get('restaurants/', {
@@ -47,17 +47,18 @@ function CustomerHome() {
         },
       });
       setRestaurants(response.data.restaurants);
+      setIsLoading(false);
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/');
-        }
-      }
+      console.log(error);
     }
   };
 
   const searchRestaurants = async () => {
+    if (searchFilter.searchQuery === '') {
+      fetchRestaurants();
+      return;
+    }
+    setIsLoading(true);
     const token = sessionStorage.getItem('token');
     try {
       const response = await axiosInstance.get('restaurants/search', {
@@ -68,22 +69,9 @@ function CustomerHome() {
           Authorization: token,
         },
       });
-      const uniqueRestObjects = await _.uniq(
-        response.data.restaurants,
-        (x) => x.restId,
-      );
-      uniqueRestObjects.forEach((rest) => {
-        // eslint-disable-next-line no-param-reassign
-        rest.restaurantImages = [{ imageLink: rest.imageLink }];
-      });
-      setRestaurants(uniqueRestObjects);
+      setRestaurants(response.data.restaurants);
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/');
-        }
-      }
+      console.log(error);
     }
   };
 
@@ -196,7 +184,20 @@ function CustomerHome() {
         <Col>
           <Row>
             {restaurants?.length > 0 ? (
-              restaurants.map((rest) => <RestaurantCard restData={rest} />)
+              isLoading ? (
+                <div
+                  style={{
+                    display: 'flex',
+                    width: '100%',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Spinner />
+                </div>
+              ) : (
+                restaurants.map((rest) => <RestaurantCard restData={rest} />)
+              )
             ) : (
               <>
                 <Row

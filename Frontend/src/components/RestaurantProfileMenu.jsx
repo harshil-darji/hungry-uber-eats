@@ -3,8 +3,6 @@
 import React, { useCallback, useState } from 'react';
 import { StatefulMenu, OptionProfile } from 'baseui/menu';
 import { useSelector } from 'react-redux';
-import { useHistory } from 'react-router';
-import toast from 'react-hot-toast';
 import jwt_decode from 'jwt-decode';
 
 import axiosInstance from '../services/apiConfig';
@@ -13,8 +11,6 @@ import CustomerDefaultProfile from '../assets/img/customer-default-profile.jpeg'
 
 export default function RestaurantProfileMenu() {
   const restaurant = useSelector((state) => state.restaurant);
-
-  const history = useHistory();
 
   const [name, setname] = useState('');
   const [address, setAddress] = useState('');
@@ -32,12 +28,7 @@ export default function RestaurantProfileMenu() {
       setEmail(response.data.rest.emailId);
       setAddress(response.data.rest.address ? response.data.rest.address : '');
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/restaurant');
-        }
-      }
+      console.log(error);
     }
   }, []);
 
@@ -57,13 +48,7 @@ export default function RestaurantProfileMenu() {
           : CustomerDefaultProfile,
       );
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/restaurant');
-        }
-        toast.error(error.response.data.error);
-      }
+      console.log(error);
     }
   };
 

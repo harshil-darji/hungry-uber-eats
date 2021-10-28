@@ -11,7 +11,6 @@ import {
 import { Alert } from 'baseui/icon';
 import { validate as validateEmail } from 'email-validator';
 import { useDispatch } from 'react-redux';
-import toast from 'react-hot-toast';
 
 import axiosInstance from '../../services/apiConfig';
 import { setCustomerEmail } from '../../actions/customer';
@@ -67,7 +66,7 @@ function LoginEmail() {
         history.push('/login/customer/passwd');
       }
     } catch (error) {
-      toast.error(error.response.data.error);
+      console.log(error);
     }
   };
 

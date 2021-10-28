@@ -103,8 +103,8 @@ function RestaurantDetailsCard({ dish, cartInfo, restName, restId }) {
       dispatch(resetCartSuccess());
       toast.success('Cart reset and new item added.');
     } catch (error) {
-      dispatch(resetCartFailure(error.response.data.error));
-      toast.error(error.response.data.error);
+      dispatch(resetCartFailure(error.message));
+      console.log(error);
     }
   };
 
@@ -130,16 +130,8 @@ function RestaurantDetailsCard({ dish, cartInfo, restName, restId }) {
               );
               resolve(response);
             } catch (error) {
-              if (error.hasOwnProperty('response')) {
-                if (error.response.status === 403) {
-                  toast.error('Session expired. Please login again!');
-                  history.push('/login/restaurant');
-                  reject(error);
-                  return;
-                }
-                reject(error.response.data.error);
-                toast.error(error.response.data.error);
-              }
+              console.log(error);
+              reject(error.message);
             }
           }),
       );
@@ -152,15 +144,8 @@ function RestaurantDetailsCard({ dish, cartInfo, restName, restId }) {
       dispatch(addToCartSuccess());
       toast.success('Item added to cart!');
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/restaurant');
-          return;
-        }
-      }
-      dispatch(addtoCartFailure(error.response.data.error));
-      toast.error(error.response.data.error);
+      console.log(error);
+      dispatch(addtoCartFailure(error.message));
     }
   };
 
@@ -318,7 +303,7 @@ function RestaurantDetailsCard({ dish, cartInfo, restName, restId }) {
         )}
       </ModalStateContainer>
 
-      <Col xs={4} style={{ marginTop: '40px' }}>
+      <Col xs={4} style={{ marginTop: '10px' }}>
         <div
           className="card restaurantDetailsCard"
           onClick={() => setModalIsOpen(true)}
@@ -351,7 +336,7 @@ function RestaurantDetailsCard({ dish, cartInfo, restName, restId }) {
               className="col-sm-4"
               src={dish.dishImages[0].imageLink}
               alt="sans"
-              height="120px"
+              height="130px"
             />
             <div
               className="col-sm-4"

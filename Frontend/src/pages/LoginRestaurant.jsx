@@ -83,13 +83,13 @@ function LoginRestaurant() {
         passwd: passwdValue,
       };
       const response = await axiosInstance.post('login/restaurants', restObj);
+      console.log(response);
       dispatch(loginRestaurantSuccess(response));
       sessionStorage.setItem('token', response.data.token);
       toast.success('Logged in successfully!');
       history.push('/restaurant/dashboard');
     } catch (error) {
-      dispatch(loginRestaurantFailure(error));
-      toast.error(error.response.data.error);
+      dispatch(loginRestaurantFailure(error.message));
     }
   };
 

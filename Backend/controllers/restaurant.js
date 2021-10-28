@@ -60,12 +60,15 @@ const loginRestaurant = async (req, res) => {
         .status(404)
         .json({ error: 'Email not found! Please register!' });
     }
-    bcrypt.compare(passwd, existingRest.passwd, (err) => {
+    bcrypt.compare(passwd, existingRest.passwd, (err, data) => {
       if (err) {
         return res.status(401).json({ error: 'Invalid password!' });
       }
-      const token = generateAccessToken(existingRest._id, 'restaurant');
-      return res.status(200).json({ message: 'Login successful!', token });
+      if (data) {
+        const token = generateAccessToken(existingRest._id, 'restaurant');
+        return res.status(200).json({ message: 'Login successful!', token });
+      }
+      return res.status(401).json({ error: 'Invalid password!' });
     });
   } catch (error) {
     return res.status(500).json({ error: error.message });

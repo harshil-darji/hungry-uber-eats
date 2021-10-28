@@ -47,12 +47,7 @@ function CustomerProfile({ match }) {
       setCountry(user.country ? user.country : '');
       setProfileImg(user.profileImg ? user.profileImg : customerDefaultImage);
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/restaurant');
-        }
-      }
+      console.log(error);
     }
   };
 

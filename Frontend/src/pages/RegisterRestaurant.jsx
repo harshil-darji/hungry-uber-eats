@@ -95,8 +95,7 @@ function RegisterRestaurant() {
       toast.success('Restaurant added successfully!');
       history.push('/restaurant/dashboard');
     } catch (error) {
-      dispatch(registerRestaurantFailure(error));
-      toast.error(error.response.data.error);
+      dispatch(registerRestaurantFailure(error.message));
     }
   };
 

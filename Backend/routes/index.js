@@ -9,7 +9,6 @@ const {
 const {
   validate,
   orderValidationRules,
-  customerAddressValidationRules,
 } = require('../controllers/valdiationRules');
 
 const router = Router();
@@ -18,10 +17,7 @@ const router = Router();
 router.use('/register', require('./register.router'));
 router.use('/login', require('./login.router'));
 router.use('/restaurants', require('./restaurant.router'));
-
-router.get('/customers/:custId', customerController.getCustomer);
-router.put('/customers/:custId', customerController.updateCustomer);
-router.delete('/customers/:custId', customerController.deleteCustomer);
+router.use('/customers', require('./customer.router'));
 
 // Cart routes
 router.post('/customers/:custId/cart', cartController.insertIntoCart);
@@ -57,22 +53,6 @@ router.get('/customers/:custId/orders', orderController.getCustomerOrders);
 router.get('/customers/:custId/orders/search/:orderStatus', orderController.getCustOrderDetailsByOrderStatus);
 router.get('/restaurants/:restId/orders/search/:orderStatus', orderController.getRestOrderDetailsByOrderStatus);
 router.put('/restaurants/:restId/orders/:orderId', orderController.updateOrder);
-
-// Customer addresses
-router.post(
-  '/customers/:custId/addresses',
-  customerAddressValidationRules(),
-  validate,
-  customerController.addCustomerAddress,
-);
-router.get(
-  '/customers/:custId/addresses',
-  customerController.getCustomerAddresses,
-);
-router.delete(
-  '/customers/:custId/addresses/:id',
-  customerController.deleteCustomerAddress,
-);
 
 // Customer restaurant favs
 router.get('/customers/:custId/favourites', customerController.getRestaurantFavs);

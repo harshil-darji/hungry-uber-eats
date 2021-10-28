@@ -7,7 +7,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import toast from 'react-hot-toast';
-import { useHistory } from 'react-router';
 import jwt_decode from 'jwt-decode';
 import { FormControl } from 'baseui/form-control';
 import { Input, MaskedInput } from 'baseui/input';
@@ -56,7 +55,6 @@ function Negative() {
 }
 
 function CustomerAccountProfile() {
-  const history = useHistory();
   const dispatch = useDispatch();
 
   const [name, setName] = useState('');
@@ -117,12 +115,7 @@ function CustomerAccountProfile() {
       setState(user.state ? [{ state: user.state }] : []);
       setCountry(user.country ? [{ country: user.country }] : []);
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/customer');
-        }
-      }
+      console.log(error);
     }
   }, []);
 
@@ -134,6 +127,10 @@ function CustomerAccountProfile() {
     e.preventDefault();
     if (contactNoBlurFlag && !contactNoRegex.test(contactNo)) {
       toast.error('Enter valid contact number!');
+      return;
+    }
+    if (name === '') {
+      toast.error('Enter valid name!');
       return;
     }
     dispatch(updateCustomerRequest());
@@ -148,7 +145,7 @@ function CustomerAccountProfile() {
         state: state ? state.state : '',
         country: country.length > 0 ? country[0].country : '',
       };
-      checkProperties(custObj);
+      // checkProperties(custObj);
       const token = sessionStorage.getItem('token');
       const decoded = jwt_decode(token);
       const response = await axiosInstance.put(
@@ -161,14 +158,8 @@ function CustomerAccountProfile() {
       dispatch(updateCustomerSuccess(response.data.user));
       toast.success('Details updated!');
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/');
-        }
-        dispatch(updateCustomerFailure(error.response.data.error));
-        toast.error(error.response.data.error);
-      }
+      console.log(error);
+      dispatch(updateCustomerFailure(error.message));
     }
   };
 
@@ -204,15 +195,9 @@ function CustomerAccountProfile() {
           setIsUploading(false);
           setModalIsOpen(false);
         } catch (error) {
-          if (error.hasOwnProperty('response')) {
-            if (error.response.status === 403) {
-              toast.error('Session expired. Please login again!');
-              history.push('/login/restaurant');
-            }
-            dispatch(updateCustomerFailure(error.response.data.error));
-            setIsUploading(false);
-            toast.error(error.response.data.error);
-          }
+          console.log(error);
+          dispatch(updateCustomerFailure(error.response.data.error));
+          setIsUploading(false);
         }
       })
       .catch((err) => toast.error(err));

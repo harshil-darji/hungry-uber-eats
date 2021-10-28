@@ -18,7 +18,6 @@ import toast from 'react-hot-toast';
 import jwt_decode from 'jwt-decode';
 import { useDispatch } from 'react-redux';
 import { uploadFile } from 'react-s3';
-import { useHistory } from 'react-router';
 
 import axiosInstance from '../../services/apiConfig';
 import {
@@ -42,7 +41,6 @@ function AddDishModal(props) {
   const [filesToUpload, setFilesToUpload] = useState([]);
 
   const dispatch = useDispatch();
-  const history = useHistory();
 
   const REGION = 'us-east-1';
   const config = {
@@ -133,52 +131,9 @@ function AddDishModal(props) {
       setDishType([]);
       setModalIsOpen(false);
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/restaurant');
-          return;
-        }
-        toast.error(error.response.data.error);
-      }
+      console.log(error);
     }
   };
-
-  // const uploadFileAndUpdateTable = (acceptedFiles) => {
-  // setIsUploading(true);
-  // uploadFile(acceptedFiles[0], config)
-  //   .then(async (data) => {
-  //     try {
-  //       const restObj = {
-  //         imageLink: data.location,
-  //       };
-  //       const token = sessionStorage.getItem('token');
-  //       const decoded = jwt_decode(token);
-  //       const response = await axiosInstance.post(
-  //         `restaurants/${decoded.id}/images`,
-  //         restObj,
-  //         {
-  //           headers: { Authorization: token },
-  //         },
-  //       );
-  //       toast.success('Image uploaded!');
-  //       setIsUploading(false);
-  //       setModalIsOpen(false);
-  //       getRestaurantImages();
-  //     } catch (error) {
-  //       if (error.hasOwnProperty('response')) {
-  //         if (error.response.status === 403) {
-  //           toast.error('Session expired. Please login again!');
-  //           // history.push('/login/restaurant');
-  //         }
-  //         setIsUploading(false);
-  //         dispatch(updateRestaurantFailure(error.response.data.error));
-  //         toast.error(error.response.data.error);
-  //       }
-  //     }
-  //   })
-  //   .catch((err) => toast.error(err));
-  // };
 
   return (
     <Modal

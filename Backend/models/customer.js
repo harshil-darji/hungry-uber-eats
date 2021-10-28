@@ -4,6 +4,7 @@ const CustomerSchema = mongoose.Schema({
   emailId: {
     type: String,
     required: true,
+    unique: true,
   },
   passwd: {
     type: String,
@@ -39,6 +40,9 @@ const CustomerSchema = mongoose.Schema({
   dob: {
     type: Date,
   },
+  addresses: [
+    { address: { type: String, unique: true }, city: { type: String } },
+  ],
 });
 
 module.exports = mongoose.model('Customer', CustomerSchema);

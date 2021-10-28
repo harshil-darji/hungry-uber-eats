@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable react/jsx-indent */
 /* eslint-disable indent */
@@ -71,6 +72,7 @@ export default function CustomerNavbar() {
 
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [inputCustomerAddress, setInputCustomerAddress] = useState('');
+  const [inputCustomerCity, setInputCustomerCity] = useState('');
   const [customerAddresses, setCustomerAddresses] = useState([]);
   const [addressToSend, setAddressToSend] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -116,12 +118,7 @@ export default function CustomerNavbar() {
       );
       setTotalDishesInCart(response.data.totalDishesInCart);
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/customer');
-        }
-      }
+      console.log(error);
     }
   };
 
@@ -137,24 +134,24 @@ export default function CustomerNavbar() {
       );
       setCustomerAddresses(response.data.existingAddresses);
       if (response.data.existingAddresses.length > 0) {
-        setAddressToSend(response.data.existingAddresses[0].address);
+        setAddressToSend(response.data.existingAddresses[0].city);
       }
     } catch (error) {
-      // eslint-disable-next-line no-prototype-builtins
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/customer');
-          return;
-        }
-        toast.error(error.response.data.error);
-      }
+      console.log(error);
     }
   };
 
   const saveCustomerAddress = async () => {
-    if (inputCustomerAddress.length === 0) {
+    if (inputCustomerAddress.length === 0 && inputCustomerCity.length === 0) {
       setModalIsOpen(false);
+      return;
+    }
+    if (inputCustomerAddress.length > 0 && inputCustomerCity.length === 0) {
+      toast.error('Please enter city!');
+      return;
+    }
+    if (inputCustomerCity.length > 0 && inputCustomerAddress.length === 0) {
+      toast.error('Please enter address!');
       return;
     }
     try {
@@ -164,6 +161,7 @@ export default function CustomerNavbar() {
         `customers/${decoded.id}/addresses`,
         {
           address: inputCustomerAddress,
+          city: inputCustomerCity,
         },
         {
           headers: { Authorization: token },
@@ -171,16 +169,10 @@ export default function CustomerNavbar() {
       );
       getCustomerAddresses();
       setInputCustomerAddress('');
-      toast.success('Address added');
+      setInputCustomerCity('');
+      toast.success('Address added!');
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/customer');
-          return;
-        }
-      }
-      toast.error(error.response.data.error);
+      console.log(error);
     }
   };
 
@@ -194,14 +186,7 @@ export default function CustomerNavbar() {
       getCustomerAddresses();
       toast.success('Address deleted');
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/customer');
-          return;
-        }
-      }
-      toast.error(error.response.data.error);
+      console.log(error);
     }
   };
 
@@ -268,6 +253,24 @@ export default function CustomerNavbar() {
               onChange={(e) => setInputCustomerAddress(e.target.value)}
             />
           </FormControl>
+          <FormControl>
+            <Input
+              startEnhancer={
+                <i
+                  className="fa fa-map-marker fa-lg"
+                  style={{ marginBottom: '12px' }}
+                  aria-hidden="true"
+                />
+              }
+              size={SIZE.large}
+              required
+              id="city"
+              autoComplete="off"
+              placeholder="Enter city"
+              value={inputCustomerCity}
+              onChange={(e) => setInputCustomerCity(e.target.value)}
+            />
+          </FormControl>
 
           <div
             style={{
@@ -310,7 +313,7 @@ export default function CustomerNavbar() {
                     }}
                     className="rowHover"
                     onClick={() => {
-                      setAddressToSend(address.address);
+                      setAddressToSend(address.city);
                       setModalIsOpen(false);
                     }}
                   >
@@ -325,12 +328,15 @@ export default function CustomerNavbar() {
                         {address ? address.address : 'All locations'}
                       </p>
                       <p style={{ marginTop: '-14px', fontSize: '14px' }}>
-                        Deliver here
+                        {address ? address.city : 'Deliver here'}
                       </p>
                     </Col>
                     <Button
                       style={{ marginRight: '10px' }}
-                      onClick={() => deleteCustomerAddress(address.id)}
+                      onClick={(e) => {
+                        deleteCustomerAddress(address._id);
+                        e.stopPropagation();
+                      }}
                       kind={KIND.secondary}
                       shape={SHAPE.circle}
                       size={SIZE.default}

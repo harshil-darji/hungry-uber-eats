@@ -1,9 +1,8 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable operator-linebreak */
 const bcrypt = require('bcrypt');
+const mongoose = require('mongoose');
 const {
-  customer,
-  customerAddress,
   custFavs,
   restaurant,
   restaurantImages,
@@ -105,9 +104,9 @@ const getCustomer = async (req, res) => {
     // if (String(req.headers.id) !== String(custId)) {
     //   return res.status(401).json({ error: 'Unauthorized request!' });
     // }
-    const user = await customer.findOne({
-      where: { custId },
-    });
+    const user = await Customer.findById(
+      mongoose.Types.ObjectId(String(custId)),
+    );
     if (!user) {
       return res.status(404).json({
         error: 'Customer with the specified ID does not exist!',
@@ -125,14 +124,15 @@ const updateCustomer = async (req, res) => {
     if (String(req.headers.id) !== String(custId)) {
       return res.status(401).json({ error: 'Unauthorized request!' });
     }
-    const [updated] = await customer.update(req.body, {
-      where: { custId },
-    });
-    if (updated) {
-      const updatedUser = await customer.findOne({
-        where: { custId },
+    const updatedUser = await Customer.findOneAndUpdate(
+      { _id: mongoose.Types.ObjectId(String(custId)) },
+      { $set: req.body },
+      { new: true },
+    );
+    if (updatedUser) {
+      return res.status(200).json({
+        user: updatedUser,
       });
-      return res.status(200).json({ user: updatedUser });
     }
     return res.status(404).json({ error: 'User not found!' });
   } catch (error) {
@@ -150,20 +150,15 @@ const addCustomerAddress = async (req, res) => {
     if (!address) {
       return res.status(400).json({ error: 'Please enter address!' });
     }
-    const checkExistingAddress = await customerAddress.findOne({
-      custId,
-      address,
+    const cust = await Customer.findOneAndUpdate(
+      { _id: mongoose.Types.ObjectId(String(custId)) },
+      { $push: { addresses: req.body } },
+      { new: true },
+    );
+    return res.status(200).json({
+      cust,
+      message: 'Address added successfully!',
     });
-    if (checkExistingAddress === address) {
-      return res.status(409).json({ error: 'Address already exists!' });
-    }
-    const cust = await customerAddress.create({
-      custId,
-      address,
-    });
-    return res
-      .status(200)
-      .json({ message: 'Address added successfully!', cust });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -172,13 +167,13 @@ const addCustomerAddress = async (req, res) => {
 const deleteCustomer = async (req, res) => {
   try {
     const { custId } = req.params;
-    const deleted = await customer.destroy({
-      where: { custId },
-    });
+    const deleted = await Customer.findByIdAndDelete(
+      mongoose.Types.ObjectId(String(custId)),
+    );
     if (deleted) {
       return res
         .status(200)
-        .json({ message: 'Customer deleted successfully!' });
+        .json({ message: 'Customer account deleted successfully!' });
     }
     return res.status(404).json({ error: 'User not found!' });
   } catch (error) {
@@ -192,10 +187,15 @@ const getCustomerAddresses = async (req, res) => {
     if (String(req.headers.id) !== String(custId)) {
       return res.status(401).json({ error: 'Unauthorized request!' });
     }
-    const existingAddresses = await customerAddress.findAll({});
-    if (!existingAddresses) {
-      return res.status(409).json({ error: 'No addresses found!' });
+    const user = await Customer.findById(
+      mongoose.Types.ObjectId(String(custId)),
+    );
+    if (!user) {
+      return res.status(404).json({
+        error: 'User does not exist!',
+      });
     }
+    const existingAddresses = user.addresses;
     return res.status(200).json({ existingAddresses });
   } catch (error) {
     return res.status(500).json({ error: error.message });
@@ -204,14 +204,30 @@ const getCustomerAddresses = async (req, res) => {
 
 const deleteCustomerAddress = async (req, res) => {
   try {
-    const { custId, id } = req.params;
-    const deleted = await customerAddress.destroy({
-      where: { custId, id },
-    });
-    if (deleted) {
-      return res.status(200).json({ message: 'Address deleted successfully!' });
+    const { custId, addressId } = req.params;
+    const existingAddress = await Customer.find(
+      {
+        'addresses._id': mongoose.Types.ObjectId(String(addressId)),
+      },
+      {
+        addresses: {
+          $elemMatch: { _id: mongoose.Types.ObjectId(String(addressId)) },
+        },
+      },
+    );
+    if (!existingAddress.length) {
+      return res.status(404).json({ error: 'Address not found!' });
     }
-    return res.status(404).json({ error: 'Address not found!' });
+    await Customer.findOneAndUpdate(
+      { _id: mongoose.Types.ObjectId(String(custId)) },
+      {
+        $pull: {
+          addresses: { _id: mongoose.Types.ObjectId(String(addressId)) },
+        },
+      },
+      { new: true },
+    );
+    return res.status(200).json({ message: 'Address deleted successfully!' });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }

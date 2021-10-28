@@ -12,7 +12,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Container } from 'react-bootstrap';
 import { Avatar } from 'baseui/avatar';
-import { useHistory } from 'react-router';
 import jwt_decode from 'jwt-decode';
 import toast from 'react-hot-toast';
 import { FormControl } from 'baseui/form-control';
@@ -64,7 +63,6 @@ function Negative() {
 }
 
 function RestaurantSettings() {
-  const history = useHistory();
   const dispatch = useDispatch();
 
   const [name, setName] = useState('');
@@ -116,7 +114,6 @@ function RestaurantSettings() {
       return;
     }
     const restTypes = [];
-    console.log(restType);
     restType.forEach((ele) => {
       restTypes.push(ele.restType);
     });
@@ -148,15 +145,8 @@ function RestaurantSettings() {
       dispatch(updateRestaurantSuccess(response));
       toast.success('Restaurant details updated!');
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/restaurant');
-          return;
-        }
-        dispatch(updateRestaurantFailure(error.response.data.error));
-        toast.error(error.response.data.error);
-      }
+      console.log(error);
+      dispatch(updateRestaurantFailure(error.message));
     }
   };
 
@@ -203,12 +193,7 @@ function RestaurantSettings() {
         response.data.rest.endTime ? new Date(response.data.rest.endTime) : '',
       );
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/restaurant');
-        }
-      }
+      console.log(error);
     }
   }, []);
 
@@ -224,14 +209,7 @@ function RestaurantSettings() {
       );
       setRestImages(response.data.restImages);
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/restaurant');
-          return;
-        }
-        toast.error(error.response.data.error);
-      }
+      console.log(error);
     }
   };
 
@@ -268,16 +246,9 @@ function RestaurantSettings() {
           setModalIsOpen(false);
           getRestaurantImages();
         } catch (error) {
-          if (error.hasOwnProperty('response')) {
-            if (error.response.status === 403) {
-              toast.error('Session expired. Please login again!');
-              history.push('/login/restaurant');
-              return;
-            }
-            setIsUploading(false);
-            dispatch(updateRestaurantFailure(error.response.data.error));
-            toast.error(error.response.data.error);
-          }
+          console.log(error);
+          setIsUploading(false);
+          dispatch(updateRestaurantFailure(error.message));
         }
       })
       .catch((err) => toast.error(err));
@@ -301,14 +272,7 @@ function RestaurantSettings() {
       toast.success('Image deleted!');
       getRestaurantImages();
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/restaurant');
-          return;
-        }
-        toast.error(error.response.data.error);
-      }
+      console.log(error);
     }
   };
 

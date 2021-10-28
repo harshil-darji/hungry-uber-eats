@@ -22,7 +22,6 @@ import { useHistory } from 'react-router';
 import { Button, SIZE } from 'baseui/button';
 // eslint-disable-next-line camelcase
 import jwt_decode from 'jwt-decode';
-import toast from 'react-hot-toast';
 import _ from 'underscore';
 import {
   Modal,
@@ -71,15 +70,7 @@ function CustomerOrders() {
       });
       setOrderDishCounts(orderDishCountsObj);
     } catch (error) {
-      // eslint-disable-next-line no-prototype-builtins
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/customer');
-          return;
-        }
-        toast.error(error.response.data.error);
-      }
+      console.log(error);
     }
   };
 
@@ -109,15 +100,7 @@ function CustomerOrders() {
       });
       setOrderDishCounts(orderDishCountsObj);
     } catch (error) {
-      // eslint-disable-next-line no-prototype-builtins
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/restaurant');
-          return;
-        }
-        toast.error(error.response.data.error);
-      }
+      console.log(error);
     }
   };
 
@@ -134,15 +117,7 @@ function CustomerOrders() {
       );
       setOrderDetails(response.data.orderDetails);
     } catch (error) {
-      // eslint-disable-next-line no-prototype-builtins
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/customer');
-          return;
-        }
-        toast.error(error.response.data.error);
-      }
+      console.log(error);
     }
   };
 

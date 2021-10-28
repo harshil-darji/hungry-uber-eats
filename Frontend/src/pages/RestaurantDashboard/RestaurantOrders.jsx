@@ -63,15 +63,7 @@ function RestaurantOrders() {
       });
       setOrderDishCounts(orderDishCountsObj);
     } catch (error) {
-      // eslint-disable-next-line no-prototype-builtins
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/restaurant');
-          return;
-        }
-        toast.error(error.response.data.error);
-      }
+      console.log(error);
     }
   };
 
@@ -101,15 +93,7 @@ function RestaurantOrders() {
       });
       setOrderDishCounts(orderDishCountsObj);
     } catch (error) {
-      // eslint-disable-next-line no-prototype-builtins
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/restaurant');
-          return;
-        }
-        toast.error(error.response.data.error);
-      }
+      console.log(error);
     }
   };
 
@@ -126,15 +110,7 @@ function RestaurantOrders() {
       );
       setOrderDetails(response.data.orderDetails);
     } catch (error) {
-      // eslint-disable-next-line no-prototype-builtins
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/restaurant');
-          return;
-        }
-        toast.error(error.response.data.error);
-      }
+      console.log(error);
     }
   };
 
@@ -156,15 +132,7 @@ function RestaurantOrders() {
       getRestaurantOrders();
       toast.success('Order status updated!');
     } catch (error) {
-      // eslint-disable-next-line no-prototype-builtins
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/restaurant');
-          return;
-        }
-        toast.error(error.response.data.error);
-      }
+      console.log(error);
     }
   };
 

@@ -1,11 +1,10 @@
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable no-nested-ternary */
 /* eslint-disable react/jsx-one-expression-per-line */
 /* eslint-disable react/jsx-indent */
 /* eslint-disable indent */
 /* eslint-disable no-prototype-builtins */
 import React, { useCallback, useEffect, useState } from 'react';
-import toast from 'react-hot-toast';
-import { useHistory } from 'react-router';
 
 import Carousel from 'react-responsive-carousel/lib/js/components/Carousel/index';
 import { Display3 } from 'baseui/typography';
@@ -26,8 +25,6 @@ function RestaurantDetails({ match }) {
   const [cartInfo, setCartInfo] = useState({});
   const cart = useSelector((state) => state.cart);
 
-  const history = useHistory();
-
   const getCartItems = useCallback(async () => {
     const token = sessionStorage.getItem('token');
     const decoded = jwt_decode(token);
@@ -37,12 +34,7 @@ function RestaurantDetails({ match }) {
       });
       setCartInfo(response.data);
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/customer');
-        }
-      }
+      console.log(error);
     }
   }, []);
 
@@ -57,12 +49,7 @@ function RestaurantDetails({ match }) {
       );
       setRestDetails(response.data.rest);
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/');
-        }
-      }
+      console.log(error);
     }
   }, []);
 
@@ -92,19 +79,19 @@ function RestaurantDetails({ match }) {
             <p style={{ color: 'white' }}> 25-35 min</p>
           </div>
         </div>
-        {restDetails?.restaurantImages ? (
+        {restDetails?.restImages ? (
           <Carousel
             autoPlay
             infiniteLoop
-            interval={3000}
+            interval={3400}
             transitionTime={1500}
             showIndicators={false}
             showThumbs={false}
             showArrows={false}
           >
-            {restDetails.restaurantImages?.length > 0
-              ? restDetails.restaurantImages.map((ele) => (
-                  <div key={ele.restImageId}>
+            {restDetails.restImages?.length > 0
+              ? restDetails.restImages.map((ele) => (
+                  <div key={ele._id}>
                     <img src={ele.imageLink} alt="Restaurant" />
                   </div>
                 ))
@@ -118,10 +105,10 @@ function RestaurantDetails({ match }) {
           <Row>
             $
             {restDetails
-              ? restDetails.restaurantTypes?.length > 0
-                ? restDetails.restaurantTypes.map((restType) => (
+              ? restDetails.restType?.length > 0
+                ? restDetails.restType.map((rType) => (
                     <p style={{ fontSize: '16px', marginLeft: '2px' }}>
-                      &bull;{restType.restType}
+                      &bull;{rType}
                     </p>
                   ))
                 : null

@@ -4,7 +4,6 @@
 /* eslint-disable no-prototype-builtins */
 /* eslint-disable react/destructuring-assignment */
 import React, { useEffect, useState } from 'react';
-import { useHistory } from 'react-router';
 import {
   Modal,
   ModalHeader,
@@ -60,7 +59,6 @@ class ModalStateContainer extends React.Component {
 function UpdateDishModal(props) {
   // eslint-disable-next-line object-curly-newline
   const { modalIsOpen, setModalIsOpen, dishes, selectedDishId } = props;
-  const history = useHistory();
   const dishesFromState = useSelector((state) => state.dish);
 
   const [isUploading, setIsUploading] = useState(false);
@@ -142,15 +140,6 @@ function UpdateDishModal(props) {
     } catch (error) {
       dispatch(addDishImageFailure());
       console.log(error);
-      // if (error.hasOwnProperty('response')) {
-      //   if (error.response.status === 403) {
-      //     toast.error('Session expired. Please login again!');
-      //     history.push('/login/restaurant');
-      //     return;
-      //   }
-      //   setIsUploading(false);
-      //   toast.error(error.response.data.error);
-      // }
     }
   };
 
@@ -203,14 +192,7 @@ function UpdateDishModal(props) {
       dispatch(setDeleteDishFlag());
       toast.success('Dish deleted successfully!');
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/restaurant');
-          return;
-        }
-      }
-      toast.error(error.response.data.error);
+      console.log(error);
     }
   };
 
@@ -246,6 +228,8 @@ function UpdateDishModal(props) {
                     <Carousel
                       dynamicHeight
                       showIndicators
+                      autoPlay
+                      infiniteLoop
                       showThumbs={false}
                       key={dishes}
                     >
@@ -309,13 +293,13 @@ function UpdateDishModal(props) {
                     Upload dish image
                   </p>
                   {filesToUpload.length > 0 ? (
-                    <p style={{ textAlign: 'center', marginTop: '10px' }}>
+                    <span style={{ textAlign: 'center', marginTop: '10px' }}>
                       Images selected:
                       {filesToUpload.map((file) => (
                         // eslint-disable-next-line react/jsx-one-expression-per-line
-                        <p key={file.name}>{file.name} </p>
+                        <span key={file.name}>{file.name} </span>
                       ))}
-                    </p>
+                    </span>
                   ) : null}
                 </Col>
                 <Col>

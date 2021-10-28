@@ -77,15 +77,7 @@ function CustomerCheckout() {
         );
       }
     } catch (error) {
-      // eslint-disable-next-line no-prototype-builtins
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/customer');
-          return;
-        }
-        toast.error(error.response.data.error);
-      }
+      console.log(error);
     }
   };
 
@@ -104,15 +96,7 @@ function CustomerCheckout() {
         setAddressToSend(response.data.existingAddresses[0].address);
       }
     } catch (error) {
-      // eslint-disable-next-line no-prototype-builtins
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/customer');
-          return;
-        }
-        toast.error(error.response.data.error);
-      }
+      console.log(error);
     }
   };
 
@@ -164,18 +148,12 @@ function CustomerCheckout() {
       history.push('/customer/orders');
     } catch (error) {
       if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/customer');
-          return;
-        }
         if (error.response.status === 400) {
-          toast.error(error.response.data.error);
           history.push('/customer/dashboard');
           return;
         }
       }
-      toast.error(error.response.data.error);
+      console.log(error);
     }
   };
 
@@ -200,14 +178,7 @@ function CustomerCheckout() {
       setInputCustomerAddress('');
       toast.success('Address added');
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/customer');
-          return;
-        }
-      }
-      toast.error(error.response.data.error);
+      console.log(error);
     }
   };
 
@@ -221,14 +192,7 @@ function CustomerCheckout() {
       getCustomerAddresses();
       toast.success('Address deleted');
     } catch (error) {
-      if (error.hasOwnProperty('response')) {
-        if (error.response.status === 403) {
-          toast.error('Session expired. Please login again!');
-          history.push('/login/customer');
-          return;
-        }
-      }
-      toast.error(error.response.data.error);
+      console.log(error);
     }
   };
 
