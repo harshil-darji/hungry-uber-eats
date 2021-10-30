@@ -1,11 +1,9 @@
+/* eslint-disable no-underscore-dangle */
+/* eslint-disable consistent-return */
 /* eslint-disable object-curly-newline */
-const {
-  cart,
-  restaurant,
-  dish,
-  sequelize,
-  dishImages,
-} = require('../models/data-model');
+const mongoose = require('mongoose');
+const Restaurant = require('../models/restaurant');
+const Cart = require('../models/cart');
 
 const insertIntoCart = async (req, res) => {
   try {
@@ -13,7 +11,8 @@ const insertIntoCart = async (req, res) => {
     if (String(req.headers.id) !== String(custId)) {
       return res.status(401).json({ error: 'Unauthorized request!' });
     }
-    const { restId, dishId } = req.body;
+    const { restId } = req.body;
+    const { dishId, dishQuantity } = req.body.dishes;
     // If restaurant ID or Dish ID is not sent
     if (!restId) {
       return res.status(400).json({ error: 'Please select restaurant!' });
@@ -21,35 +20,44 @@ const insertIntoCart = async (req, res) => {
     if (!dishId) {
       return res.status(400).json({ error: 'Please select dish!' });
     }
-    const checkExistingRest = await restaurant.findOne({
-      where: { restId },
-    });
+    const checkExistingRest = await Restaurant.findById(
+      mongoose.Types.ObjectId(String(restId)),
+    );
     // Check if restaurant ID or Dish ID exists in database
     if (!checkExistingRest) {
       return res.status(404).json({ error: 'Restaurant not found!' });
     }
-    const checkExistingDish = await dish.findOne({
-      where: { dishId, restId },
-    });
-    if (!checkExistingDish) {
+    const checkExistingDish = await Restaurant.find(
+      {
+        'dishes._id': mongoose.Types.ObjectId(String(dishId)),
+      },
+      {
+        dishes: {
+          $elemMatch: { _id: mongoose.Types.ObjectId(String(dishId)) },
+        },
+      },
+    );
+    if (!checkExistingDish.length) {
       return res.status(404).json({ error: 'Dish not found!' });
     }
-    const latestCartEntry = await cart.findOne({
-      where: { custId },
-      order: [['createdAt', 'DESC']],
+    const latestCartEntry = await Cart.findOne({
+      custId: mongoose.Types.ObjectId(String(custId)),
     });
     if (!latestCartEntry) {
       req.body.custId = custId;
-      const cartEntry = await cart.create(req.body);
-      return res.status(201).json({
+      const cartEnt = new Cart(req.body);
+      const cartEntry = await cartEnt.save().then(
+        Cart.populate(cartEnt, {
+          path: 'restId',
+          select: { _id: 1, name: 1, address: 1 },
+        }).then((caca) => caca),
+      );
+      return res.status(200).json({
         cartEntry,
       });
     }
     // If added into cart from different restaurant
-    if (latestCartEntry.restId !== restId) {
-      // const newDishInfo = await dish.findOne({
-      //   where: { dishId },
-      // });
+    if (latestCartEntry.restId.toString() !== restId) {
       return res.status(200).json({
         message: 'Create new order?',
         ...req.body,
@@ -57,10 +65,83 @@ const insertIntoCart = async (req, res) => {
         oldRestId: latestCartEntry.restId,
       });
     }
-    // Else add into cart
-    req.body.custId = custId;
-    const cartEntry = await cart.create(req.body);
-    return res.status(201).json({
+    // Else add dish into customer existing object / update existing dish quantity
+
+    // if dish found, update dish quantity
+    const existingDishInCart = await Cart.find(
+      {
+        'dishes.dishId': mongoose.Types.ObjectId(String(dishId)),
+      },
+      {
+        dishes: {
+          $elemMatch: { dishId: mongoose.Types.ObjectId(String(dishId)) },
+        },
+      },
+    );
+    if (existingDishInCart.length) {
+      const cE = await Cart.findOne({
+        custId: mongoose.Types.ObjectId(String(custId)),
+      });
+      const temp = [];
+      cE.dishes.forEach((cartDish) => {
+        temp.push({ 'dishes._id': cartDish.dishId });
+      });
+      const dishesInfo = await Restaurant.aggregate([
+        {
+          $match: {
+            _id: mongoose.Types.ObjectId(String(restId)),
+          },
+        },
+        {
+          $unwind: {
+            path: '$dishes',
+          },
+        },
+        {
+          $match: {
+            $or: temp,
+          },
+        },
+        {
+          $group: {
+            _id: '$dishes',
+          },
+        },
+      ]);
+
+      const updatedObj = {};
+      updatedObj['dishes.$.dishQuantity'] = dishQuantity;
+      await Cart.updateOne(
+        {
+          _id: latestCartEntry._id.toString(),
+          'dishes.dishId': mongoose.Types.ObjectId(String(dishId)),
+        },
+        { $set: updatedObj },
+      );
+      const cartEntry = await Cart.find({
+        custId: mongoose.Types.ObjectId(String(custId)),
+      })
+        .populate({ path: 'restId', select: { _id: 1, name: 1, address: 1 } })
+        .then((cece) => cece);
+      return res.status(200).json({
+        cartEntry,
+        dishesInfo,
+      });
+    }
+
+    // else push new dish to dishes array with dish quantity
+    await Cart.findOneAndUpdate(
+      { _id: latestCartEntry._id },
+      { $push: { dishes: { ...req.body.dishes } } },
+      { new: true },
+    );
+
+    const cartEntry = await Cart.find({
+      custId: mongoose.Types.ObjectId(String(custId)),
+    })
+      .populate({ path: 'restId', select: { _id: 1, name: 1, address: 1 } })
+      .then((cece) => cece);
+    return res.status(200).json({
       cartEntry,
     });
   } catch (error) {
@@ -74,15 +155,14 @@ const resetCartWithDifferentRestaurant = async (req, res) => {
     if (String(req.headers.id) !== String(custId)) {
       return res.status(401).json({ error: 'Unauthorized request!' });
     }
-    const deleteAllCartItems = await cart.destroy({
-      where: { custId },
+    const deletedCartItems = await Cart.findOneAndDelete({
+      custId: mongoose.Types.ObjectId(String(custId)),
     });
-    if (!deleteAllCartItems) {
-      return res
-        .status(500)
-        .json({ error: 'Server error! Could not reset cart!' });
+    if (!deletedCartItems) {
+      return res.status(404).json({ message: 'Cart could not be reset!' });
     }
-    const { restId, dishId } = req.body;
+    const { restId } = req.body;
+    const { dishId } = req.body.dishes;
     // If restaurant ID or Dish ID is not sent
     if (!restId) {
       return res.status(400).json({ error: 'Please select restaurant!' });
@@ -90,23 +170,35 @@ const resetCartWithDifferentRestaurant = async (req, res) => {
     if (!dishId) {
       return res.status(400).json({ error: 'Please select dish!' });
     }
-    const checkExistingRest = await restaurant.findOne({
-      where: { restId },
-    });
+    const checkExistingRest = await Restaurant.findById(
+      mongoose.Types.ObjectId(String(restId)),
+    );
     // Check if restaurant ID or Dish ID exists in database
     if (!checkExistingRest) {
       return res.status(404).json({ error: 'Restaurant not found!' });
     }
-    const checkExistingDish = await dish.findOne({
-      where: { dishId, restId },
-    });
-    if (!checkExistingDish) {
+    const checkExistingDish = await Restaurant.find(
+      {
+        'dishes._id': mongoose.Types.ObjectId(String(dishId)),
+      },
+      {
+        dishes: {
+          $elemMatch: { _id: mongoose.Types.ObjectId(String(dishId)) },
+        },
+      },
+    );
+    if (!checkExistingDish.length) {
       return res.status(404).json({ error: 'Dish not found!' });
     }
-    // Add new dish from different restaurant
     req.body.custId = custId;
-    const cartEntry = await cart.create(req.body);
-    return res.status(201).json({
+    const cartEnt = new Cart(req.body);
+    const cartEntry = await cartEnt.save().then(
+      Cart.populate(cartEnt, {
+        path: 'restId',
+        select: { _id: 1, name: 1, address: 1 },
+      }).then((caca) => caca),
+    );
+    return res.status(200).json({
       cartEntry,
     });
   } catch (error) {
@@ -120,38 +212,45 @@ const viewCart = async (req, res) => {
     if (String(req.headers.id) !== String(custId)) {
       return res.status(401).json({ error: 'Unauthorized request!' });
     }
-    const cartItems = await cart.findAll({
-      attributes: [
-        [sequelize.fn('count', sequelize.col('dish.dishId')), 'dishCount'],
-      ],
-      include: [
-        {
-          model: dish,
-        },
-      ],
-      required: false,
-      where: { custId },
-      group: ['cart.dishId'],
+    const customerCartItems = await Cart.findOne({
+      custId: mongoose.Types.ObjectId(String(custId)),
     });
-    if (cartItems.length === 0) {
+    if (!customerCartItems) {
       return res.status(200).json([]);
     }
-    const cartDishImages = await cart.findAll({
-      attributes: ['dishId'],
-      include: [
-        {
-          model: dish,
-          attributes: ['dishId'],
-          include: [{ model: dishImages }],
+    const temp = [];
+    customerCartItems.dishes.forEach((cartDish) => {
+      temp.push({ 'dishes._id': cartDish.dishId });
+    });
+    const dishesInfo = await Restaurant.aggregate([
+      {
+        $match: {
+          _id: mongoose.Types.ObjectId(String(customerCartItems.restId)),
         },
-      ],
-    });
-    const { restId } = cartItems[0].dish;
-    const rest = await restaurant.findOne({
-      where: { restId },
-      attributes: { exclude: ['createdAt', 'updatedAt', 'passwd'] },
-    });
-    return res.status(200).json({ cartItems, rest, cartDishImages });
+      },
+      {
+        $unwind: {
+          path: '$dishes',
+        },
+      },
+      {
+        $match: {
+          $or: temp,
+        },
+      },
+      {
+        $group: {
+          _id: '$dishes',
+        },
+      },
+    ]);
+
+    const cartItems = await Cart.find({
+      custId: mongoose.Types.ObjectId(String(custId)),
+    })
+      .populate({ path: 'restId', select: { _id: 1, name: 1, address: 1 } })
+      .then((cece) => cece);
+    return res.status(200).json({ cartItems, dishesInfo });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -163,15 +262,21 @@ const deleteFromCart = async (req, res) => {
     if (String(req.headers.id) !== String(custId)) {
       return res.status(401).json({ error: 'Unauthorized request!' });
     }
-    const checkExistingDish = await cart.findOne({
-      where: { dishId },
+    const checkExistingDish = await Cart.findOne({
+      custId: mongoose.Types.ObjectId(String(custId)),
     });
     if (!checkExistingDish) {
       return res.status(404).json({ error: 'No dish found in cart!' });
     }
-    const deletedCartItem = await cart.destroy({
-      where: { custId, dishId },
-    });
+    const deletedCartItem = await Cart.updateOne(
+      { custId: mongoose.Types.ObjectId(String(custId)) },
+      {
+        $pull: {
+          dishes: { dishId: mongoose.Types.ObjectId(String(dishId)) },
+        },
+      },
+      { new: true },
+    );
     if (deletedCartItem) {
       return res
         .status(200)
@@ -189,13 +294,13 @@ const clearCart = async (req, res) => {
     if (String(req.headers.id) !== String(custId)) {
       return res.status(401).json({ error: 'Unauthorized request!' });
     }
-    const deletedCartItems = await cart.destroy({
-      where: { custId },
+    const deletedCartItems = await Cart.findOneAndDelete({
+      custId: mongoose.Types.ObjectId(String(custId)),
     });
     if (deletedCartItems) {
       return res.status(200).json({ message: 'Cart cleared successfully!' });
     }
-    return res.status(404).json({ error: 'Cart could not be cleared!' });
+    return res.status(404).json({ error: 'No items in cart!' });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -207,37 +312,17 @@ const getCartQuantity = async (req, res) => {
     if (String(req.headers.id) !== String(custId)) {
       return res.status(401).json({ error: 'Unauthorized request!' });
     }
-    const cartItems = await cart.findAll({
-      where: { custId },
+    const cartItems = await Cart.findOne({
+      custId: mongoose.Types.ObjectId(String(custId)),
     });
-    if (cartItems.length > 0) {
-      return res.status(200).json({ totalDishesInCart: cartItems.length });
+    if (cartItems) {
+      let dishesCount = 0;
+      cartItems.dishes.forEach((dishInCart) => {
+        dishesCount += dishInCart.dishQuantity;
+      });
+      return res.status(200).json({ totalDishesInCart: dishesCount });
     }
     return res.status(200).json({ totalDishesInCart: 0 });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-};
-
-const updateDishQuantity = async (req, res) => {
-  try {
-    const { custId, dishId } = req.params;
-    const { restId, dishCount } = req.body;
-    if (String(req.headers.id) !== String(custId)) {
-      return res.status(401).json({ error: 'Unauthorized request!' });
-    }
-    await cart.destroy({
-      where: { custId, dishId },
-    });
-    // eslint-disable-next-line no-unused-vars
-    const cartRows = [...Array(dishCount)].map((_, i) => ({
-      restId,
-      dishId,
-      custId,
-    }));
-    await cart.bulkCreate(cartRows);
-
-    return res.status(200).json({ dishCount: cartRows.length });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -248,7 +333,6 @@ module.exports = {
   viewCart,
   deleteFromCart,
   getCartQuantity,
-  updateDishQuantity,
   clearCart,
   resetCartWithDifferentRestaurant,
 };

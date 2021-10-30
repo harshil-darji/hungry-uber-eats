@@ -1,3 +1,5 @@
+/* eslint-disable no-underscore-dangle */
+/* eslint-disable no-unreachable */
 /* eslint-disable implicit-arrow-linebreak */
 /* eslint-disable no-unused-vars */
 /* eslint-disable operator-linebreak */
@@ -19,6 +21,8 @@ import { Col } from 'react-bootstrap';
 import { ANCHOR, Drawer } from 'baseui/drawer';
 import { Select } from 'baseui/select';
 import { createTheme, lightThemePrimitives, ThemeProvider } from 'baseui';
+import { Spinner } from 'baseui/spinner';
+import { Skeleton } from 'baseui/skeleton';
 
 import axiosInstance from '../../services/apiConfig';
 import {
@@ -48,6 +52,7 @@ function Cart(props) {
   const [cartInfo, setCartInfo] = useState(null);
   const [dishImages, setDishImages] = useState({});
   const [cartPrice, setCartPrice] = useState('');
+  const [isUpdatingDishCount, setIsUpdatingDishCount] = useState(false);
 
   const getCartItems = useCallback(async () => {
     const token = sessionStorage.getItem('token');
@@ -56,36 +61,28 @@ function Cart(props) {
       const response = await axiosInstance.get(`customers/${decoded.id}/cart`, {
         headers: { Authorization: token },
       });
-      if (response.data.length === 0) {
+      if (!response.data.dishesInfo) {
         setCartInfo(null);
         return;
       }
-      // Sort dishes in ascending order by Name...
-      const sortedCartItems = []
-        .concat(response.data.cartItems)
-        .sort((a, b) => (a.dish.name > b.dish.name ? 1 : -1));
-      // set cartItems array to sorted array and rest as it is...
-      setCartInfo({ ...response.data, cartItems: sortedCartItems });
-
-      // get final price of cart
-      const x = response.data.cartItems.map((a) => a.dish.dishPrice);
-      const y = response.data.cartItems.map((a) => a.dishCount);
-      const multiplyPriceWithQty = (a, b) => a.map((e, i) => e * b[i]);
-      const arrayOfPrices = multiplyPriceWithQty(x, y);
-      const price = arrayOfPrices.reduce((a, b) => a + b, 0);
-
-      setCartPrice(price);
-
-      const tempDishObj = {};
-      // IDK whats goin on here... Im just assigning dishimage from response.
-      // TODO: fix this to get data appropriately from backend
-      response.data.cartDishImages.forEach((dishObj) => {
-        tempDishObj[dishObj.dish.dishId] =
-          dishObj.dish.dishImages.length > 0
-            ? dishObj.dish.dishImages[0].imageLink
-            : restaurantDefaultImage;
+      const dishIdToDishInfo = {};
+      response.data.dishesInfo.forEach((dishInfo) => {
+        const dishId = dishInfo._id._id;
+        dishIdToDishInfo[dishId] = dishInfo._id;
       });
-      setDishImages(tempDishObj);
+      const dishesInfoFinal = [];
+      let calculatedCartPrice = 0;
+      response.data.cartItems[0].dishes.forEach((dish) => {
+        const temp = dishIdToDishInfo[dish.dishId];
+        temp.dishQuantity = dish.dishQuantity;
+        calculatedCartPrice += temp.dishQuantity * temp.dishPrice;
+        dishesInfoFinal.push(temp);
+      });
+      response.data.cartItems[0].dishes = dishesInfoFinal;
+      setCartInfo({
+        cartItems: response.data.cartItems[0],
+      });
+      setCartPrice(calculatedCartPrice);
     } catch (error) {
       console.log(error);
     }
@@ -110,9 +107,9 @@ function Cart(props) {
     }
   };
 
-  const updateDishCount = async (dishId, dishCount) => {
-    if (dishCount === 'Remove') {
-      // remove this dish from cart
+  const updateDishCount = async (dishId, dishQuantity) => {
+    // If user selected Remove from dropdown, remove dish from cart
+    if (dishQuantity === 'Remove') {
       dispatch(deleteFromCartRequest());
       const token = sessionStorage.getItem('token');
       const decoded = jwt_decode(token);
@@ -124,40 +121,39 @@ function Cart(props) {
           },
         );
         dispatch(deleteFromCartSuccess());
+        toast.success('Dish removed!');
       } catch (error) {
         console.log(error);
         dispatch(deleteFromFailure(error.message));
       }
       return;
     }
-    // else update dish count and total count for navbar
-    const cartDishes = cartInfo.cartItems;
-    cartDishes.forEach((cartItem) => {
-      if (cartItem.dish.dishId === dishId) {
-        cartItem.dishCount = dishCount;
-      }
-    });
-    setCartInfo({ ...cartInfo, cartItems: cartDishes });
-
-    dispatch(updateCartRequest());
-    const token = sessionStorage.getItem('token');
-    const decoded = jwt_decode(token);
+    // Else update dish quantity
     try {
-      const response = await axiosInstance.put(
-        `customers/${decoded.id}/cart/${dishId}`,
+      setIsUpdatingDishCount(true);
+      dispatch(addToCartRequest());
+      const token = sessionStorage.getItem('token');
+      const decoded = jwt_decode(token);
+      const response = await axiosInstance.post(
+        `customers/${decoded.id}/cart`,
         {
-          restId: cartInfo.rest.restId,
-          dishCount,
+          dishes: {
+            dishId,
+            dishQuantity,
+          },
+          restId: cartInfo.cartItems.restId._id,
         },
         {
           headers: { Authorization: token },
         },
       );
-      dispatch(updateCartSuccess());
+      dispatch(addToCartSuccess());
       toast.success('Quantity updated!');
+      setIsUpdatingDishCount(false);
     } catch (error) {
       console.log(error);
-      dispatch(updateCartFailure(error.message));
+      setIsUpdatingDishCount(false);
+      dispatch(addtoCartFailure(error.message));
     }
   };
 
@@ -203,15 +199,15 @@ function Cart(props) {
           <div style={{ padding: '10px' }}>
             <Display3 $style={{ fontWeight: 'normal' }}>
               {cartInfo
-                ? cartInfo?.rest
-                  ? `${cartInfo.rest.name} (${cartInfo.rest.address})`
+                ? cartInfo?.cartItems?.restId
+                  ? `${cartInfo.cartItems.restId.name} (${cartInfo.cartItems.restId.address})`
                   : null
                 : null}
             </Display3>
             <Col>
               {cartInfo ? (
-                cartInfo?.cartItems?.length > 0 ? (
-                  cartInfo.cartItems.map((dish) => (
+                cartInfo?.cartItems?.dishes?.length > 0 ? (
+                  cartInfo.cartItems?.dishes.map((dish) => (
                     <>
                       <div
                         style={{ marginTop: '40px' }}
@@ -225,35 +221,39 @@ function Cart(props) {
                           }}
                         >
                           <div className="col-sm-3">
-                            <Select
-                              overrides={{
-                                Dropdown: {
-                                  style: {
-                                    width: '90px',
-                                    textAlign: 'center',
+                            {isUpdatingDishCount ? (
+                              <Skeleton width="100%" height="60%" animation />
+                            ) : (
+                              <Select
+                                overrides={{
+                                  Dropdown: {
+                                    style: {
+                                      width: '90px',
+                                      textAlign: 'center',
+                                    },
                                   },
-                                },
-                              }}
-                              clearable={false}
-                              size={SIZE.mini}
-                              options={new Array(98).fill().map((e, i) => {
-                                if (i === 0) {
-                                  return { dishCount: 'Remove' };
-                                }
-                                return { dishCount: i };
-                              })}
-                              placeholder="Quantity"
-                              valueKey="dishCount"
-                              labelKey="dishCount"
-                              id={dish?.dish.dishId}
-                              value={[{ dishCount: dish?.dishCount }]}
-                              onChange={({ value }) => {
-                                updateDishCount(
-                                  dish?.dish.dishId,
-                                  value[0].dishCount,
-                                );
-                              }}
-                            />
+                                }}
+                                clearable={false}
+                                size={SIZE.default}
+                                options={new Array(98).fill().map((e, i) => {
+                                  if (i === 0) {
+                                    return { dishQuantity: 'Remove' };
+                                  }
+                                  return { dishQuantity: i };
+                                })}
+                                placeholder="Quantity"
+                                valueKey="dishQuantity"
+                                labelKey="dishQuantity"
+                                id={dish?._id}
+                                value={[{ dishQuantity: dish?.dishQuantity }]}
+                                onChange={({ value }) => {
+                                  updateDishCount(
+                                    dish?._id,
+                                    value[0].dishQuantity,
+                                  );
+                                }}
+                              />
+                            )}
                           </div>
                           <div
                             className="col-sm-4"
@@ -268,7 +268,7 @@ function Cart(props) {
                                 fontWeight: 'bold',
                               }}
                             >
-                              {dish?.dish.name}
+                              {dish?.name}
                             </p>
                             <p
                               style={{
@@ -276,12 +276,16 @@ function Cart(props) {
                                 color: '#545454',
                               }}
                             >
-                              &#36; {dish?.dish.dishPrice}
+                              &#36; {dish?.dishPrice}
                             </p>
                           </div>
                           <img
                             className="col-sm-4"
-                            src={dishImages[dish?.dish.dishId]}
+                            src={
+                              dish?.dishImages?.length > 0
+                                ? dish.dishImages[0].imageLink
+                                : restaurantDefaultImage
+                            }
                             alt="sans"
                             height="80px"
                           />
@@ -329,7 +333,7 @@ function Cart(props) {
 
           <div>
             {cartInfo ? (
-              cartInfo?.cartItems?.length > 0 ? (
+              cartInfo?.cartItems?.dishes?.length > 0 ? (
                 <>
                   <ThemeProvider
                     theme={createTheme(lightThemePrimitives, {
@@ -344,16 +348,22 @@ function Cart(props) {
                       Clear cart
                     </Button>
                   </ThemeProvider>
-                  <Button
-                    style={{ width: '100%', marginTop: '20px' }}
-                    size={SIZE.large}
-                    onClick={proceedToCheckout}
-                  >
-                    Go to Checkout • $
-                    {cartPrice
-                      ? Math.round((cartPrice + Number.EPSILON) * 100) / 100
-                      : ''}
-                  </Button>
+                  {isUpdatingDishCount ? (
+                    <div style={{ justifyContent: 'center', display: 'flex' }}>
+                      <Spinner size="32px" />
+                    </div>
+                  ) : (
+                    <Button
+                      style={{ width: '100%', marginTop: '20px' }}
+                      size={SIZE.large}
+                      onClick={proceedToCheckout}
+                    >
+                      Go to Checkout • ${' '}
+                      {cartPrice
+                        ? Math.round((cartPrice + Number.EPSILON) * 100) / 100
+                        : ''}
+                    </Button>
+                  )}
                 </>
               ) : null
             ) : null}

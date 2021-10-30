@@ -136,7 +136,7 @@ function RestaurantDetails({ match }) {
                         <RestaurantDetailsCard
                           dish={dish}
                           restName={restDetails.name}
-                          restId={restDetails.restId}
+                          restId={restDetails._id}
                           cartInfo={cartInfo}
                         />
                       ))

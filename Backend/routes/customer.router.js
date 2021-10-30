@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { customerController } = require('../controllers');
+const { customerController, cartController } = require('../controllers');
 const {
   validate,
   customerAddressValidationRules,
@@ -26,6 +26,12 @@ const router = Router();
  * @typedef Address
  * @property {string} address
  * @property {string} city
+ */
+
+/**
+ * @typedef CartEntry
+ * @property {object} dishes
+ * @property {string} restId
  */
 
 /**
@@ -113,5 +119,72 @@ router.delete(
   '/:custId/addresses/:addressId',
   customerController.deleteCustomerAddress,
 );
+
+// Customer Cart routes
+
+/**
+ * @route POST /customers/{custId}/cart
+ * @summary Add item to cart
+ * @group Cart - Cart operations
+ * @param {CartEntry.model} CartEntry.body.required dishes: { dishId: "", dishQuantity: 1 }
+ * @param {string} custId.path.required
+ * @returns {object} 200 - Item added to cart
+ * @returns {object} 400 - Dish/Restaurant not specified
+ * @returns {object} 400 - Address not entered
+ * @returns {Error}  500 - Server error
+ * @security JWT
+ */
+router.post('/:custId/cart', cartController.insertIntoCart);
+
+router.post(
+  '/:custId/reset-cart',
+  cartController.resetCartWithDifferentRestaurant,
+);
+
+/**
+ * @route GET /customers/{custId}/cart
+ * @summary Get cart items
+ * @group Cart - Cart operations
+ * @param {string} custId.path.required
+ * @returns {object} 200 - Cart items
+ * @returns {Error}  500 - Server error
+ * @security JWT
+ */
+router.get('/:custId/cart', cartController.viewCart);
+
+/**
+ * @route GET /customers/{custId}/cart-quantity
+ * @summary Get cart items total quantity
+ * @group Cart - Cart operations
+ * @param {string} custId.path.required
+ * @returns {object} 200 - Cart quantity
+ * @returns {Error}  500 - Server error
+ * @security JWT
+ */
+router.get('/:custId/cart-quantity', cartController.getCartQuantity);
+
+/**
+ * @route DELETE /customers/{custId}/clear-cart
+ * @summary Clear cart for customer
+ * @group Cart - Cart operations
+ * @param {string} custId.path.required
+ * @returns {object} 200 - Cart cleared
+ * @returns {Error} 404 - No items in cart
+ * @returns {Error}  500 - Server error
+ * @security JWT
+ */
+router.delete('/:custId/clear-cart', cartController.clearCart);
+
+/**
+ * @route DELETE /customers/{custId}/cart/{dishId}
+ * @summary Delete dish from cart
+ * @group Cart - Cart operations
+ * @param {string} custId.path.required
+ * @param {string} dishId.path.required
+ * @returns {object} 200 - Removed from cart
+ * @returns {Error}  500 - Server error
+ * @security JWT
+ */
+router.delete('/:custId/cart/:dishId', cartController.deleteFromCart);
 
 module.exports = router;

@@ -3,7 +3,6 @@ const { Router } = require('express');
 const {
   customerController,
   orderController,
-  cartController,
 } = require('../controllers');
 
 const {
@@ -18,21 +17,6 @@ router.use('/register', require('./register.router'));
 router.use('/login', require('./login.router'));
 router.use('/restaurants', require('./restaurant.router'));
 router.use('/customers', require('./customer.router'));
-
-// Cart routes
-router.post('/customers/:custId/cart', cartController.insertIntoCart);
-router.post(
-  '/customers/:custId/reset-cart',
-  cartController.resetCartWithDifferentRestaurant,
-);
-router.get('/customers/:custId/cart', cartController.viewCart);
-router.get('/customers/:custId/cart-quantity', cartController.getCartQuantity);
-router.put(
-  '/customers/:custId/cart/:dishId',
-  cartController.updateDishQuantity,
-);
-router.delete('/customers/:custId/clear-cart', cartController.clearCart);
-router.delete('/customers/:custId/cart/:dishId', cartController.deleteFromCart);
 
 // Order routes
 router.post('/customers/:custId/orders/init', orderController.initOrder);

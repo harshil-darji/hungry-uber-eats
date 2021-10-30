@@ -194,6 +194,11 @@ const searchRestaurants = async (req, res) => {
       $or: [
         { name: new RegExp(`.*${searchQuery}.*`, 'i') },
         { description: new RegExp(`.*${searchQuery}.*`, 'i') },
+        {
+          dishes: {
+            $elemMatch: { name: new RegExp(`.*${searchQuery}.*`, 'i') },
+          },
+        },
       ],
     });
     return res.status(200).json({ restaurants });

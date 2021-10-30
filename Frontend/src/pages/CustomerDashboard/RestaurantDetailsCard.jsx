@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable react/jsx-one-expression-per-line */
 /* eslint-disable no-unused-vars */
 /* eslint-disable vars-on-top */
@@ -91,9 +92,10 @@ function RestaurantDetailsCard({ dish, cartInfo, restName, restId }) {
       const response = await axiosInstance.post(
         `customers/${decoded.id}/reset-cart`,
         {
-          dishId: dish.dishId,
-          name: dish.name,
-          dishPrice: dish.dishPrice,
+          dishes: {
+            dishId: dish._id,
+            dishQuantity,
+          },
           restId,
         },
         {
@@ -113,31 +115,21 @@ function RestaurantDetailsCard({ dish, cartInfo, restName, restId }) {
       dispatch(addToCartRequest());
       const token = sessionStorage.getItem('token');
       const decoded = jwt_decode(token);
-
-      const promises = [...Array(dishQuantity)].map(
-        (_, i) =>
-          new Promise((resolve, reject) => {
-            try {
-              const response = axiosInstance.post(
-                `customers/${decoded.id}/cart`,
-                {
-                  dishId: dish.dishId,
-                  restId: dish.restId,
-                },
-                {
-                  headers: { Authorization: token },
-                },
-              );
-              resolve(response);
-            } catch (error) {
-              console.log(error);
-              reject(error.message);
-            }
-          }),
+      const response = await axiosInstance.post(
+        `customers/${decoded.id}/cart`,
+        {
+          dishes: {
+            dishId: dish._id,
+            dishQuantity,
+          },
+          restId,
+        },
+        {
+          headers: { Authorization: token },
+        },
       );
-      const response = await Promise.all([...promises]);
       // Check here if customer adds stuff from another restaurant...
-      if (!response[0].data.cartEntry) {
+      if (!response.data.cartEntry) {
         toggleConfirm(true);
         return;
       }
@@ -278,8 +270,11 @@ function RestaurantDetailsCard({ dish, cartInfo, restName, restId }) {
             >
               <ModalHeader>Create new order?</ModalHeader>
               <ModalBody>
-                Your cart already contains items from {cartInfo?.rest?.name}.
-                Create a new order to add items from {restName || ''}?
+                Your cart already contains items from{' '}
+                {cartInfo?.cartItems?.length > 0
+                  ? cartInfo.cartItems[0].restId.name
+                  : ''}
+                . Create a new order to add items from {restName || ''}?
               </ModalBody>
               <ModalFooter>
                 <ModalButton
