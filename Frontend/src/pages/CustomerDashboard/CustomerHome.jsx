@@ -85,7 +85,7 @@ function CustomerHome() {
   }, [searchFilter.searchQuery]);
 
   useEffect(() => {
-    if (restType.length > 0) {
+    if (restType !== null && restType !== undefined) {
       dispatch(setReduxRestType(restType));
     }
   }, [restType]);

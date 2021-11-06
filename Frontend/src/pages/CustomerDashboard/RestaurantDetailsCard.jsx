@@ -1,6 +1,5 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable react/jsx-one-expression-per-line */
-/* eslint-disable no-unused-vars */
 /* eslint-disable vars-on-top */
 /* eslint-disable no-useless-return */
 /* eslint-disable no-prototype-builtins */
@@ -33,9 +32,8 @@ import '../../css/RestaurantDetailsCard.css';
 import { H3, H6 } from 'baseui/typography';
 // eslint-disable-next-line object-curly-newline
 import { Button, KIND, SHAPE, SIZE } from 'baseui/button';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import toast from 'react-hot-toast';
-import { useHistory } from 'react-router';
 
 import axiosInstance from '../../services/apiConfig';
 import {
@@ -77,19 +75,32 @@ function RestaurantDetailsCard({ dish, cartInfo, restName, restId }) {
   const [dishQuantity, setDishQuantity] = useState(1);
 
   const dispatch = useDispatch();
-  const history = useHistory();
 
   useEffect(() => {
     const ingreds = dish.ingreds.split(',');
     setDishIngreds(ingreds);
   }, [dish.dishId]);
 
+  useEffect(() => {
+    let dishQty = 1;
+    if (cartInfo && cartInfo.cartItems) {
+      if (cartInfo.cartItems.length > 0) {
+        cartInfo.cartItems[0].dishes.forEach((cartDish) => {
+          if (cartDish.dishId === dish._id) {
+            dishQty = cartDish.dishQuantity;
+          }
+        });
+      }
+    }
+    setDishQuantity(dishQty);
+  }, [modalIsOpen]);
+
   const resetCartWithDifferentRest = async () => {
     try {
       dispatch(resetCartRequest());
       const token = sessionStorage.getItem('token');
       const decoded = jwt_decode(token);
-      const response = await axiosInstance.post(
+      await axiosInstance.post(
         `customers/${decoded.id}/reset-cart`,
         {
           dishes: {

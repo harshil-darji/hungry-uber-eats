@@ -34,6 +34,7 @@ import {
 } from 'baseui/modal';
 import { FormControl } from 'baseui/form-control';
 import { Input } from 'baseui/input';
+import { Textarea } from 'baseui/textarea';
 
 import UberEatsSvg from '../../components/UberEatsSvg';
 import restaurantDefaultImage from '../../assets/img/rest-default.jpg';
@@ -57,6 +58,10 @@ function CustomerCheckout() {
   const [inputCustomerAddress, setInputCustomerAddress] = useState('');
   const [customerAddresses, setCustomerAddresses] = useState([]);
   const [addressToSend, setAddressToSend] = useState('');
+  const [notesModalIsOpen, setNotesModalIsOpen] = useState(false);
+  const [notes, setNotes] = useState('');
+
+  console.log(deliveryTypeselected);
 
   const fetchCheckoutDetails = async () => {
     const token = sessionStorage.getItem('token');
@@ -69,12 +74,10 @@ function CustomerCheckout() {
         },
       );
       setCheckoutDetails(response.data.latestOrder);
-      if (response.data.latestOrder.restaurant.deliveryType === 'Both') {
+      if (response.data.latestOrder.restId.deliveryType === 'Both') {
         setDeliveryTypeselected('Delivery');
       } else {
-        setDeliveryTypeselected(
-          response.data.latestOrder.restaurant.deliveryType,
-        );
+        setDeliveryTypeselected(response.data.latestOrder.restId.deliveryType);
       }
     } catch (error) {
       console.log(error);
@@ -134,6 +137,7 @@ function CustomerCheckout() {
         {
           orderAddress: addressToSend,
           orderType: deliveryTypeselected,
+          notes,
         },
         {
           headers: { Authorization: token },
@@ -321,6 +325,46 @@ function CustomerCheckout() {
           </Button>
         </ModalFooter>
       </Modal>
+
+      <Modal
+        onClose={() => setNotesModalIsOpen(false)}
+        isOpen={notesModalIsOpen}
+        overrides={{
+          // eslint-disable-next-line baseui/deprecated-component-api
+          Backdrop: {
+            style: {
+              bottom: '-10px',
+            },
+          },
+        }}
+      >
+        <ModalHeader>
+          <H2 style={{ fontWeight: 'normal' }}>Add notes</H2>
+        </ModalHeader>
+        <ModalBody>
+          <FormControl>
+            <Textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Type here..."
+              size={SIZE.default}
+            />
+          </FormControl>
+        </ModalBody>
+        <ModalFooter>
+          <Button
+            $style={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+            }}
+            onClick={() => setNotesModalIsOpen(false)}
+          >
+            <span style={{ justifyContent: 'center' }}>Save</span>
+          </Button>
+        </ModalFooter>
+      </Modal>
+
       <HeaderNavigation>
         <StyledNavigationList $align={ALIGN.left}>
           <Row
@@ -351,11 +395,11 @@ function CustomerCheckout() {
         </StyledNavigationList>
       </HeaderNavigation>
       <Row>
-        {checkoutDetails?.restaurant ? (
+        {checkoutDetails?.restId ? (
           <Col style={{ marginLeft: '30px', marginTop: '50px' }}>
             <Display4 $style={{ fontWeight: 'normal' }}>
-              {checkoutDetails.restaurant.name}
-              {` (${checkoutDetails.restaurant.address})`}
+              {checkoutDetails.restId.name}
+              {` (${checkoutDetails.restId.address})`}
             </Display4>
             <div className="restImageWrapper" style={{ marginTop: '30px' }}>
               <div
@@ -371,7 +415,7 @@ function CustomerCheckout() {
                   zIndex: 100,
                 }}
               >
-                {checkoutDetails?.restaurant.deliveryType === 'Both' ? (
+                {checkoutDetails?.restId.deliveryType === 'Both' ? (
                   <ButtonGroup
                     mode={MODE.radio}
                     shape={SHAPE.pill}
@@ -401,7 +445,7 @@ function CustomerCheckout() {
                       Pickup
                     </Button>
                   </ButtonGroup>
-                ) : checkoutDetails?.restaurant.deliveryType === 'Pickup' ? (
+                ) : checkoutDetails?.restId.deliveryType === 'Pickup' ? (
                   <Button shape={SHAPE.pill} style={{ height: '38px' }}>
                     Pickup
                   </Button>
@@ -414,16 +458,66 @@ function CustomerCheckout() {
 
               <img
                 src={
-                  checkoutDetails.restaurant.restaurantImages.length > 0
-                    ? checkoutDetails.restaurant.restaurantImages[0].imageLink
+                  checkoutDetails.restId.restImages.length > 0
+                    ? checkoutDetails.restId.restImages[0].imageLink
                     : restaurantDefaultImage
                 }
                 height="400px"
                 // width="650px"
                 style={{ display: 'inline-block', overflow: 'hidden' }}
-                alt={checkoutDetails.restaurant.name}
+                alt={checkoutDetails.restId.name}
               />
             </div>
+
+            {deliveryTypeselected === 'Delivery' ? (
+              <div
+                style={{
+                  marginLeft: '10px',
+                  marginTop: '20px',
+                  display: 'flex',
+                  width: '590px',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <i
+                  className="fa fa-map-marker fa-lg"
+                  aria-hidden="true"
+                  siz
+                  style={{ marginBottom: '9px' }}
+                />
+                <Col>
+                  <p style={{ fontWeight: 'bold' }}>
+                    {addressToSend.length > 0
+                      ? addressToSend
+                      : locationObj
+                      ? locationObj.address.road
+                      : 'Enter address'}
+                  </p>
+                  <p
+                    style={{
+                      marginTop: '-14px',
+                      fontSize: '14px',
+                      color: 'grey',
+                    }}
+                  >
+                    Edit your address
+                  </p>
+                </Col>
+                <Button
+                  onClick={() => setModalIsOpen(true)}
+                  kind={KIND.secondary}
+                  shape={SHAPE.pill}
+                  size={SIZE.default}
+                  style={{ height: '50px', width: '70px' }}
+                >
+                  Edit
+                </Button>
+              </div>
+            ) : null}
+
+            {deliveryTypeselected === 'Delivery' ? (
+              <hr style={{ width: '600px', float: 'left' }} />
+            ) : null}
 
             <div
               style={{
@@ -435,25 +529,25 @@ function CustomerCheckout() {
               }}
             >
               <i
-                className="fa fa-map-marker fa-lg"
+                className="fa fa-sticky-note fa-lg"
                 aria-hidden="true"
-                siz
                 style={{ marginBottom: '9px' }}
               />
               <Col>
-                <p style={{ fontWeight: 'bold' }}>
-                  {addressToSend.length > 0
-                    ? addressToSend
-                    : locationObj
-                    ? locationObj.address.road
-                    : 'Enter address'}
+                <p style={{ fontWeight: 'bold' }}>Notes</p>
+                <p
+                  style={{
+                    marginTop: '-14px',
+                    fontSize: '14px',
+                    color: 'grey',
+                  }}
+                >
+                  Add notes
                 </p>
-                <p style={{ marginTop: '-14px', fontSize: '14px' }}>
-                  Edit your address
-                </p>
+                <p>{notes}</p>
               </Col>
               <Button
-                onClick={() => setModalIsOpen(true)}
+                onClick={() => setNotesModalIsOpen(true)}
                 kind={KIND.secondary}
                 shape={SHAPE.pill}
                 size={SIZE.default}
@@ -461,44 +555,6 @@ function CustomerCheckout() {
               >
                 Edit
               </Button>
-            </div>
-
-            <hr style={{ width: '600px', float: 'left' }} />
-
-            <div
-              style={{
-                marginLeft: '10px',
-                marginTop: '20px',
-                display: 'flex',
-                width: '590px',
-                justifyContent: 'space-between',
-              }}
-            >
-              <i
-                className="fa fa-male fa-lg"
-                aria-hidden="true"
-                style={{ marginBottom: '9px' }}
-              />
-              <Col>
-                <p style={{ fontWeight: 'bold' }}>Meet at your door</p>
-                {/* <p
-                  style={{
-                    marginTop: '-14px',
-                    fontSize: '14px',
-                    color: 'grey',
-                  }}
-                >
-                  Add delivery instructions
-                </p> */}
-              </Col>
-              {/* <Button
-                kind={KIND.secondary}
-                shape={SHAPE.pill}
-                size={SIZE.default}
-                style={{ height: '50px', width: '70px' }}
-              >
-                Edit
-              </Button> */}
             </div>
 
             <div
@@ -511,10 +567,23 @@ function CustomerCheckout() {
               }}
             >
               <hr style={{ height: '3px', width: '100%' }} />
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <H6 style={{ fontWeight: 'normal' }}>Delivery estimate</H6>
-                <p style={{ fontSize: '18px' }}>20-30 min</p>
-              </div>
+              {deliveryTypeselected === 'Delivery' ? (
+                <div
+                  style={{ display: 'flex', justifyContent: 'space-between' }}
+                >
+                  <H6 style={{ fontWeight: 'normal' }}>Delivery estimate</H6>
+                  <p style={{ fontSize: '18px' }}>30-45 min</p>
+                </div>
+              ) : (
+                <div
+                  style={{ display: 'flex', justifyContent: 'space-between' }}
+                >
+                  <H6 style={{ fontWeight: 'normal' }}>
+                    Order will be ready in
+                  </H6>
+                  <p style={{ fontSize: '18px' }}>20-25 min</p>
+                </div>
+              )}
             </div>
           </Col>
         ) : (
@@ -590,8 +659,7 @@ function CustomerCheckout() {
                   <span>
                     {checkoutDetails ? (
                       Math.round(
-                        (checkoutDetails.taxPrice - 0.49 + Number.EPSILON) *
-                          100,
+                        (checkoutDetails.taxPrice + Number.EPSILON) * 100,
                       ) / 100
                     ) : (
                       <Skeleton width="40px" height="20px" animation />
@@ -599,30 +667,32 @@ function CustomerCheckout() {
                   </span>
                 </p>
               </div>
-              <div
-                style={{
-                  marginTop: '-5px',
-                  marginLeft: '1px',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                }}
-              >
-                <p>
-                  Delivery Fee
-                  <i
-                    className="fa fa-info-circle"
-                    aria-hidden="true"
-                    style={{ color: 'grey', marginLeft: '10px' }}
-                  />
-                </p>
-                <p>
-                  {checkoutDetails ? (
-                    <span>&#36;0.49</span>
-                  ) : (
-                    <Skeleton width="40px" height="20px" animation />
-                  )}
-                </p>
-              </div>
+              {deliveryTypeselected === 'Delivery' ? (
+                <div
+                  style={{
+                    marginTop: '-5px',
+                    marginLeft: '1px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <p>
+                    Delivery Fee
+                    <i
+                      className="fa fa-info-circle"
+                      aria-hidden="true"
+                      style={{ color: 'grey', marginLeft: '10px' }}
+                    />
+                  </p>
+                  <p>
+                    {checkoutDetails ? (
+                      <span>&#36;0.49</span>
+                    ) : (
+                      <Skeleton width="40px" height="20px" animation />
+                    )}
+                  </p>
+                </div>
+              ) : null}
               <hr />
               <div
                 style={{
@@ -636,7 +706,19 @@ function CustomerCheckout() {
                 <p style={{ fontWeight: 'bold', fontSize: 'larger' }}>
                   $
                   {checkoutDetails ? (
-                    checkoutDetails.totalPrice
+                    deliveryTypeselected === 'Delivery' ? (
+                      Math.round(
+                        (checkoutDetails.totalOrderPrice +
+                          0.49 +
+                          Number.EPSILON) *
+                          100,
+                      ) / 100
+                    ) : (
+                      Math.round(
+                        (checkoutDetails.totalOrderPrice + Number.EPSILON) *
+                          100,
+                      ) / 100
+                    )
                   ) : (
                     <Skeleton width="40px" height="20px" animation />
                   )}

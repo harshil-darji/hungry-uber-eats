@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable implicit-arrow-linebreak */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
@@ -22,7 +23,7 @@ import { useHistory } from 'react-router';
 import { Button, SIZE } from 'baseui/button';
 // eslint-disable-next-line camelcase
 import jwt_decode from 'jwt-decode';
-import _ from 'underscore';
+// import _ from 'underscore';
 import {
   Modal,
   ModalHeader,
@@ -36,13 +37,13 @@ import { Select } from 'baseui/select';
 import axiosInstance from '../../services/apiConfig';
 
 import UberEatsSvg from '../../components/UberEatsSvg';
+import restaurantDefaultImage from '../../assets/img/rest-default.jpg';
 
 import '../../css/CustomerOrder.css';
 
 function CustomerOrders() {
   const history = useHistory();
-  const [orderDishCounts, setOrderDishCounts] = useState([]);
-  const [orderRestImages, setOrderRestImages] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [orderDetails, setOrderDetails] = useState(null);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [orderStatusFilter, setOrderStatusFilter] = useState([
@@ -59,16 +60,7 @@ function CustomerOrders() {
           headers: { Authorization: token },
         },
       );
-      const uniqueRestImages = await _.uniq(
-        response.data.orderDetails,
-        (x) => x.orderId,
-      );
-      setOrderRestImages(uniqueRestImages);
-      const orderDishCountsObj = {};
-      response.data.orderDishCounts.forEach((element) => {
-        orderDishCountsObj[element.orderId] = element.totalDishCount;
-      });
-      setOrderDishCounts(orderDishCountsObj);
+      setOrders(response.data.orders);
     } catch (error) {
       console.log(error);
     }
@@ -89,23 +81,14 @@ function CustomerOrders() {
           headers: { Authorization: token },
         },
       );
-      const uniqueRestImages = await _.uniq(
-        response.data.orderDetails,
-        (x) => x.orderId,
-      );
-      setOrderRestImages(uniqueRestImages);
-      const orderDishCountsObj = {};
-      response.data.orderDishCounts.forEach((element) => {
-        orderDishCountsObj[element.orderId] = element.totalDishCount;
-      });
-      setOrderDishCounts(orderDishCountsObj);
+      console.log(response.data.orders);
+      setOrders(response.data.orders);
     } catch (error) {
       console.log(error);
     }
   };
 
   const getOrderDetails = async (orderId) => {
-    // eslint-disable-next-line no-unreachable
     const token = sessionStorage.getItem('token');
     const decoded = jwt_decode(token);
     try {
@@ -150,11 +133,13 @@ function CustomerOrders() {
             }}
           >
             <H4>Total</H4>
-            <H4>{orderDetails ? <>$ {orderDetails[0].totalPrice} </> : ''}</H4>
+            <H4>
+              {orderDetails ? <>$ {orderDetails.totalOrderPrice} </> : ''}
+            </H4>
           </div>
           {orderDetails
-            ? orderDetails.length > 0
-              ? orderDetails.map((orderDetail) => (
+            ? orderDetails.dishes.length > 0
+              ? orderDetails.dishes.map((dish) => (
                   <div
                     style={{
                       marginRight: '10px',
@@ -178,13 +163,13 @@ function CustomerOrders() {
                           className="smallBox"
                           style={{ textAlign: 'center' }}
                         >
-                          {orderDetail.dishCount}
+                          {dish.dishDetails.dishQuantity}
                         </div>
                         <Label1 style={{ marginLeft: '10px' }}>
-                          {orderDetail.name}
+                          {dish.dishDetails.name}
                         </Label1>
                       </div>
-                      <Label1>${orderDetail.dishPrice}</Label1>
+                      <Label1>${dish.dishDetails.dishPrice}</Label1>
                     </div>
 
                     <p
@@ -194,9 +179,13 @@ function CustomerOrders() {
                         fontSize: '16px',
                       }}
                     >
-                      {orderDetail.name} comes with{' '}
+                      {dish.dishDetails.name} comes with{' '}
                     </p>
-                    <p style={{ marginLeft: '35px' }}>{orderDetail.ingreds}</p>
+                    <p style={{ marginLeft: '35px' }}>
+                      {dish.dishDetails.ingreds.length > 0
+                        ? dish.dishDetails.ingreds.slice(0, -1)
+                        : ''}
+                    </p>
                   </div>
                 ))
               : null
@@ -209,11 +198,11 @@ function CustomerOrders() {
           >
             <LabelMedium>Order status</LabelMedium>
             <LabelMedium style={{ fontWeight: 'normal' }}>
-              {orderDetails ? orderDetails[0].orderStatus : ''}
+              {orderDetails ? orderDetails.orderStatus : ''}
             </LabelMedium>
           </div>
           {orderDetails ? (
-            orderDetails[0].orderType === 'Delivery' ? (
+            orderDetails.orderType === 'Delivery' ? (
               <div
                 style={{
                   display: 'flex',
@@ -223,7 +212,7 @@ function CustomerOrders() {
               >
                 <LabelMedium>Delivered to</LabelMedium>
                 <LabelMedium style={{ fontWeight: 'normal' }}>
-                  {orderDetails ? orderDetails[0].orderAddress : ''}
+                  {orderDetails ? orderDetails.orderAddress : ''}
                 </LabelMedium>
               </div>
             ) : null
@@ -298,70 +287,77 @@ function CustomerOrders() {
           </FormControl>
         </div>
 
-        {orderRestImages
-          ? orderRestImages.length > 0
-            ? orderRestImages.map((orderRestImage) => (
-                <>
-                  <div
-                    style={{
-                      display: 'flex',
-                      marginLeft: '-27px',
-                      marginTop: '20px',
-                    }}
-                  >
-                    <Col>
-                      <img
-                        className="col-sm-12"
-                        src={orderRestImage.imageLink}
-                        alt="sans"
-                      />
-                    </Col>
-                    <Col xs={7}>
-                      <H6>{orderRestImage.name}</H6>
-                      <p>
-                        {orderDishCounts[orderRestImage.orderId]} items for $
-                        {orderRestImage.totalPrice} &middot;{' '}
-                        {new Date(orderRestImage.orderPlacedTime).toUTCString()}{' '}
-                        &middot;{' '}
-                        <span
-                          className="hoverUnderline"
-                          style={{ fontWeight: 'bold' }}
-                          onClick={async () => {
-                            await getOrderDetails(orderRestImage.orderId);
-                            setModalIsOpen(true);
-                          }}
-                        >
-                          View receipt
+        {orders ? (
+          orders.length > 0 ? (
+            orders.map((order) => (
+              <>
+                <div
+                  style={{
+                    display: 'flex',
+                    marginLeft: '-27px',
+                    marginTop: '20px',
+                  }}
+                >
+                  <Col>
+                    <img
+                      className="col-sm-12"
+                      src={
+                        order.restId.restImages
+                          ? order.restId.restImages.length > 0
+                            ? order.restId.restImages[0].imageLink
+                            : restaurantDefaultImage
+                          : restaurantDefaultImage
+                      }
+                      alt="sans"
+                    />
+                  </Col>
+                  <Col xs={7}>
+                    <H6>{order.restId.name}</H6>
+                    <p>
+                      {order.dishes.length} items for ${order.totalOrderPrice}{' '}
+                      &middot; {new Date(order.orderPlacedTime).toUTCString()}{' '}
+                      &middot;{' '}
+                      <span
+                        className="hoverUnderline"
+                        style={{ fontWeight: 'bold' }}
+                        onClick={async () => {
+                          await getOrderDetails(order._id);
+                          setModalIsOpen(true);
+                        }}
+                      >
+                        View receipt
+                      </span>
+                    </p>
+                  </Col>
+                  <Col style={{ marginRight: '45px' }}>
+                    <div style={{ justifyContent: 'center' }}>
+                      <Button
+                        size={SIZE.large}
+                        onClick={() =>
+                          history.push(
+                            `/customer/restaurants/${order.restId._id}`,
+                          )
+                        }
+                        $style={{
+                          width: '100%',
+                          display: 'flex',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <span style={{ justifyContent: 'center' }}>
+                          View store
                         </span>
-                      </p>
-                    </Col>
-                    <Col style={{ marginRight: '45px' }}>
-                      <div style={{ justifyContent: 'center' }}>
-                        <Button
-                          size={SIZE.large}
-                          onClick={() =>
-                            history.push(
-                              `/customer/restaurants${orderRestImage.restId}`,
-                            )
-                          }
-                          $style={{
-                            width: '100%',
-                            display: 'flex',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          <span style={{ justifyContent: 'center' }}>
-                            View store
-                          </span>
-                        </Button>
-                      </div>
-                    </Col>
-                  </div>
-                  <hr />
-                </>
-              ))
-            : null
-          : null}
+                      </Button>
+                    </div>
+                  </Col>
+                </div>
+                <hr />
+              </>
+            ))
+          ) : (
+            <p style={{ textAlign: 'center' }}>No such orders</p>
+          )
+        ) : null}
       </div>
     </div>
   );

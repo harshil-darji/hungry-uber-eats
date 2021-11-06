@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { restaurantController } = require('../controllers');
+const { restaurantController, orderController } = require('../controllers');
 const {
   dishValidationRules,
   validate,
@@ -237,5 +237,11 @@ router.delete(
 //   '/:restId/dishes/:dishId/images',
 //   restaurantController.deleteDishImage,
 // );
+
+// TODO: DO THIS BRO
+router.get('/:restId/orders', orderController.getRestaurantOrders);
+router.get('/:restId/orders/:orderId', orderController.getRestaurantOrderDetailsById);
+router.get('/:restId/orders/search/:orderStatus', orderController.getRestOrderDetailsByOrderStatus);
+router.put('/:restId/orders/:orderId', orderController.updateOrder);
 
 module.exports = router;

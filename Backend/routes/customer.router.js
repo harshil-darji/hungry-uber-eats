@@ -1,8 +1,13 @@
 const { Router } = require('express');
-const { customerController, cartController } = require('../controllers');
+const {
+  customerController,
+  cartController,
+  orderController,
+} = require('../controllers');
 const {
   validate,
   customerAddressValidationRules,
+  orderValidationRules,
 } = require('../controllers/valdiationRules');
 
 const router = Router();
@@ -32,6 +37,19 @@ const router = Router();
  * @typedef CartEntry
  * @property {object} dishes
  * @property {string} restId
+ */
+
+/**
+ * @typedef ResetCart
+ * @property {string} restId
+ * @property {string} dishId
+ */
+
+/**
+ * @typedef OrderEntry
+ * @property {string} notes
+ * @property {string} orderType
+ * @property {string} orderAddress
  */
 
 /**
@@ -71,7 +89,7 @@ router.put('/:custId', customerController.updateCustomer);
  */
 router.delete('/:custId', customerController.deleteCustomer);
 
-// Customer addresses
+/* ********************************  CUSTOMER ADDRESSES ******************************* */
 
 /**
  * Just send { address: "address1", city: "city1" }
@@ -120,7 +138,7 @@ router.delete(
   customerController.deleteCustomerAddress,
 );
 
-// Customer Cart routes
+/* ********************************  CUSTOMER CART ******************************* */
 
 /**
  * @route POST /customers/{custId}/cart
@@ -136,6 +154,18 @@ router.delete(
  */
 router.post('/:custId/cart', cartController.insertIntoCart);
 
+/**
+ * @route POST /customers/{custId}/reset-cart
+ * @summary Reset cart with different restaurant
+ * @group Cart - Cart operations
+ * @param {ResetCart.model} ResetCart.body.required
+ * @param {string} custId.path.required
+ * @returns {object} 200 - Item added to cart
+ * @returns {object} 400 - Dish/Restaurant not specified
+ * @returns {object} 400 - Address not entered
+ * @returns {Error}  500 - Server error
+ * @security JWT
+ */
 router.post(
   '/:custId/reset-cart',
   cartController.resetCartWithDifferentRestaurant,
@@ -186,5 +216,87 @@ router.delete('/:custId/clear-cart', cartController.clearCart);
  * @security JWT
  */
 router.delete('/:custId/cart/:dishId', cartController.deleteFromCart);
+
+/* ******************************  CUSTOMER ORDERS ******************************* */
+
+/**
+ * @route POST /customers/{custId}/orders/init
+ * @summary Initialize order
+ * @group Order - Order operations
+ * @param {string} custId.path.required
+ * @returns {object} 200 - Order initialized
+ * @returns {Error} 500 - Server error
+ * @security JWT
+ */
+router.post('/:custId/orders/init', orderController.initOrder);
+
+/**
+ * @route POST /customers/{custId}/orders/create
+ * @summary Create order
+ * @group Order - Order operations
+ * @param {OrderEntry.model} OrderEntry.body
+ * @param {string} custId.path.required
+ * @returns {object} 200 - Order create
+ * @returns {Error} 404 - No items in cart
+ * @returns {Error} 400 - No such order
+ * @returns {Error} 500 - Server error
+ * @security JWT
+ */
+router.post(
+  '/:custId/orders/create',
+  orderValidationRules(),
+  validate,
+  orderController.createOrder,
+);
+
+/**
+ * @route GET /customers/{custId}/latest-order
+ * @summary Get latest order
+ * @group Order - Order operations
+ * @param {string} custId.path.required
+ * @returns {object} 200 - Latest order
+ * @returns {Error} 400 - No items in cart
+ * @returns {Error} 500 - Server error
+ * @security JWT
+ */
+router.get('/:custId/latest-order', orderController.getLatestOrder);
+
+/**
+ * @route GET /customers/{custId}/orders/{orderId}
+ * @summary Get order by ID
+ * @group Order - Order operations
+ * @param {string} custId.path.required
+ * @param {string} orderId.path.required
+ * @returns {object} 200 - Order
+ * @returns {Error} 500 - Server error
+ * @security JWT
+ */
+router.get('/:custId/orders/:orderId', orderController.getOrderDetailsById);
+
+/**
+ * @route GET /customers/{custId}/orders
+ * @summary Get all customer orders
+ * @group Order - Order operations
+ * @param {string} custId.path.required
+ * @returns {object} 200 - Orders
+ * @returns {Error} 500 - Server error
+ * @security JWT
+ */
+router.get('/:custId/orders', orderController.getCustomerOrders);
+
+/**
+ * @route GET /customers/{custId}/orders/{orderStatus}
+ * @summary Get customer orders by order status
+ * @group Order - Order operations
+ * @param {string} custId.path.required
+ * @param {string} orderStatus.path.required
+ * @returns {object} 200 - Orders
+ * @returns {Error} 500 - Server error
+ * @security JWT
+ */
+router.get(
+  '/:custId/orders/search/:orderStatus',
+  orderController.getCustOrderDetailsByOrderStatus,
+);
 
 module.exports = router;
