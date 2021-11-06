@@ -41,9 +41,7 @@ function CustomerFavourites() {
         </Row>
         <Row style={{ width: '90vw' }}>
           {restaurants?.length > 0
-            ? restaurants.map((rest) => (
-                <RestaurantCard restData={rest} />
-              ))
+            ? restaurants.map((rest) => <RestaurantCard restData={rest} />)
             : null}
         </Row>
       </div>

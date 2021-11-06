@@ -250,30 +250,23 @@ const getCustomerOrders = async (req, res) => {
   }
 };
 
-const updateOrder = async (req, res) => {
+const cancelOrderByCustomer = async (req, res) => {
   try {
-    const { restId, orderId } = req.params;
-    if (String(req.headers.id) !== String(restId)) {
+    const { custId, orderId } = req.params;
+    if (String(req.headers.id) !== String(custId)) {
       return res.status(401).json({ error: 'Unauthorized request!' });
     }
-    const { orderStatus } = req.body;
-    if (!orderStatus) {
-      return res
-        .status(400)
-        .json({ error: 'Please specify updated order status!' });
-    }
-    if (!orderId) {
-      return res.status(400).json({ error: 'Order not found!' });
+    const order = await Order.findById(orderId);
+    if (order.orderStatus !== 'Initialized' && order.orderStatus !== 'Placed') {
+      return res.status(400).json({ error: 'Cannot cancel order now!' });
     }
     const updatedOrder = await Order.findByIdAndUpdate(
       { _id: mongoose.Types.ObjectId(String(orderId)) },
       {
-        $set: { orderStatus },
+        $set: { orderStatus: 'Cancelled' },
       },
     );
-    return res
-      .status(200)
-      .json({ message: 'Order status updated!', updatedOrder });
+    return res.status(200).json({ message: 'Order cancelled!', updatedOrder });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -359,7 +352,7 @@ module.exports = {
   initOrder,
   createOrder,
   getLatestOrder,
-  updateOrder,
+  cancelOrderByCustomer,
   getRestaurantOrders,
   getCustomerOrders,
   getOrderDetailsById,

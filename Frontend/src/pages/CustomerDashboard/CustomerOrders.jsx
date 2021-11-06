@@ -1,3 +1,4 @@
+/* eslint-disable operator-linebreak */
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable implicit-arrow-linebreak */
@@ -33,6 +34,8 @@ import {
 } from 'baseui/modal';
 import { FormControl } from 'baseui/form-control';
 import { Select } from 'baseui/select';
+import { ThemeProvider, createTheme, lightThemePrimitives } from 'baseui';
+import toast from 'react-hot-toast';
 
 import axiosInstance from '../../services/apiConfig';
 
@@ -99,6 +102,24 @@ function CustomerOrders() {
         },
       );
       setOrderDetails(response.data.orderDetails);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const cancelOrder = async (orderId) => {
+    const token = sessionStorage.getItem('token');
+    const decoded = jwt_decode(token);
+    try {
+      const response = await axiosInstance.put(
+        `customers/${decoded.id}/orders/${orderId}`,
+        {},
+        {
+          headers: { Authorization: token },
+        },
+      );
+      toast.success(response.data.message);
+      getCustomerOrders();
     } catch (error) {
       console.log(error);
     }
@@ -329,26 +350,44 @@ function CustomerOrders() {
                       </span>
                     </p>
                   </Col>
-                  <Col style={{ marginRight: '45px' }}>
-                    <div style={{ justifyContent: 'center' }}>
-                      <Button
-                        size={SIZE.large}
-                        onClick={() =>
-                          history.push(
-                            `/customer/restaurants/${order.restId._id}`,
-                          )
-                        }
-                        $style={{
-                          width: '100%',
-                          display: 'flex',
-                          justifyContent: 'center',
-                        }}
+                  <Col
+                    style={{
+                      marginRight: '45px',
+                    }}
+                  >
+                    <Button
+                      size={SIZE.large}
+                      onClick={() =>
+                        history.push(
+                          `/customer/restaurants/${order.restId._id}`,
+                        )
+                      }
+                      $style={{
+                        width: '100%',
+                        display: 'flex',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <span style={{ justifyContent: 'center' }}>
+                        View store
+                      </span>
+                    </Button>
+
+                    {order.orderStatus === 'Initialized' ||
+                    order.orderStatus === 'Placed' ? (
+                      <ThemeProvider
+                        theme={createTheme(lightThemePrimitives, {
+                          colors: { buttonPrimaryFill: '#E73E33' },
+                        })}
                       >
-                        <span style={{ justifyContent: 'center' }}>
-                          View store
-                        </span>
-                      </Button>
-                    </div>
+                        <Button
+                          onClick={() => cancelOrder(order._id)}
+                          $style={{ width: '100%', marginTop: '20px' }}
+                        >
+                          Cancel order
+                        </Button>
+                      </ThemeProvider>
+                    ) : null}
                   </Col>
                 </div>
                 <hr />

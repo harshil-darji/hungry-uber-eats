@@ -28,6 +28,11 @@ const router = Router();
  */
 
 /**
+ * @typedef RestId
+ * @property {string} restId
+ */
+
+/**
  * @typedef Address
  * @property {string} address
  * @property {string} city
@@ -298,5 +303,42 @@ router.get(
   '/:custId/orders/search/:orderStatus',
   orderController.getCustOrderDetailsByOrderStatus,
 );
+
+/**
+ * @route PUT /customers/{custId}/orders/{orderId}
+ * @summary Cancel order by order ID
+ * @group Order - Order operations
+ * @param {string} custId.path.required
+ * @param {string} orderId.path.required
+ * @returns {object} 200 - Order cancelled
+ * @returns {Error}  500 - Server error
+ * @security JWT
+ */
+router.put('/:custId/orders/:orderId', orderController.cancelOrderByCustomer);
+
+/* ******************************  CUSTOMER FAV RESTAURANTS ******************************* */
+
+/**
+ * @route POST /customers/{custId}/favourites
+ * @summary Add restaurant to favourites
+ * @group Customer - Customer operations
+ * @param {RestId.model} RestId.body.required
+ * @param {string} custId.path.required
+ * @returns {object} 200 - Restaurant added to favourites
+ * @returns {Error}  500 - Server error
+ * @security JWT
+ */
+router.post('/:custId/favourites', customerController.addRestaurantToFavs);
+
+/**
+ * @route GET /customers/{custId}/favourites
+ * @summary Get customer favourite restaurants
+ * @group Customer - Customer operations
+ * @param {string} custId.path.required
+ * @returns {object} 200 - Favourite restaurants
+ * @returns {Error} 500 - Server error
+ * @security JWT
+ */
+router.get('/:custId/favourites', customerController.getRestaurantFavs);
 
 module.exports = router;

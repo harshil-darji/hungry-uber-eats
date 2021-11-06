@@ -238,10 +238,9 @@ router.delete(
 //   restaurantController.deleteDishImage,
 // );
 
-// TODO: DO THIS BRO
 router.get('/:restId/orders', orderController.getRestaurantOrders);
 router.get('/:restId/orders/:orderId', orderController.getRestaurantOrderDetailsById);
 router.get('/:restId/orders/search/:orderStatus', orderController.getRestOrderDetailsByOrderStatus);
-router.put('/:restId/orders/:orderId', orderController.updateOrder);
+// router.put('/:restId/orders/:orderId', orderController.updateOrder);
 
 module.exports = router;

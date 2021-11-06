@@ -2,11 +2,6 @@
 /* eslint-disable operator-linebreak */
 const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
-const {
-  custFavs,
-  restaurant,
-  restaurantImages,
-} = require('../models/data-model');
 const { generateAccessToken } = require('../middleware/validateToken');
 
 const Customer = require('../models/customer');
@@ -240,19 +235,24 @@ const addRestaurantToFavs = async (req, res) => {
     if (String(req.headers.id) !== String(custId)) {
       return res.status(401).json({ error: 'Unauthorized request!' });
     }
-    const customerFavExists = await custFavs.findOne({
-      where: { custId, restId },
-    });
-    if (customerFavExists) {
+    const cust = await Customer.findById(custId);
+    const custFavExists = cust.favouriteRestaurants.includes(
+      mongoose.Types.ObjectId(String(restId)),
+    );
+    if (custFavExists) {
       return res
         .status(200)
         .json({ message: 'Restaurant already in favourites' });
     }
-    const custFav = await custFavs.create({
-      custId,
-      restId,
+    const custFav = await Customer.findOneAndUpdate(
+      { _id: mongoose.Types.ObjectId(String(custId)) },
+      { $addToSet: { favouriteRestaurants: { _id: restId } } },
+      { new: true },
+    );
+    return res.status(201).json({
+      custFav,
+      message: 'Added to favourites!',
     });
-    return res.status(200).json({ custFav, message: 'Added to favourites!' });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -264,27 +264,13 @@ const getRestaurantFavs = async (req, res) => {
     if (String(req.headers.id) !== String(custId)) {
       return res.status(401).json({ error: 'Unauthorized request!' });
     }
-    const customerFavs = await custFavs.findAll({
-      where: { custId },
-      attributes: [],
-      include: [
-        {
-          model: restaurant,
-          attributes: { exclude: ['createdAt', 'updatedAt', 'passwd'] },
-          include: [
-            {
-              model: restaurantImages,
-              attributes: { exclude: ['createdAt', 'updatedAt'] },
-            },
-          ],
-        },
-      ],
+    const cust = await Customer.findById(custId).populate({
+      path: 'favouriteRestaurants',
+      select: {
+        _id: 1, name: 1, address: 1, restImages: 1,
+      },
     });
-    const restaurants = [];
-    customerFavs.forEach((custFav) => {
-      restaurants.push(custFav.restaurant);
-    });
-    return res.status(200).json({ restaurants });
+    return res.status(200).json({ restaurants: cust.favouriteRestaurants });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }

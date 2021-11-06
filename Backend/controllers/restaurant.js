@@ -390,39 +390,7 @@ const deleteRestaurantDish = async (req, res) => {
   }
 };
 
-// Dish images
-// TODO: Remove this api and directly use add dish api to add imagelink
-// const createDishImage = async (req, res) => {
-//   const { restId } = req.params;
-//   try {
-//     if (!req.body.imageLink) {
-//       return res.status(400).json({ error: 'Image link not found!' });
-//     }
-//     const dishImage = await Restaurant.findOneAndUpdate(
-//       { _id: restId },
-//       { $push: { 'dishes.dishImages': req.body } },
-//       // { new: true },
-//     );
-//     return res.status(201).json({
-//       dishImage,
-//     });
-//   } catch (error) {
-//     return res.status(500).json({ error: error.message });
-//   }
-// };
-
 // TODO: Add API to delete dish image
-// const deleteDishImage = async (req, res) => {
-//   // const { restId } = req.params;
-//   try {
-//     const deletedImage = await dishImages.destroy({
-//       where: { dishImageId: req.body.dishImageId },
-//     });
-//     return res.status(200).json({ deletedImage });
-//   } catch (error) {
-//     return res.status(500).json({ error: error.message });
-//   }
-// };
 
 module.exports = {
   createRestaurant,

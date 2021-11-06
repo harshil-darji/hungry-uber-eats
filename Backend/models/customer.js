@@ -43,6 +43,9 @@ const CustomerSchema = mongoose.Schema({
   addresses: [
     { address: { type: String, unique: true }, city: { type: String } },
   ],
+  favouriteRestaurants: [
+    { type: mongoose.Schema.Types.ObjectId, ref: 'Restaurant' },
+  ],
 });
 
 module.exports = mongoose.model('Customer', CustomerSchema);
