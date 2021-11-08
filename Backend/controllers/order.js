@@ -257,6 +257,11 @@ const getCustomerOrders = async (req, res) => {
         .skip((page - 1) * limit)
         .populate({ path: 'restId' });
     } else {
+      const custOrders = await Order.find({
+        custId: mongoose.Types.ObjectId(String(custId)),
+      });
+      count = custOrders.length;
+
       orders = await Order.find({
         custId: mongoose.Types.ObjectId(String(custId)),
       })
@@ -264,13 +269,11 @@ const getCustomerOrders = async (req, res) => {
         .limit(limit * 1)
         .skip((page - 1) * limit)
         .populate({ path: 'restId' });
-
-      count = await Order.countDocuments();
     }
     return res.json({
       orders,
       totalDocuments: count,
-      totalPages: orderStatus ? Math.ceil(count / limit) : count,
+      totalPages: Math.ceil(count / limit),
       currentPage: page,
     });
   } catch (error) {
