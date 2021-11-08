@@ -237,14 +237,42 @@ const getCustomerOrders = async (req, res) => {
     if (String(req.headers.id) !== String(custId)) {
       return res.status(401).json({ error: 'Unauthorized request!' });
     }
+    const { page = 1, limit = 5, orderStatus } = req.query;
 
-    const orders = await Order.find({
-      custId: mongoose.Types.ObjectId(String(custId)),
-    })
-      .sort({ $natural: -1 })
-      .populate({ path: 'restId' });
+    let orders = [];
+    let count;
+    if (orderStatus) {
+      orders = await Order.find({
+        custId: mongoose.Types.ObjectId(String(custId)),
+        orderStatus,
+      });
+      count = orders.length;
 
-    return res.json({ orders });
+      orders = await Order.find({
+        custId: mongoose.Types.ObjectId(String(custId)),
+        orderStatus,
+      })
+        .sort({ $natural: -1 })
+        .limit(limit * 1)
+        .skip((page - 1) * limit)
+        .populate({ path: 'restId' });
+    } else {
+      orders = await Order.find({
+        custId: mongoose.Types.ObjectId(String(custId)),
+      })
+        .sort({ $natural: -1 })
+        .limit(limit * 1)
+        .skip((page - 1) * limit)
+        .populate({ path: 'restId' });
+
+      count = await Order.countDocuments();
+    }
+    return res.json({
+      orders,
+      totalDocuments: count,
+      totalPages: orderStatus ? Math.ceil(count / limit) : count,
+      currentPage: page,
+    });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -329,25 +357,6 @@ const getRestOrderDetailsByOrderStatus = async (req, res) => {
   }
 };
 
-const getCustOrderDetailsByOrderStatus = async (req, res) => {
-  try {
-    const { custId, orderStatus } = req.params;
-    if (String(req.headers.id) !== String(custId)) {
-      return res.status(401).json({ error: 'Unauthorized request!' });
-    }
-    const orders = await Order.find({
-      custId: mongoose.Types.ObjectId(String(custId)),
-      orderStatus,
-    })
-      .sort({ $natural: -1 })
-      .populate({ path: 'restId' });
-
-    return res.json({ orders });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-};
-
 module.exports = {
   initOrder,
   createOrder,
@@ -358,5 +367,4 @@ module.exports = {
   getOrderDetailsById,
   getRestaurantOrderDetailsById,
   getRestOrderDetailsByOrderStatus,
-  getCustOrderDetailsByOrderStatus,
 };

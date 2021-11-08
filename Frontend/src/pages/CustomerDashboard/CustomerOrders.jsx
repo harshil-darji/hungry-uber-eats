@@ -36,6 +36,7 @@ import { FormControl } from 'baseui/form-control';
 import { Select } from 'baseui/select';
 import { ThemeProvider, createTheme, lightThemePrimitives } from 'baseui';
 import toast from 'react-hot-toast';
+import { Pagination } from 'baseui/pagination';
 
 import axiosInstance from '../../services/apiConfig';
 
@@ -52,8 +53,15 @@ function CustomerOrders() {
   const [orderStatusFilter, setOrderStatusFilter] = useState([
     { orderStatusFilter: 'Show all orders' },
   ]);
+  const [pageSize, setPageSize] = useState([{ pageSize: 5 }]);
+  const [paginationFilter, setPaginationFilter] = useState({});
+  const [currentPage, setCurrentPage] = React.useState(1);
 
-  const getCustomerOrders = async () => {
+  const getFilteredOrders = async () => {
+    let selectedOrderStatus = orderStatusFilter[0].orderStatusFilter;
+    if (selectedOrderStatus === 'Show all orders') {
+      selectedOrderStatus = null;
+    }
     const token = sessionStorage.getItem('token');
     const decoded = jwt_decode(token);
     try {
@@ -61,30 +69,18 @@ function CustomerOrders() {
         `customers/${decoded.id}/orders`,
         {
           headers: { Authorization: token },
+          params: {
+            page: currentPage,
+            limit: pageSize[0].pageSize,
+            orderStatus: selectedOrderStatus,
+          },
         },
       );
-      setOrders(response.data.orders);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const getFilteredOrders = async (orderStatus) => {
-    const selectedOrderStatus = orderStatus[0].orderStatusFilter;
-    if (selectedOrderStatus === 'Show all orders') {
-      getCustomerOrders();
-      return;
-    }
-    const token = sessionStorage.getItem('token');
-    const decoded = jwt_decode(token);
-    try {
-      const response = await axiosInstance.get(
-        `customers/${decoded.id}/orders/search/${selectedOrderStatus}`,
-        {
-          headers: { Authorization: token },
-        },
-      );
-      console.log(response.data.orders);
+      setPaginationFilter({
+        currentPage: response.data.currentPage,
+        totalDocuments: response.data.totalDocuments,
+        totalPages: response.data.totalPages,
+      });
       setOrders(response.data.orders);
     } catch (error) {
       console.log(error);
@@ -119,15 +115,15 @@ function CustomerOrders() {
         },
       );
       toast.success(response.data.message);
-      getCustomerOrders();
+      getFilteredOrders();
     } catch (error) {
       console.log(error);
     }
   };
 
   useEffect(() => {
-    getCustomerOrders();
-  }, []);
+    getFilteredOrders();
+  }, [pageSize, currentPage, orderStatusFilter]);
 
   return (
     <div>
@@ -222,8 +218,10 @@ function CustomerOrders() {
               {orderDetails ? orderDetails.orderStatus : ''}
             </LabelMedium>
           </div>
+
           {orderDetails ? (
-            orderDetails.orderType === 'Delivery' ? (
+            orderDetails.orderStatus ===
+            'Cancelled' ? null : orderDetails.orderType === 'Delivery' ? (
               <div
                 style={{
                   display: 'flex',
@@ -231,12 +229,33 @@ function CustomerOrders() {
                   marginTop: '10px',
                 }}
               >
-                <LabelMedium>Delivered to</LabelMedium>
+                {orderDetails ? (
+                  orderDetails.orderStatus === 'Delivered' ? (
+                    <LabelMedium>Delivered to</LabelMedium>
+                  ) : (
+                    <LabelMedium>Will be delivered to</LabelMedium>
+                  )
+                ) : null}
                 <LabelMedium style={{ fontWeight: 'normal' }}>
                   {orderDetails ? orderDetails.orderAddress : ''}
                 </LabelMedium>
               </div>
-            ) : null
+            ) : (
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  marginTop: '10px',
+                }}
+              >
+                <LabelMedium>Pickup from</LabelMedium>
+                <LabelMedium style={{ fontWeight: 'normal' }}>
+                  {orderDetails
+                    ? `${orderDetails.restId?.name}, ${orderDetails.restId?.address}`
+                    : ''}
+                </LabelMedium>
+              </div>
+            )
           ) : null}
         </ModalBody>
         <ModalFooter>
@@ -278,34 +297,64 @@ function CustomerOrders() {
           style={{
             padding: '30px',
             display: 'flex',
-            justifyContent: 'flex-start',
+            justifyContent: 'space-between',
             marginTop: '20px',
+            marginLeft: '-25px',
+            marginRight: '20px',
           }}
         >
-          <FormControl label="Filter order">
-            <Select
-              clearable={false}
-              escapeClearsValue={false}
-              options={[
-                { orderStatusFilter: 'Show all orders' },
-                { orderStatusFilter: 'Placed' },
-                { orderStatusFilter: 'Ready' },
-                { orderStatusFilter: 'Preparing' },
-                { orderStatusFilter: 'On the Way' },
-                { orderStatusFilter: 'Delivered' },
-                { orderStatusFilter: 'Picked up' },
-                { orderStatusFilter: 'Cancelled' },
-              ]}
-              valueKey="orderStatusFilter"
-              labelKey="orderStatusFilter"
-              placeholder="Filter order"
-              value={orderStatusFilter}
-              onChange={({ value }) => {
-                setOrderStatusFilter(value);
-                getFilteredOrders(value);
-              }}
-            />
-          </FormControl>
+          <Col>
+            <FormControl label="Filter by order status">
+              <Select
+                clearable={false}
+                escapeClearsValue={false}
+                options={[
+                  { orderStatusFilter: 'Show all orders' },
+                  { orderStatusFilter: 'Placed' },
+                  { orderStatusFilter: 'Ready' },
+                  { orderStatusFilter: 'Preparing' },
+                  { orderStatusFilter: 'On the Way' },
+                  { orderStatusFilter: 'Delivered' },
+                  { orderStatusFilter: 'Picked up' },
+                  { orderStatusFilter: 'Cancelled' },
+                ]}
+                valueKey="orderStatusFilter"
+                labelKey="orderStatusFilter"
+                placeholder="Filter order"
+                value={orderStatusFilter}
+                onChange={async ({ value }) => {
+                  setOrderStatusFilter(value);
+                }}
+              />
+            </FormControl>
+          </Col>
+          <Col>
+            <FormControl label="Select page size">
+              <Select
+                clearable={false}
+                escapeClearsValue={false}
+                options={[{ pageSize: 2 }, { pageSize: 5 }, { pageSize: 10 }]}
+                valueKey="pageSize"
+                labelKey="pageSize"
+                placeholder="Select page size"
+                value={pageSize}
+                onChange={({ value }) => {
+                  setPageSize(value);
+                  setCurrentPage(1);
+                  getFilteredOrders();
+                }}
+              />
+            </FormControl>
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <Pagination
+                numPages={paginationFilter.totalPages}
+                currentPage={currentPage}
+                onPageChange={({ nextPage }) => {
+                  setCurrentPage(Math.min(Math.max(nextPage, 1), 20));
+                }}
+              />
+            </div>
+          </Col>
         </div>
 
         {orders ? (

@@ -14,7 +14,6 @@
   transition: transform 150ms ease-in-out;
 }
 
-/* TODO: Check for height of this image if proper */
 .img-overlay-wrap img {
   /* <= optional, for responsiveness */
   display: block;

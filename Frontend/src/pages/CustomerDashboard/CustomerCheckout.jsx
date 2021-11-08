@@ -206,7 +206,6 @@ function CustomerCheckout() {
     getCustomerAddresses();
   }, []);
 
-  // TODO: add drawer menu left side on navbar if time persists bruh.
   return (
     <div>
       <Modal

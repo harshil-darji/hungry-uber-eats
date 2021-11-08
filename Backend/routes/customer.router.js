@@ -283,26 +283,13 @@ router.get('/:custId/orders/:orderId', orderController.getOrderDetailsById);
  * @summary Get all customer orders
  * @group Order - Order operations
  * @param {string} custId.path.required
+ * @param {string} page.query
+ * @param {string} limit.query
  * @returns {object} 200 - Orders
  * @returns {Error} 500 - Server error
  * @security JWT
  */
 router.get('/:custId/orders', orderController.getCustomerOrders);
-
-/**
- * @route GET /customers/{custId}/orders/{orderStatus}
- * @summary Get customer orders by order status
- * @group Order - Order operations
- * @param {string} custId.path.required
- * @param {string} orderStatus.path.required
- * @returns {object} 200 - Orders
- * @returns {Error} 500 - Server error
- * @security JWT
- */
-router.get(
-  '/:custId/orders/search/:orderStatus',
-  orderController.getCustOrderDetailsByOrderStatus,
-);
 
 /**
  * @route PUT /customers/{custId}/orders/{orderId}
