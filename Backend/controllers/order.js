@@ -223,7 +223,7 @@ const getRestaurantOrders = async (req, res) => {
       restId: mongoose.Types.ObjectId(String(restId)),
     })
       .sort({ $natural: -1 })
-      .populate({ path: 'restId', select: { dishes: 0 } });
+      .populate({ path: 'custId', select: { dishes: 0 } });
 
     return res.json({ orders });
   } catch (error) {
@@ -285,6 +285,9 @@ const cancelOrderByCustomer = async (req, res) => {
       return res.status(401).json({ error: 'Unauthorized request!' });
     }
     const order = await Order.findById(orderId);
+    if (order.orderStatus === 'Cancelled') {
+      return res.status(400).json({ error: 'Order is already cancelled!' });
+    }
     if (order.orderStatus !== 'Initialized' && order.orderStatus !== 'Placed') {
       return res.status(400).json({ error: 'Cannot cancel order now!' });
     }
@@ -295,6 +298,31 @@ const cancelOrderByCustomer = async (req, res) => {
       },
     );
     return res.status(200).json({ message: 'Order cancelled!', updatedOrder });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+const updateOrderByRestaurant = async (req, res) => {
+  try {
+    const { restId, orderId } = req.params;
+    const { orderStatus } = req.body;
+    if (String(req.headers.id) !== String(restId)) {
+      return res.status(401).json({ error: 'Unauthorized request!' });
+    }
+    const order = await Order.findById(orderId);
+    if (order.orderStatus === 'Cancelled') {
+      return res.status(400).json({ error: 'Order has been cancelled!' });
+    }
+    const updatedOrder = await Order.findByIdAndUpdate(
+      { _id: mongoose.Types.ObjectId(String(orderId)) },
+      {
+        $set: { orderStatus },
+      },
+    );
+    return res
+      .status(200)
+      .json({ message: 'Order status updated!', updatedOrder });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -327,7 +355,7 @@ const getRestaurantOrderDetailsById = async (req, res) => {
     }
     const orderDetails = await Order.findOne({
       _id: mongoose.Types.ObjectId(String(orderId)),
-      custId: mongoose.Types.ObjectId(String(restId)),
+      restId: mongoose.Types.ObjectId(String(restId)),
     })
       .sort({ $natural: -1 })
       .populate({ path: 'restId' });
@@ -344,14 +372,14 @@ const getRestOrderDetailsByOrderStatus = async (req, res) => {
     if (String(req.headers.id) !== String(restId)) {
       return res.status(401).json({ error: 'Unauthorized request!' });
     }
-    const orderDetails = await Order.find({
-      _id: mongoose.Types.ObjectId(String(restId)),
-      orderStatus: mongoose.Types.ObjectId(String(orderStatus)),
+    const orders = await Order.find({
+      restId: mongoose.Types.ObjectId(String(restId)),
+      orderStatus,
     })
       .sort({ $natural: -1 })
-      .populate({ path: 'restId' });
+      .populate({ path: 'restId custId' });
 
-    return res.status(200).json({ orderDetails });
+    return res.status(200).json({ orders });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -362,6 +390,7 @@ module.exports = {
   createOrder,
   getLatestOrder,
   cancelOrderByCustomer,
+  updateOrderByRestaurant,
   getRestaurantOrders,
   getCustomerOrders,
   getOrderDetailsById,

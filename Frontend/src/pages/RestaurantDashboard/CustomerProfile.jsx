@@ -1,10 +1,7 @@
-/* eslint-disable */
 /* eslint-disable no-nested-ternary */
 /* eslint-disable no-prototype-builtins */
 import React, { useEffect, useState } from 'react';
 import { Col, Row } from 'react-bootstrap';
-import toast from 'react-hot-toast';
-import { useHistory } from 'react-router';
 import { Table, SIZE } from 'baseui/table-semantic';
 import { Display2 } from 'baseui/typography';
 
@@ -13,16 +10,8 @@ import axiosInstance from '../../services/apiConfig';
 import customerDefaultImage from '../../assets/img/customer-default-profile.jpeg';
 
 function CustomerProfile({ match }) {
-  const history = useHistory();
   const [name, setName] = useState('');
-  const [emailId, setEmail] = useState('');
-  const [contactNo, setContactNo] = useState('');
-  const [dob, setDob] = useState('');
-  const [nickName, setNickName] = useState('');
-  const [about, setAbout] = useState('');
-  const [city, setCity] = useState([]);
-  const [state, setState] = useState([]);
-  const [country, setCountry] = useState([]);
+  const [userDetails, setUserDetails] = useState([]);
   const [profileImg, setProfileImg] = useState(customerDefaultImage);
 
   const fetchCustomerData = async () => {
@@ -35,17 +24,21 @@ function CustomerProfile({ match }) {
         },
       );
       const { user } = response.data;
-      console.log(user);
       setName(user.name);
-      setEmail(user.emailId);
-      setContactNo(user.contactNo);
-      setNickName(user.nickName ? user.nickName : '');
-      setDob(user.dob ? new Date(user.dob).toUTCString() : '');
-      setAbout(user.about ? user.about : '');
-      setCity(user.city ? user.city : '');
-      setState(user.state ? user.state : '');
-      setCountry(user.country ? user.country : '');
       setProfileImg(user.profileImg ? user.profileImg : customerDefaultImage);
+      // User details for table
+      const tempUserArray = [];
+      tempUserArray.push(['Email Address', user.emailId]);
+      tempUserArray.push(['Contact Number', user.contactNo]);
+      if (user.nickName) tempUserArray.push(['Nickname', user.nickName]);
+      if (user.dob) {
+        tempUserArray.push(['Date of birth', new Date(user.dob).toUTCString()]);
+      }
+      if (user.about) tempUserArray.push(['Nickname', user.about]);
+      if (user.city) tempUserArray.push(['City', user.city]);
+      if (user.state) tempUserArray.push(['Nickname', user.state]);
+      if (user.country) tempUserArray.push(['Nickname', user.country]);
+      setUserDetails(tempUserArray);
     } catch (error) {
       console.log(error);
     }
@@ -68,20 +61,7 @@ function CustomerProfile({ match }) {
       <Col>
         <div style={{ marginTop: '30px' }}>
           <Display2>{name || ''}</Display2>
-          <Table
-            columns={['', '']}
-            data={[
-              ['Email address', emailId],
-              ['Contact Number', contactNo],
-              ['Date of birth', dob],
-              ['Nickname', nickName],
-              ['About', about],
-              ['City', city],
-              ['State', state],
-              ['Country', country],
-            ]}
-            size={SIZE.spacious}
-          />
+          <Table columns={['', '']} data={userDetails} size={SIZE.spacious} />
         </div>
       </Col>
     </Row>

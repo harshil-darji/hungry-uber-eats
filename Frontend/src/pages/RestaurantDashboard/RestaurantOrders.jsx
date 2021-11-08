@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable implicit-arrow-linebreak */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
@@ -17,7 +18,6 @@ import { Button, SIZE } from 'baseui/button';
 // eslint-disable-next-line camelcase
 import jwt_decode from 'jwt-decode';
 import toast from 'react-hot-toast';
-import _ from 'underscore';
 import {
   Modal,
   ModalHeader,
@@ -27,6 +27,7 @@ import {
 } from 'baseui/modal';
 import { FormControl } from 'baseui/form-control';
 import { Select } from 'baseui/select';
+import { Skeleton } from 'baseui/skeleton';
 
 import axiosInstance from '../../services/apiConfig';
 import customerDefaultImage from '../../assets/img/customer-default-profile.jpeg';
@@ -34,8 +35,7 @@ import customerDefaultImage from '../../assets/img/customer-default-profile.jpeg
 function RestaurantOrders() {
   const history = useHistory();
 
-  const [orderDishCounts, setOrderDishCounts] = useState([]);
-  const [orderRestImages, setOrderRestImages] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [orderDetails, setOrderDetails] = useState(null);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [orderStatusFilter, setOrderStatusFilter] = useState([
@@ -52,16 +52,7 @@ function RestaurantOrders() {
           headers: { Authorization: token },
         },
       );
-      const uniqueRestImages = await _.uniq(
-        response.data.orderDetails,
-        (x) => x.orderId,
-      );
-      setOrderRestImages(uniqueRestImages);
-      const orderDishCountsObj = {};
-      response.data.orderDishCounts.forEach((element) => {
-        orderDishCountsObj[element.orderId] = element.totalDishCount;
-      });
-      setOrderDishCounts(orderDishCountsObj);
+      setOrders(response.data.orders);
     } catch (error) {
       console.log(error);
     }
@@ -82,16 +73,7 @@ function RestaurantOrders() {
           headers: { Authorization: token },
         },
       );
-      const uniqueRestImages = await _.uniq(
-        response.data.orderDetails,
-        (x) => x.orderId,
-      );
-      setOrderRestImages(uniqueRestImages);
-      const orderDishCountsObj = {};
-      response.data.orderDishCounts.forEach((element) => {
-        orderDishCountsObj[element.orderId] = element.totalDishCount;
-      });
-      setOrderDishCounts(orderDishCountsObj);
+      setOrders(response.data.orders);
     } catch (error) {
       console.log(error);
     }
@@ -165,11 +147,13 @@ function RestaurantOrders() {
             }}
           >
             <H4>Total</H4>
-            <H4>{orderDetails ? <>$ {orderDetails[0].totalPrice} </> : ''}</H4>
+            <H4>
+              {orderDetails ? <>$ {orderDetails.totalOrderPrice} </> : ''}
+            </H4>
           </div>
           {orderDetails ? (
-            orderDetails.length > 0 ? (
-              orderDetails.map((orderDetail) => (
+            orderDetails.dishes.length > 0 ? (
+              orderDetails.dishes.map((dish) => (
                 <div
                   style={{
                     marginRight: '10px',
@@ -190,13 +174,13 @@ function RestaurantOrders() {
                       }}
                     >
                       <div className="smallBox" style={{ textAlign: 'center' }}>
-                        {orderDetail.dishCount}
+                        {dish.dishDetails.dishQuantity}
                       </div>
                       <Label1 style={{ marginLeft: '10px' }}>
-                        {orderDetail.name}
+                        {dish.dishDetails.name}
                       </Label1>
                     </div>
-                    <Label1>${orderDetail.dishPrice}</Label1>
+                    <Label1>${dish.dishDetails.dishPrice}</Label1>
                   </div>
 
                   <p
@@ -206,9 +190,13 @@ function RestaurantOrders() {
                       fontSize: '16px',
                     }}
                   >
-                    {orderDetail.name} comes with{' '}
+                    {dish.dishDetails.name} comes with{' '}
                   </p>
-                  <p style={{ marginLeft: '35px' }}>{orderDetail.ingreds}</p>
+                  <p style={{ marginLeft: '35px' }}>
+                    {dish.dishDetails.ingreds.length > 0
+                      ? dish.dishDetails.ingreds.slice(0, -1)
+                      : ''}
+                  </p>
                 </div>
               ))
             ) : (
@@ -223,11 +211,11 @@ function RestaurantOrders() {
           >
             <LabelMedium>Order status</LabelMedium>
             <LabelMedium style={{ fontWeight: 'normal' }}>
-              {orderDetails ? orderDetails[0].orderStatus : ''}
+              {orderDetails ? orderDetails.orderStatus : ''}
             </LabelMedium>
           </div>
           {orderDetails ? (
-            orderDetails[0].orderType === 'Delivery' ? (
+            orderDetails.orderType === 'Delivery' ? (
               <div
                 style={{
                   display: 'flex',
@@ -237,7 +225,7 @@ function RestaurantOrders() {
               >
                 <LabelMedium>Delivered to</LabelMedium>
                 <LabelMedium style={{ fontWeight: 'normal' }}>
-                  {orderDetails ? orderDetails[0].orderAddress : ''}
+                  {orderDetails ? orderDetails.orderAddress : ''}
                 </LabelMedium>
               </div>
             ) : null
@@ -269,10 +257,11 @@ function RestaurantOrders() {
           padding: '30px',
           display: 'flex',
           justifyContent: 'flex-start',
+          flexDirection: 'column',
           marginTop: '20px',
         }}
       >
-        <FormControl label="Filter order">
+        <FormControl label="Filter orders">
           <Select
             clearable={false}
             escapeClearsValue={false}
@@ -298,135 +287,122 @@ function RestaurantOrders() {
         </FormControl>
       </div>
       <div style={{ marginLeft: '30px', marginTop: '30px' }}>
-        {orderRestImages
-          ? orderRestImages.length > 0
-            ? orderRestImages.map((orderRestImage) => (
-                <>
-                  <div
-                    style={{
-                      display: 'flex',
-                      marginLeft: '-27px',
-                      marginTop: '20px',
-                    }}
-                  >
-                    <Col>
-                      <img
-                        className="col-sm-12"
-                        src={
-                          orderRestImage.profileImg
-                            ? orderRestImage.profileImg
-                            : customerDefaultImage
+        {orders ? (
+          orders.length > 0 ? (
+            orders.map((order) => (
+              <>
+                <div
+                  style={{
+                    display: 'flex',
+                    marginLeft: '-27px',
+                    marginTop: '20px',
+                  }}
+                >
+                  <Col>
+                    <img
+                      className="col-sm-12"
+                      src={
+                        order.custId.profileImg
+                          ? order.custId.profileImg
+                          : customerDefaultImage
+                      }
+                      alt="Customer profile"
+                    />
+                  </Col>
+                  <Col xs={7}>
+                    <H6>{order.custId.name}</H6>
+                    <p>
+                      {order.dishes.length} items for ${order.totalOrderPrice}{' '}
+                      &middot; {new Date(order.orderPlacedTime).toUTCString()}{' '}
+                      &middot;{' '}
+                      <span
+                        className="hoverUnderline"
+                        style={{ fontWeight: 'bold' }}
+                        onClick={async () => {
+                          await getOrderDetails(order._id);
+                          setModalIsOpen(true);
+                        }}
+                      >
+                        View order details
+                      </span>
+                    </p>
+
+                    <LabelMedium>Order status: {order.orderStatus}</LabelMedium>
+
+                    <div style={{ marginTop: '8px' }} />
+                    <LabelMedium>Order type: {order.orderType}</LabelMedium>
+
+                    <div style={{ marginTop: '20px', width: '510px' }}>
+                      <FormControl>
+                        {order.orderType === 'Delivery' ? (
+                          <Select
+                            clearable={false}
+                            escapeClearsValue={false}
+                            options={[
+                              { orderStatus: 'Preparing' },
+                              { orderStatus: 'On the Way' },
+                              { orderStatus: 'Delivered' },
+                              { orderStatus: 'Cancelled' },
+                            ]}
+                            valueKey="orderStatus"
+                            labelKey="orderStatus"
+                            placeholder="Update order status"
+                            value={[{ orderStatus: order.orderStatus }]}
+                            onChange={({ value }) => {
+                              updateOrderStatus(value, order._id);
+                            }}
+                          />
+                        ) : (
+                          <Select
+                            clearable={false}
+                            escapeClearsValue={false}
+                            options={[
+                              { orderStatus: 'Preparing' },
+                              { orderStatus: 'Ready' },
+                              { orderStatus: 'Picked Up' },
+                              { orderStatus: 'Cancelled' },
+                            ]}
+                            valueKey="orderStatus"
+                            labelKey="orderStatus"
+                            placeholder="Update order status"
+                            value={[{ orderStatus: order.orderStatus }]}
+                            onChange={({ value }) => {
+                              updateOrderStatus(value, order._id);
+                            }}
+                          />
+                        )}
+                      </FormControl>
+                    </div>
+                  </Col>
+                  <Col style={{ marginRight: '45px' }}>
+                    <div style={{ justifyContent: 'center' }}>
+                      <Button
+                        size={SIZE.large}
+                        onClick={() =>
+                          history.push(
+                            `/restaurant/customer/${order.custId._id}`,
+                          )
                         }
-                        alt="Customer profile"
-                      />
-                    </Col>
-                    <Col xs={7}>
-                      <H6>{orderRestImage.name}</H6>
-                      <p>
-                        {orderDishCounts[orderRestImage.orderId]} items for $
-                        {orderRestImage.totalPrice} &middot;{' '}
-                        {new Date(orderRestImage.orderPlacedTime).toUTCString()}{' '}
-                        &middot;{' '}
-                        <span
-                          className="hoverUnderline"
-                          style={{ fontWeight: 'bold' }}
-                          onClick={async () => {
-                            await getOrderDetails(orderRestImage.orderId);
-                            setModalIsOpen(true);
-                          }}
-                        >
-                          View order details
+                        $style={{
+                          width: '100%',
+                          display: 'flex',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <span style={{ justifyContent: 'center' }}>
+                          View customer
                         </span>
-                      </p>
-
-                      <LabelMedium>
-                        Order status: {orderRestImage.orderStatus}
-                      </LabelMedium>
-
-                      <div style={{ marginTop: '8px' }} />
-                      <LabelMedium>
-                        Order type: {orderRestImage.orderType}
-                      </LabelMedium>
-
-                      <div style={{ marginTop: '20px', width: '510px' }}>
-                        <FormControl>
-                          {orderRestImage.orderType === 'Delivery' ? (
-                            <Select
-                              clearable={false}
-                              escapeClearsValue={false}
-                              options={[
-                                { orderStatus: 'Preparing' },
-                                { orderStatus: 'On the Way' },
-                                { orderStatus: 'Delivered' },
-                                { orderStatus: 'Cancelled' },
-                              ]}
-                              valueKey="orderStatus"
-                              labelKey="orderStatus"
-                              placeholder="Update order status"
-                              value={[
-                                { orderStatus: orderRestImage.orderStatus },
-                              ]}
-                              onChange={({ value }) => {
-                                updateOrderStatus(
-                                  value,
-                                  orderRestImage.orderId,
-                                );
-                              }}
-                            />
-                          ) : (
-                            <Select
-                              clearable={false}
-                              escapeClearsValue={false}
-                              options={[
-                                { orderStatus: 'Preparing' },
-                                { orderStatus: 'Ready' },
-                                { orderStatus: 'Picked Up' },
-                                { orderStatus: 'Cancelled' },
-                              ]}
-                              valueKey="orderStatus"
-                              labelKey="orderStatus"
-                              placeholder="Update order status"
-                              value={[
-                                { orderStatus: orderRestImage.orderStatus },
-                              ]}
-                              onChange={({ value }) => {
-                                updateOrderStatus(
-                                  value,
-                                  orderRestImage.orderId,
-                                );
-                              }}
-                            />
-                          )}
-                        </FormControl>
-                      </div>
-                    </Col>
-                    <Col style={{ marginRight: '45px' }}>
-                      <div style={{ justifyContent: 'center' }}>
-                        <Button
-                          size={SIZE.large}
-                          onClick={() =>
-                            history.push(
-                              `/restaurant/customer/${orderRestImage.custId}`,
-                            )
-                          }
-                          $style={{
-                            width: '100%',
-                            display: 'flex',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          <span style={{ justifyContent: 'center' }}>
-                            View customer
-                          </span>
-                        </Button>
-                      </div>
-                    </Col>
-                  </div>
-                  <hr />
-                </>
-              ))
-            : null
-          : null}
+                      </Button>
+                    </div>
+                  </Col>
+                </div>
+                <hr />
+              </>
+            ))
+          ) : null
+        ) : (
+          <Skeleton width="80%" height="90%" animation />
+        )}
       </div>
     </div>
   );

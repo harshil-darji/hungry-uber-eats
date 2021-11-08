@@ -238,9 +238,18 @@ router.delete(
 //   restaurantController.deleteDishImage,
 // );
 
+/**
+ * @route GET /restaurants/{restId}/orders
+ * @summary Get restaurant orders
+ * @group Restaurant orders
+ * @param {string} restId.path.required
+ * @returns {object} 200 - List of restaurant orders
+ * @returns {Error}  500 - Server error
+ * @security JWT
+ */
 router.get('/:restId/orders', orderController.getRestaurantOrders);
 router.get('/:restId/orders/:orderId', orderController.getRestaurantOrderDetailsById);
 router.get('/:restId/orders/search/:orderStatus', orderController.getRestOrderDetailsByOrderStatus);
-// router.put('/:restId/orders/:orderId', orderController.updateOrder);
+router.put('/:restId/orders/:orderId', orderController.updateOrderByRestaurant);
 
 module.exports = router;

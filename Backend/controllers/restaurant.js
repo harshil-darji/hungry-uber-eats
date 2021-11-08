@@ -3,7 +3,6 @@
 /* eslint-disable consistent-return */
 /* eslint-disable operator-linebreak */
 const bcrypt = require('bcrypt');
-// const { getPaiganation } = require('u-server-utils');
 const mongoose = require('mongoose');
 
 const { generateAccessToken } = require('../middleware/validateToken');
@@ -149,8 +148,6 @@ const deleteRestaurant = async (req, res) => {
 
 const getRestaurants = async (req, res) => {
   try {
-    // const { limit, offset } = getPaiganation(req.query.page, req.query.limit);
-
     const { city } = req.query;
     let { restType } = req.query;
     let { deliveryType } = req.query;
