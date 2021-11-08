@@ -257,6 +257,23 @@ function CustomerOrders() {
               </div>
             )
           ) : null}
+
+          {orderDetails ? (
+            orderDetails.notes ? (
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  marginTop: '10px',
+                }}
+              >
+                <LabelMedium>Notes</LabelMedium>
+                <LabelMedium style={{ fontWeight: 'normal' }}>
+                  {orderDetails ? orderDetails.notes : ''}
+                </LabelMedium>
+              </div>
+            ) : null
+          ) : null}
         </ModalBody>
         <ModalFooter>
           <Button

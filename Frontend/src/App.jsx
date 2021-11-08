@@ -1,5 +1,4 @@
 /* eslint-disable import/no-named-as-default-member */
-import './css/App.css';
 import React from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import { Container } from 'react-bootstrap';
