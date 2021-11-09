@@ -1,9 +1,11 @@
+/* eslint-disable camelcase */
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable no-unreachable */
 /* eslint-disable consistent-return */
 /* eslint-disable operator-linebreak */
 const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
+const { make_request } = require('../kafka/client');
 
 const { generateAccessToken } = require('../middleware/validateToken');
 
@@ -20,29 +22,13 @@ const checkProperties = (obj) => {
   });
 };
 
-const createRestaurant = async (req, res) => {
-  try {
-    // Check if email already exists
-    const checkRestaurant = await Restaurant.find({
-      emailId: req.body.emailId,
-    });
-    if (checkRestaurant.length) {
-      return res.status(409).json({
-        error: "There's already an account with this email. Please sign in.",
-      });
+const createRestaurant = (req, res) => {
+  make_request('restaurant.create', req.body, (err, resp) => {
+    if (err || !resp) {
+      return res.status(500).json({ error: err });
     }
-    // Else create new restaurant
-    req.body.passwd = await bcrypt.hash(req.body.passwd, 12); // crypt the password
-    const newRestaurant = new Restaurant(req.body);
-    const rest = await newRestaurant.save();
-    const token = generateAccessToken(rest._id, 'restaurant');
-    return res.status(201).json({
-      rest,
-      token,
-    });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
+    return res.status(201).json({ rest: resp.rest, token: resp.token });
+  });
 };
 
 const loginRestaurant = async (req, res) => {

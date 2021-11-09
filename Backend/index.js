@@ -12,6 +12,8 @@ const expressSwagger = require('express-swagger-generator')(app);
 
 const mongoose = require('mongoose');
 
+const { createKafkaTopics } = require('./kafka/topics');
+
 const options = {
   swaggerDefinition: {
     info: {
@@ -59,6 +61,7 @@ app.use('/api', routes);
 
 const main = async () => {
   try {
+    await createKafkaTopics();
     // Connect to the MongoDB cluster
     await mongoose.connect(process.env.MONGO_URI, {
       useNewUrlParser: 'true',
