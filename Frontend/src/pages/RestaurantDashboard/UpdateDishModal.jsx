@@ -137,6 +137,25 @@ function UpdateDishModal(props) {
           toast.success('Dish updated successfully!');
         });
       }
+      const dishObj = {
+        name,
+        description,
+        dishPrice: parseFloat(dishPrice),
+        ingreds,
+        category: category[0].category,
+        dishType: dishType[0].dishType,
+      };
+      const token = sessionStorage.getItem('token');
+      const decoded = jwt_decode(token);
+      await axiosInstance.put(
+        `restaurants/${decoded.id}/dishes/${selectedDishId}`,
+        dishObj,
+        {
+          headers: { Authorization: token },
+        },
+      );
+      dispatch(setDishUpdateFlag(true));
+      toast.success('Dish updated successfully!');
     } catch (error) {
       dispatch(addDishImageFailure());
       console.log(error);

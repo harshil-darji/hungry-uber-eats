@@ -1,14 +1,6 @@
 /* eslint-disable camelcase */
-/* eslint-disable no-underscore-dangle */
-/* eslint-disable no-unreachable */
-/* eslint-disable consistent-return */
-/* eslint-disable operator-linebreak */
-const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
 const { make_request } = require('../kafka/client');
-
-const { generateAccessToken } = require('../middleware/validateToken');
-
 const Restaurant = require('../models/restaurant');
 
 // Restaurants
@@ -23,42 +15,24 @@ const checkProperties = (obj) => {
 };
 
 const createRestaurant = (req, res) => {
-  make_request('restaurant.create', req.body, (err, resp) => {
-    if (err || !resp) {
-      return res.status(500).json({ error: err });
+  make_request('restaurant.create', req.body, (error, response) => {
+    if (error || !response) {
+      return res.status(500).json({ error });
     }
-    return res.status(201).json({ rest: resp.rest, token: resp.token });
+    return res.status(201).json({ response });
   });
 };
 
 const loginRestaurant = async (req, res) => {
-  try {
-    const { emailId, passwd } = req.body;
-    if (!emailId || !passwd) {
-      return res.status(401).json({ error: 'Please input all fields!' });
-    }
-    const existingRest = await Restaurant.findOne({
-      emailId,
-    }).select('passwd');
-    if (!existingRest) {
-      return res
-        .status(404)
-        .json({ error: 'Email not found! Please register!' });
-    }
-    bcrypt.compare(passwd, existingRest.passwd, (err, data) => {
-      if (err) {
-        return res.status(401).json({ error: 'Invalid password!' });
+  make_request('restaurant.login', req.body, (error, response) => {
+    if (error || !response) {
+      if ('errorStatus' in error) {
+        return res.status(error.errorStatus).json({ error: error.error });
       }
-      if (data) {
-        const token = generateAccessToken(existingRest._id, 'restaurant');
-        return res.status(200).json({ message: 'Login successful!', token });
-      }
-      return res.status(401).json({ error: 'Invalid password!' });
-    });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-  return null;
+      return res.status(500).json({ error: error.message });
+    }
+    return res.status(200).json({ ...response });
+  });
 };
 
 const getRestaurant = async (req, res) => {
@@ -82,54 +56,31 @@ const getRestaurant = async (req, res) => {
 };
 
 const updateRestaurant = async (req, res) => {
-  try {
-    const { restId } = req.params;
-    if (String(req.headers.id) !== String(restId)) {
-      return res.status(401).json({ error: 'Unauthorized request!' });
-    }
-    if (req.body.restType) {
-      const { restType } = req.body;
-      delete req.body.restType;
-      await Restaurant.updateOne(
-        {
-          _id: mongoose.Types.ObjectId(String(restId)),
-        },
-        { $set: { restType: [] } },
-      );
-      await Restaurant.findOneAndUpdate(
-        { _id: mongoose.Types.ObjectId(String(restId)) },
-        { $addToSet: { restType } },
-        { new: true },
-      );
-    }
-    const rest = await Restaurant.findOneAndUpdate(
-      { _id: mongoose.Types.ObjectId(String(restId)) },
-      { $set: req.body },
-      { new: true },
-    );
-    return res.status(200).json({
-      rest,
-    });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
+  make_request(
+    'restaurant.update',
+    { ...req.params, body: req.body, id: req.headers.id },
+    (error, response) => {
+      if (error || !response) {
+        if ('errorStatus' in error) {
+          return res.status(error.errorStatus).json({ error: error.error });
+        }
+        return res.status(500).json({ error: error.message });
+      }
+      return res.status(200).json({ rest: { ...response } });
+    },
+  );
 };
 
 const deleteRestaurant = async (req, res) => {
-  try {
-    const { restId } = req.params;
-    const deleted = await Restaurant.findByIdAndDelete(
-      mongoose.Types.ObjectId(String(restId)),
-    );
-    if (deleted) {
-      return res
-        .status(200)
-        .json({ message: 'Restaurant deleted successfully!' });
+  make_request('restaurant.delete', { ...req.params }, (error, response) => {
+    if (error || !response) {
+      if ('errorStatus' in error) {
+        return res.status(error.errorStatus).json({ error: error.error });
+      }
+      return res.status(500).json({ error: error.message });
     }
-    return res.status(404).json({ error: 'Restaurant not found!' });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
+    return res.status(200).json({ ...response });
+  });
 };
 
 const getRestaurants = async (req, res) => {
@@ -192,43 +143,35 @@ const searchRestaurants = async (req, res) => {
 
 // Dishes
 const createDish = async (req, res) => {
-  try {
-    const { restId } = req.params;
-    if (String(req.headers.id) !== String(restId)) {
-      return res.status(401).json({ error: 'Unauthorized request!' });
-    }
-    const dishId = new mongoose.Types.ObjectId();
-    await Restaurant.findOneAndUpdate(
-      { _id: mongoose.Types.ObjectId(String(restId)) },
-      { $push: { dishes: { _id: dishId, ...req.body } } },
-      { new: true },
-    );
-    return res.status(201).json({
-      dishId,
-      message: 'Dish added',
-    });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
+  make_request(
+    'dish.create',
+    { ...req.params, body: req.body, id: req.headers.id },
+    (error, response) => {
+      if (error || !response) {
+        if ('errorStatus' in error) {
+          return res.status(error.errorStatus).json({ error: error.error });
+        }
+        return res.status(500).json({ error: error.message });
+      }
+      return res.status(201).json({ ...response });
+    },
+  );
 };
 
 const addRestaurantImage = async (req, res) => {
-  const { restId } = req.params;
-  try {
-    if (!req.body.imageLink) {
-      return res.status(400).json({ error: 'Image link not found!' });
-    }
-    const restImage = await Restaurant.findOneAndUpdate(
-      { _id: mongoose.Types.ObjectId(String(restId)) },
-      { $push: { restImages: req.body } },
-      { new: true },
-    );
-    return res.status(201).json({
-      restImage,
-    });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
+  make_request(
+    'restaurant.image.create',
+    { ...req.params, body: req.body },
+    (error, response) => {
+      if (error || !response) {
+        if ('errorStatus' in error) {
+          return res.status(error.errorStatus).json({ error: error.error });
+        }
+        return res.status(500).json({ error: error.message });
+      }
+      return res.status(201).json({ ...response });
+    },
+  );
 };
 
 const getRestaurantImages = async (req, res) => {
@@ -249,34 +192,19 @@ const getRestaurantImages = async (req, res) => {
 };
 
 const deleteRestaurantImage = async (req, res) => {
-  const { restId, restImageId } = req.params;
-  try {
-    const existingImage = await Restaurant.find(
-      {
-        'restImages._id': mongoose.Types.ObjectId(String(restImageId)),
-      },
-      {
-        restImages: {
-          $elemMatch: { _id: mongoose.Types.ObjectId(String(restImageId)) },
-        },
-      },
-    );
-    if (!existingImage.length) {
-      return res.status(404).json({ error: 'Image not found!' });
-    }
-    await Restaurant.findOneAndUpdate(
-      { _id: mongoose.Types.ObjectId(String(restId)) },
-      {
-        $pull: {
-          restImages: { _id: mongoose.Types.ObjectId(String(restImageId)) },
-        },
-      },
-      { new: true },
-    );
-    return res.status(200).json({ message: 'Image deleted successfully!' });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
+  make_request(
+    'restaurant.image.delete',
+    { ...req.params },
+    (error, response) => {
+      if (error || !response) {
+        if ('errorStatus' in error) {
+          return res.status(error.errorStatus).json({ error: error.error });
+        }
+        return res.status(500).json({ error: error.message });
+      }
+      return res.status(200).json({ ...response });
+    },
+  );
 };
 
 const getRestaurantDishes = async (req, res) => {
@@ -318,59 +246,31 @@ const getRestaurantDish = async (req, res) => {
 };
 
 const updateRestaurantDish = async (req, res) => {
-  try {
-    const { restId, dishId } = req.params;
-    if (String(req.headers.id) !== String(restId)) {
-      return res.status(401).json({ error: 'Unauthorized request!' });
-    }
-    checkProperties(req.body);
-
-    const updatedObj = {};
-    Object.keys(req.body).forEach((key) => {
-      updatedObj[`dishes.$.${key}`] = req.body[key];
-    });
-
-    const updatedDish = await Restaurant.updateOne(
-      {
-        _id: mongoose.Types.ObjectId(String(restId)),
-        'dishes._id': mongoose.Types.ObjectId(String(dishId)),
-      },
-      { $set: updatedObj },
-    );
-    if (updatedDish) {
-      return res.status(200).json({ updatedDish });
-    }
-    return res.status(404).json({ error: 'Dish not found!' });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
+  make_request(
+    'dish.update',
+    { ...req.params, body: req.body, id: req.headers.id },
+    (error, response) => {
+      if (error || !response) {
+        if ('errorStatus' in error) {
+          return res.status(error.errorStatus).json({ error: error.error });
+        }
+        return res.status(500).json({ error: error.message });
+      }
+      return res.status(200).json({ rest: { ...response } });
+    },
+  );
 };
 
 const deleteRestaurantDish = async (req, res) => {
-  try {
-    const { restId, dishId } = req.params;
-    const existingDish = await Restaurant.find(
-      {
-        'dishes._id': mongoose.Types.ObjectId(String(dishId)),
-      },
-      {
-        dishes: {
-          $elemMatch: { _id: mongoose.Types.ObjectId(String(dishId)) },
-        },
-      },
-    );
-    if (!existingDish.length) {
-      return res.status(404).json({ error: 'Dish not found!' });
+  make_request('dish.delete', { ...req.params }, (error, response) => {
+    if (error || !response) {
+      if ('errorStatus' in error) {
+        return res.status(error.errorStatus).json({ error: error.error });
+      }
+      return res.status(500).json({ error: error.message });
     }
-    await Restaurant.findOneAndUpdate(
-      { _id: mongoose.Types.ObjectId(String(restId)) },
-      { $pull: { dishes: { _id: mongoose.Types.ObjectId(String(dishId)) } } },
-      { new: true },
-    );
-    return res.status(200).json({ message: 'Dish deleted successfully!' });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
+    return res.status(200).json({ ...response });
+  });
 };
 
 // TODO: Add API to delete dish image

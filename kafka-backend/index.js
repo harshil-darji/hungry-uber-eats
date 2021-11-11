@@ -9,8 +9,17 @@ const path = require('path');
 
 dotenv.config({ path: path.join(__dirname, '.env') });
 
-// topics files
+// Restaurant topics
 const createRestaurant = require('./services/restaurants/create');
+const loginRestaurant = require('./services/restaurants/login');
+const updateRestaurant = require('./services/restaurants/update');
+const deleteRestaurant = require('./services/restaurants/delete');
+const createRestaurantImage = require('./services/restaurants/image/create');
+const deleteRestaurantImage = require('./services/restaurants/image/delete');
+// Dish topics
+const createDish = require('./services/dish/create');
+const deleteDish = require('./services/dish/delete');
+const updateDish = require('./services/dish/update');
 
 function handleTopicRequest(topic_name, fname) {
   const consumer = connection.getConsumer(topic_name);
@@ -48,7 +57,7 @@ function handleTopicRequest(topic_name, fname) {
             console.log('Error from backend: ', JSON.stringify(error));
             return;
           }
-          console.log('Sent data from backend: ', JSON.stringify(res));
+          console.log('Sent data from backend1: ', JSON.stringify(res));
         });
       });
     } catch (e) {
@@ -81,4 +90,15 @@ mongoose.connect(process.env.MONGO_URI, {
 // First argument is topic name
 // Second argument is a function that will handle this topic request
 
+// Restaurant topic handlers
 handleTopicRequest('restaurant.create', createRestaurant);
+handleTopicRequest('restaurant.login', loginRestaurant);
+handleTopicRequest('restaurant.update', updateRestaurant);
+handleTopicRequest('restaurant.delete', deleteRestaurant);
+handleTopicRequest('restaurant.image.create', createRestaurantImage);
+handleTopicRequest('restaurant.image.delete', deleteRestaurantImage);
+
+// Dish topic handlers
+handleTopicRequest('dish.create', createDish);
+handleTopicRequest('dish.delete', deleteDish);
+handleTopicRequest('dish.update', updateDish);

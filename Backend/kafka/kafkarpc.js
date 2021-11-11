@@ -28,7 +28,7 @@ KafkaRPC.prototype.makeRequest = function (topic_name, content, callback) {
       // if this ever gets called we didn't get a response in a
       // timely fashion
       console.log('timeout');
-      callback(new Error(`timeout ${corr_id}`));
+      callback(new Error(`timeout ${corr_id}`), null);
       // delete the entry from hash
       delete self.requests[corr_id];
     },
@@ -60,7 +60,7 @@ KafkaRPC.prototype.makeRequest = function (topic_name, content, callback) {
         partition: 0,
       },
     ];
-    self.producer.send(payloads, (err, data) => {
+    self.producer.send(payloads, (err) => {
       if (err) console.log(err);
     });
   });
@@ -89,7 +89,7 @@ KafkaRPC.prototype.setupResponseQueue = function (producer, topic_name, next) {
       // callback, no err
 
       if (data.data.isError) {
-        entry.callback(data.data.error, null);
+        entry.callback(data.data, null);
         return;
       }
 
