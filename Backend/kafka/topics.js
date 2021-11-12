@@ -96,6 +96,32 @@ const createKafkaTopics = () => {
         partitions: 1,
         replicationFactor: 1,
       },
+      // Cart
+      {
+        topic: 'cart.create',
+        partitions: 1,
+        replicationFactor: 1,
+      },
+      {
+        topic: 'cart.reset',
+        partitions: 1,
+        replicationFactor: 1,
+      },
+      {
+        topic: 'cart.get',
+        partitions: 1,
+        replicationFactor: 1,
+      },
+      {
+        topic: 'cart.delete',
+        partitions: 1,
+        replicationFactor: 1,
+      },
+      {
+        topic: 'cart.clear',
+        partitions: 1,
+        replicationFactor: 1,
+      },
     ],
     (err) => {
       if (err) {

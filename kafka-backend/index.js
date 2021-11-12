@@ -29,6 +29,12 @@ const createCustomerAddress = require('./services/customers/addresses/create');
 const deleteCustomerAddress = require('./services/customers/addresses/delete');
 // Customer favourite topics
 const createCustomerFavourite = require('./services/customers/favourites/create');
+// Cart topics
+const createCart = require('./services/cart/create');
+const resetCart = require('./services/cart/reset');
+const getCart = require('./services/cart/get');
+const deleteFromCart = require('./services/cart/delete');
+const clearCart = require('./services/cart/clear');
 
 function handleTopicRequest(topic_name, fname) {
   const consumer = connection.getConsumer(topic_name);
@@ -64,9 +70,9 @@ function handleTopicRequest(topic_name, fname) {
         producer.send(payloads, (error) => {
           if (error) {
             console.log('Error from backend: ', JSON.stringify(error));
-            return;
+            // return;
           }
-          console.log('Sent data from backend1: ', JSON.stringify(res));
+          // console.log('Sent data from backend1: ', JSON.stringify(res));
         });
       });
     } catch (e) {
@@ -123,3 +129,10 @@ handleTopicRequest('customer.address.delete', deleteCustomerAddress);
 
 // Customer favourites topic handler
 handleTopicRequest('customer.favourites.create', createCustomerFavourite);
+
+// Cart topic handler
+handleTopicRequest('cart.create', createCart);
+handleTopicRequest('cart.reset', resetCart);
+handleTopicRequest('cart.get', getCart);
+handleTopicRequest('cart.delete', deleteFromCart);
+handleTopicRequest('cart.clear', clearCart);
