@@ -122,6 +122,27 @@ const createKafkaTopics = () => {
         partitions: 1,
         replicationFactor: 1,
       },
+      // Order
+      {
+        topic: 'order.init',
+        partitions: 1,
+        replicationFactor: 1,
+      },
+      {
+        topic: 'order.create',
+        partitions: 1,
+        replicationFactor: 1,
+      },
+      {
+        topic: 'order.cancel',
+        partitions: 1,
+        replicationFactor: 1,
+      },
+      {
+        topic: 'order.update',
+        partitions: 1,
+        replicationFactor: 1,
+      },
     ],
     (err) => {
       if (err) {

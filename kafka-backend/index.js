@@ -35,6 +35,11 @@ const resetCart = require('./services/cart/reset');
 const getCart = require('./services/cart/get');
 const deleteFromCart = require('./services/cart/delete');
 const clearCart = require('./services/cart/clear');
+// Order topics
+const orderInit = require('./services/order/init');
+const orderCreate = require('./services/order/create');
+const orderCancel = require('./services/order/cancel');
+const orderUpdate = require('./services/order/update');
 
 function handleTopicRequest(topic_name, fname) {
   const consumer = connection.getConsumer(topic_name);
@@ -136,3 +141,9 @@ handleTopicRequest('cart.reset', resetCart);
 handleTopicRequest('cart.get', getCart);
 handleTopicRequest('cart.delete', deleteFromCart);
 handleTopicRequest('cart.clear', clearCart);
+
+// Order topic handlers
+handleTopicRequest('order.init', orderInit);
+handleTopicRequest('order.create', orderCreate);
+handleTopicRequest('order.cancel', orderCancel);
+handleTopicRequest('order.update', orderUpdate);
