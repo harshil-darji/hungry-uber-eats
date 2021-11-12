@@ -20,6 +20,15 @@ const deleteRestaurantImage = require('./services/restaurants/image/delete');
 const createDish = require('./services/dish/create');
 const deleteDish = require('./services/dish/delete');
 const updateDish = require('./services/dish/update');
+// Customer topics
+const createCustomer = require('./services/customers/create');
+const loginCustomer = require('./services/customers/login');
+const updateCustomer = require('./services/customers/update');
+// Customer address topics
+const createCustomerAddress = require('./services/customers/addresses/create');
+const deleteCustomerAddress = require('./services/customers/addresses/delete');
+// Customer favourite topics
+const createCustomerFavourite = require('./services/customers/favourites/create');
 
 function handleTopicRequest(topic_name, fname) {
   const consumer = connection.getConsumer(topic_name);
@@ -102,3 +111,15 @@ handleTopicRequest('restaurant.image.delete', deleteRestaurantImage);
 handleTopicRequest('dish.create', createDish);
 handleTopicRequest('dish.delete', deleteDish);
 handleTopicRequest('dish.update', updateDish);
+
+// Customer topic handlers
+handleTopicRequest('customer.create', createCustomer);
+handleTopicRequest('customer.login', loginCustomer);
+handleTopicRequest('customer.update', updateCustomer);
+
+// Customer addresses topic handlers
+handleTopicRequest('customer.address.create', createCustomerAddress);
+handleTopicRequest('customer.address.delete', deleteCustomerAddress);
+
+// Customer favourites topic handler
+handleTopicRequest('customer.favourites.create', createCustomerFavourite);

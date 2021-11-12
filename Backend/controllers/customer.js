@@ -1,9 +1,9 @@
+/* eslint-disable camelcase */
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable operator-linebreak */
-const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
-const { generateAccessToken } = require('../middleware/validateToken');
 
+const { make_request } = require('../kafka/client');
 const Customer = require('../models/customer');
 
 const checkEmail = async (req, res) => {
@@ -23,28 +23,12 @@ const checkEmail = async (req, res) => {
 };
 
 const createCustomer = async (req, res) => {
-  try {
-    if (
-      !(
-        req.body.emailId &&
-        req.body.passwd &&
-        req.body.name &&
-        req.body.contactNo
-      )
-    ) {
-      return res.status(400).json({ error: 'Please enter all fields! ' });
+  make_request('customer.create', req.body, (error, response) => {
+    if (error || !response) {
+      return res.status(500).json({ error });
     }
-    req.body.passwd = await bcrypt.hash(req.body.passwd, 12); // crypt the password
-    const newCustomer = new Customer(req.body);
-    const cust = await newCustomer.save();
-    const token = generateAccessToken(cust._id, 'customer');
-    return res.status(201).json({
-      cust,
-      token,
-    });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
+    return res.status(201).json({ ...response });
+  });
 };
 
 const checkLoginEmail = async (req, res) => {
@@ -64,33 +48,15 @@ const checkLoginEmail = async (req, res) => {
 };
 
 const loginCustomer = async (req, res) => {
-  try {
-    const { emailId, passwd } = req.body;
-    if (!emailId || !passwd) {
-      return res.status(401).json({ error: 'Please input all fields!' });
-    }
-    const existingCustomer = await Customer.findOne({
-      emailId,
-    }).select('passwd');
-    if (!existingCustomer) {
-      return res
-        .status(404)
-        .json({ error: 'Email not found! Please register!' });
-    }
-    bcrypt.compare(passwd, existingCustomer.passwd, (err, data) => {
-      if (err) {
-        return res.status(500).json({ error: err.message });
+  make_request('customer.login', req.body, (error, response) => {
+    if (error || !response) {
+      if ('errorStatus' in error) {
+        return res.status(error.errorStatus).json({ error: error.error });
       }
-      if (data) {
-        const token = generateAccessToken(existingCustomer._id, 'customer');
-        return res.status(200).json({ token, cust: existingCustomer });
-      }
-      return res.status(401).json({ error: 'Invalid password!' });
-    });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-  return null;
+      return res.status(500).json({ error: error.message });
+    }
+    return res.status(200).json({ ...response });
+  });
 };
 
 const getCustomer = async (req, res) => {
@@ -114,49 +80,35 @@ const getCustomer = async (req, res) => {
 };
 
 const updateCustomer = async (req, res) => {
-  try {
-    const { custId } = req.params;
-    if (String(req.headers.id) !== String(custId)) {
-      return res.status(401).json({ error: 'Unauthorized request!' });
-    }
-    const updatedUser = await Customer.findOneAndUpdate(
-      { _id: mongoose.Types.ObjectId(String(custId)) },
-      { $set: req.body },
-      { new: true },
-    );
-    if (updatedUser) {
-      return res.status(200).json({
-        user: updatedUser,
-      });
-    }
-    return res.status(404).json({ error: 'User not found!' });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
+  make_request(
+    'customer.update',
+    { ...req.params, body: req.body, id: req.headers.id },
+    (error, response) => {
+      if (error || !response) {
+        if ('errorStatus' in error) {
+          return res.status(error.errorStatus).json({ error: error.error });
+        }
+        return res.status(500).json({ error: error.message });
+      }
+      return res.status(200).json({ user: { ...response } });
+    },
+  );
 };
 
 const addCustomerAddress = async (req, res) => {
-  try {
-    const { custId } = req.params;
-    if (String(req.headers.id) !== String(custId)) {
-      return res.status(401).json({ error: 'Unauthorized request!' });
-    }
-    const { address } = req.body;
-    if (!address) {
-      return res.status(400).json({ error: 'Please enter address!' });
-    }
-    const cust = await Customer.findOneAndUpdate(
-      { _id: mongoose.Types.ObjectId(String(custId)) },
-      { $push: { addresses: req.body } },
-      { new: true },
-    );
-    return res.status(200).json({
-      cust,
-      message: 'Address added successfully!',
-    });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
+  make_request(
+    'customer.address.create',
+    { ...req.params, body: req.body, id: req.headers.id },
+    (error, response) => {
+      if (error || !response) {
+        if ('errorStatus' in error) {
+          return res.status(error.errorStatus).json({ error: error.error });
+        }
+        return res.status(500).json({ error: error.message });
+      }
+      return res.status(200).json({ ...response });
+    },
+  );
 };
 
 const deleteCustomer = async (req, res) => {
@@ -198,64 +150,35 @@ const getCustomerAddresses = async (req, res) => {
 };
 
 const deleteCustomerAddress = async (req, res) => {
-  try {
-    const { custId, addressId } = req.params;
-    const existingAddress = await Customer.find(
-      {
-        'addresses._id': mongoose.Types.ObjectId(String(addressId)),
-      },
-      {
-        addresses: {
-          $elemMatch: { _id: mongoose.Types.ObjectId(String(addressId)) },
-        },
-      },
-    );
-    if (!existingAddress.length) {
-      return res.status(404).json({ error: 'Address not found!' });
-    }
-    await Customer.findOneAndUpdate(
-      { _id: mongoose.Types.ObjectId(String(custId)) },
-      {
-        $pull: {
-          addresses: { _id: mongoose.Types.ObjectId(String(addressId)) },
-        },
-      },
-      { new: true },
-    );
-    return res.status(200).json({ message: 'Address deleted successfully!' });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
+  make_request(
+    'customer.address.delete',
+    { ...req.params },
+    (error, response) => {
+      if (error || !response) {
+        if ('errorStatus' in error) {
+          return res.status(error.errorStatus).json({ error: error.error });
+        }
+        return res.status(500).json({ error: error.message });
+      }
+      return res.status(200).json({ ...response });
+    },
+  );
 };
 
 const addRestaurantToFavs = async (req, res) => {
-  try {
-    const { custId } = req.params;
-    const { restId } = req.body;
-    if (String(req.headers.id) !== String(custId)) {
-      return res.status(401).json({ error: 'Unauthorized request!' });
-    }
-    const cust = await Customer.findById(custId);
-    const custFavExists = cust.favouriteRestaurants.includes(
-      mongoose.Types.ObjectId(String(restId)),
-    );
-    if (custFavExists) {
-      return res
-        .status(200)
-        .json({ message: 'Restaurant already in favourites' });
-    }
-    const custFav = await Customer.findOneAndUpdate(
-      { _id: mongoose.Types.ObjectId(String(custId)) },
-      { $addToSet: { favouriteRestaurants: { _id: restId } } },
-      { new: true },
-    );
-    return res.status(201).json({
-      custFav,
-      message: 'Added to favourites!',
-    });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
+  make_request(
+    'customer.favourites.create',
+    { ...req.params, body: req.body, id: req.headers.id },
+    (error, response) => {
+      if (error || !response) {
+        if ('errorStatus' in error) {
+          return res.status(error.errorStatus).json({ error: error.error });
+        }
+        return res.status(500).json({ error: error.message });
+      }
+      return res.status(201).json({ ...response });
+    },
+  );
 };
 
 const getRestaurantFavs = async (req, res) => {
@@ -267,7 +190,10 @@ const getRestaurantFavs = async (req, res) => {
     const cust = await Customer.findById(custId).populate({
       path: 'favouriteRestaurants',
       select: {
-        _id: 1, name: 1, address: 1, restImages: 1,
+        _id: 1,
+        name: 1,
+        address: 1,
+        restImages: 1,
       },
     });
     return res.status(200).json({ restaurants: cust.favouriteRestaurants });
