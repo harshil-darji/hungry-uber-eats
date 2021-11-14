@@ -82,7 +82,6 @@ function RegisterSubmit(props) {
       props.history.push('/customer/dashboard');
     } catch (error) {
       dispatch(registerCustomerFailure(error.response.data.error));
-      toast.error(error.response.data.error);
     }
   };
 

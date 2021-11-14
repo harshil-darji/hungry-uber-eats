@@ -65,6 +65,7 @@ function CustomerOrders() {
     const token = sessionStorage.getItem('token');
     const decoded = jwt_decode(token);
     try {
+      console.log(pageSize[0].pageSize);
       const response = await axiosInstance.get(
         `customers/${decoded.id}/orders`,
         {
@@ -358,7 +359,6 @@ function CustomerOrders() {
                 onChange={({ value }) => {
                   setPageSize(value);
                   setCurrentPage(1);
-                  getFilteredOrders();
                 }}
               />
             </FormControl>

@@ -1,3 +1,6 @@
+/* eslint-disable operator-linebreak */
+/* eslint-disable indent */
+/* eslint-disable no-nested-ternary */
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable no-prototype-builtins */
@@ -8,7 +11,7 @@ import { Button, SHAPE, SIZE } from 'baseui/button';
 import { useHistory } from 'react-router';
 import { H6 } from 'baseui/typography';
 import React from 'react';
-import { Card, Col } from 'react-bootstrap';
+import { Card, Col, Row } from 'react-bootstrap';
 // eslint-disable-next-line camelcase
 import jwt_decode from 'jwt-decode';
 import toast from 'react-hot-toast';
@@ -102,8 +105,20 @@ function RestaurantCard(props) {
                   height="20px"
                   alt="ticket"
                 />
-                <p>&bull; $0.49 Delivery fee &bull; </p>
-                <p style={{ color: 'grey' }}> 25-35 min</p>
+                {restData?.deliveryType ? (
+                  restData.deliveryType === 'Both' ||
+                  restData.deliveryType === 'Delivery' ? (
+                    <Row style={{ marginLeft: '5px' }}>
+                      <p>&bull; $0.49 Delivery fee &bull; </p>
+                      <p style={{ color: 'grey' }}> 30-45 min</p>
+                    </Row>
+                  ) : (
+                    <Row style={{ marginLeft: '5px' }}>
+                      <p>&bull; Pickup &bull; </p>
+                      <p style={{ color: 'grey' }}> 25-35 min</p>
+                    </Row>
+                  )
+                ) : null}
               </div>
             </div>
             {/* <Card.Title>Card Title</Card.Title>

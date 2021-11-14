@@ -77,7 +77,7 @@ function handleTopicRequest(topic_name, fname) {
             console.log('Error from backend: ', JSON.stringify(error));
             // return;
           }
-          // console.log('Sent data from backend1: ', JSON.stringify(res));
+          console.log('Sent data from backend1: ', JSON.stringify(res));
         });
       });
     } catch (e) {

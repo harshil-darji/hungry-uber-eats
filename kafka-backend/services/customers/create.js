@@ -5,32 +5,34 @@ const bcrypt = require('bcrypt');
 const { generateAccessToken } = require('../../middleware/validateToken');
 const Customer = require('../../models/customer');
 
-const handle_request = (msg, callback) => {
-  if (!(msg.emailId && msg.passwd && msg.name && msg.contactNo)) {
+const handle_request = async (msg, callback) => {
+  try {
+    if (!(msg.emailId && msg.passwd && msg.name && msg.contactNo)) {
+      callback(
+        {
+          isError: true,
+          errorStatus: 400,
+          error: 'Please enter all fields!',
+        },
+        null,
+      );
+      return;
+    }
+    msg.passwd = await bcrypt.hash(msg.passwd, 12); // crypt the password
+    const newCustomer = new Customer(msg);
+    const cust = await newCustomer.save();
+    const token = generateAccessToken(cust._id, 'customer');
+    callback(null, { cust, token });
+  } catch (error) {
     callback(
       {
         isError: true,
-        errorStatus: 400,
-        error: 'Please enter all fields!',
+        errorStatus: 500,
+        error,
       },
       null,
     );
   }
-  bcrypt
-    .hash(msg.passwd, 12)
-    .then((hash) => {
-      msg.passwd = hash;
-      const newCustomer = new Customer(msg);
-      return newCustomer.save();
-    })
-    .then((cust) => {
-      const token = generateAccessToken(cust._id, 'customer');
-      return { cust, token };
-    })
-    .then((resp) => {
-      callback(null, { ...resp });
-    })
-    .catch((err) => callback(err, null));
 };
 
 module.exports = handle_request;

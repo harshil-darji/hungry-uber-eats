@@ -580,7 +580,7 @@ function CustomerCheckout() {
                   <H6 style={{ fontWeight: 'normal' }}>
                     Order will be ready in
                   </H6>
-                  <p style={{ fontSize: '18px' }}>20-25 min</p>
+                  <p style={{ fontSize: '18px' }}>25-35 min</p>
                 </div>
               )}
             </div>

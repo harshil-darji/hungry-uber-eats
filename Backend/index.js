@@ -87,3 +87,5 @@ const main = async () => {
 };
 
 main().catch(console.error);
+
+module.exports = app;

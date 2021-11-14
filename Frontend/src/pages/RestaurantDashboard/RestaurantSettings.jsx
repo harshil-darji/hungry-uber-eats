@@ -85,6 +85,7 @@ function RestaurantSettings() {
   const contactNoRegex = /^\([\d]{3}\) [\d]{3}-[\d]{4}$/;
 
   const calCities = [
+    'Dublin',
     'Fresno',
     'Las Vegas',
     'Los Angeles',
@@ -497,6 +498,7 @@ function RestaurantSettings() {
                     <Select
                       options={[
                         { city: 'Carson City' },
+                        { city: 'Dublin' },
                         { city: 'Fallon' },
                         { city: 'Fresno' },
                         { city: 'Las Vegas' },

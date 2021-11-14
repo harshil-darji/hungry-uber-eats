@@ -13,7 +13,7 @@ import { Alert } from 'baseui/icon';
 import { validate as validateEmail } from 'email-validator';
 import { useDispatch } from 'react-redux';
 import { useHistory } from 'react-router';
-import toast from 'react-hot-toast';
+// import toast from 'react-hot-toast';
 
 import axiosInstance from '../../services/apiConfig';
 import { setCustomerEmail } from '../../actions/customer';
@@ -69,7 +69,7 @@ function RegisterEmail() {
           history.push('/register/customer/passwd');
         }
       } catch (error) {
-        toast.error('Email already registered! Please sign in.');
+        console.log(error);
       }
     }
   };
