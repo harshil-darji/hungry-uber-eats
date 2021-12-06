@@ -64,6 +64,7 @@ const main = async () => {
     await createKafkaTopics();
     // Connect to the MongoDB cluster
     await mongoose.connect(process.env.MONGO_URI, {
+      maxPoolSize: 100,
       useNewUrlParser: 'true',
       autoIndex: true,
     });

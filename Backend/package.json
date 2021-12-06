@@ -4,7 +4,7 @@
   "description": "Backend for Uber Eats",
   "main": "index.js",
   "scripts": {
-    "test": "mocha || true"
+    "test": "mocha test/**/*.js"
   },
   "author": "Harshil Darji",
   "license": "ISC",
