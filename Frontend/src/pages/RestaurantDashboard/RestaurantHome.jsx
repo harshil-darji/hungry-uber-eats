@@ -6,9 +6,11 @@ import React, { useCallback, useEffect, useState } from 'react';
 import jwt_decode from 'jwt-decode';
 // import { Avatar } from 'baseui/avatar';
 import '../../../node_modules/react-responsive-carousel/lib/styles/carousel.css';
+import axios from 'axios';
 
 import axiosInstance from '../../services/apiConfig';
 import RestaurantDishes from './RestaurantDishes';
+import { getRestaurantQuery } from '../../services/query';
 
 const { Carousel } = require('react-responsive-carousel');
 
@@ -20,10 +22,20 @@ function RestaurantHome() {
     const token = sessionStorage.getItem('token');
     const decoded = jwt_decode(token);
     try {
-      const response = await axiosInstance.get(`/restaurants/${decoded.id}`, {
-        headers: { Authorization: token },
+      const response = await axios({
+        url: 'http://127.0.0.1:8081/api/',
+        method: 'post',
+        data: {
+          query: getRestaurantQuery,
+          variables: {
+            restId: decoded.id,
+          },
+        },
+        headers: {
+          Authorization: token,
+        },
       });
-      setRestData({ rest: response.data.rest });
+      setRestData({ rest: response.data.data.restaurant });
     } catch (error) {
       console.log(error);
     }

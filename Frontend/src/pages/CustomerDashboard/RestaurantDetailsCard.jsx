@@ -70,6 +70,7 @@ class ModalStateContainer extends React.Component {
 
 // eslint-disable-next-line object-curly-newline
 function RestaurantDetailsCard({ dish, cartInfo, restName, restId }) {
+  console.log(restId);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [dishIngreds, setDishIngreds] = useState([]);
   const [dishQuantity, setDishQuantity] = useState(1);

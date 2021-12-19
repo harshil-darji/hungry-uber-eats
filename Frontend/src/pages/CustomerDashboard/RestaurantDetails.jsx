@@ -12,11 +12,13 @@ import { Col, Container, Row } from 'react-bootstrap';
 import { useSelector } from 'react-redux';
 // eslint-disable-next-line camelcase
 import jwt_decode from 'jwt-decode';
+import axios from 'axios';
 
 import ticketSmall from '../../assets/img/ticket-small.png';
 import axiosInstance from '../../services/apiConfig';
 import RestaurantDetailsCard from './RestaurantDetailsCard';
 import '../../css/RestaurantDetails.css';
+import { getRestaurantQuery } from '../../services/query';
 
 // const { Carousel } = require('react-responsive-carousel');
 
@@ -41,13 +43,20 @@ function RestaurantDetails({ match }) {
   const fetchRestaurants = useCallback(async () => {
     const token = sessionStorage.getItem('token');
     try {
-      const response = await axiosInstance.get(
-        `restaurants/${match.params.restId}`,
-        {
-          headers: { Authorization: token },
+      const response = await axios({
+        url: 'http://127.0.0.1:8081/api/',
+        method: 'post',
+        data: {
+          query: getRestaurantQuery,
+          variables: {
+            restId: match.params.restId,
+          },
         },
-      );
-      setRestDetails(response.data.rest);
+        headers: {
+          Authorization: token,
+        },
+      });
+      setRestDetails(response.data.data.restaurant);
     } catch (error) {
       console.log(error);
     }

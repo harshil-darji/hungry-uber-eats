@@ -16,7 +16,7 @@ import { Alert } from 'baseui/icon';
 import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
 
-import axiosInstance from '../../services/apiConfig';
+import axios from 'axios';
 import {
   registerCustomerFailure,
   registerCustomerRequest,
@@ -25,6 +25,7 @@ import {
 
 import UberEatsSvg from '../../components/UberEatsSvg';
 import '../../css/Register.css';
+import { createCustomerMutation } from '../../services/mutation';
 
 const {
   ButtonContainer,
@@ -72,16 +73,23 @@ function RegisterSubmit(props) {
         emailId: customer.emailId,
         passwd: customer.passwd,
       };
-      const response = await axiosInstance.post(
-        'register/customers',
-        customerObj,
-      );
-      dispatch(registerCustomerSuccess(response));
-      sessionStorage.setItem('token', response.data.token);
+      const response = await axios({
+        url: 'http://127.0.0.1:8081/api/',
+        method: 'post',
+        data: {
+          query: createCustomerMutation,
+          variables: {
+            customer: customerObj,
+          },
+        },
+      });
+      dispatch(registerCustomerSuccess(response.data.data.createCustomer));
+      sessionStorage.setItem('token', response.data.data.createCustomer.token);
       toast.success('Account created successfully!');
       props.history.push('/customer/dashboard');
     } catch (error) {
-      dispatch(registerCustomerFailure(error.response.data.error));
+      console.log(error);
+      dispatch(registerCustomerFailure(error));
     }
   };
 

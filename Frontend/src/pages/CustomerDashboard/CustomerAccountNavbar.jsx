@@ -4,9 +4,10 @@ import React, { useCallback, useEffect, useState } from 'react';
 import jwt_decode from 'jwt-decode';
 import { Container, Nav, Navbar } from 'react-bootstrap';
 
-import axiosInstance from '../../services/apiConfig';
+import axios from 'axios';
 
 import '../../css/CustomerAccountNavbar.css';
+import { getCustomerQuery } from '../../services/query';
 
 function CustomerAccountNavbar() {
   const [name, setName] = useState('');
@@ -15,10 +16,20 @@ function CustomerAccountNavbar() {
     const token = sessionStorage.getItem('token');
     const decoded = jwt_decode(token);
     try {
-      const response = await axiosInstance.get(`customers/${decoded.id}`, {
-        headers: { Authorization: token },
+      const response = await axios({
+        url: 'http://127.0.0.1:8081/api/',
+        method: 'post',
+        data: {
+          query: getCustomerQuery,
+          variables: {
+            custId: decoded.id,
+          },
+        },
+        headers: {
+          Authorization: token,
+        },
       });
-      const { user } = response.data;
+      const user = response.data.data.customer;
       setName(user.name);
     } catch (error) {
       console.log(error);

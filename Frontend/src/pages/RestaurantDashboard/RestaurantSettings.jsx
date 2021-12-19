@@ -23,6 +23,7 @@ import { Alert } from 'baseui/icon';
 import { uploadFile } from 'react-s3';
 import { Spinner } from 'baseui/spinner';
 import { TimePicker } from 'baseui/timepicker';
+import axios from 'axios';
 import {
   Modal,
   ModalHeader,
@@ -37,6 +38,7 @@ import {
   updateRestaurantRequest,
   updateRestaurantSuccess,
 } from '../../actions/restaurant';
+import { getRestaurantQuery } from '../../services/query';
 
 const { Carousel } = require('react-responsive-carousel');
 
@@ -155,43 +157,53 @@ function RestaurantSettings() {
     const token = sessionStorage.getItem('token');
     const decoded = jwt_decode(token);
     try {
-      const response = await axiosInstance.get(`/restaurants/${decoded.id}`, {
-        headers: { Authorization: token },
+      const response = await axios({
+        url: 'http://127.0.0.1:8081/api/',
+        method: 'post',
+        data: {
+          query: getRestaurantQuery,
+          variables: {
+            restId: decoded.id,
+          },
+        },
+        headers: {
+          Authorization: token,
+        },
       });
-      setName(response.data.rest.name);
-      setEmail(response.data.rest.emailId);
+      setName(response.data.data.restaurant.name);
+      setEmail(response.data.data.restaurant.emailId);
       setDescription(
-        response.data.rest.description ? response.data.rest.description : '',
+        response.data.data.restaurant.description ? response.data.data.restaurant.description : '',
       );
       setcontactNo(
-        response.data.rest.contactNo ? response.data.rest.contactNo : '',
+        response.data.data.restaurant.contactNo ? response.data.data.restaurant.contactNo : '',
       );
       const restTypes = [];
-      if (response.data.rest.restType) {
-        response.data.rest.restType.forEach((ele) => {
+      if (response.data.data.restaurant.restType) {
+        response.data.data.restaurant.restType.forEach((ele) => {
           restTypes.push({ restType: ele });
         });
       }
       setRestType(restTypes);
       setDeliveryType(
-        response.data.rest.deliveryType
-          ? [{ deliveryType: response.data.rest.deliveryType }]
+        response.data.data.restaurant.deliveryType
+          ? [{ deliveryType: response.data.data.restaurant.deliveryType }]
           : [],
       );
-      setAddress(response.data.rest.address ? response.data.rest.address : '');
+      setAddress(response.data.data.restaurant.address ? response.data.data.restaurant.address : '');
       setCity(
-        response.data.rest.city ? [{ city: response.data.rest.city }] : [],
+        response.data.data.restaurant.city ? [{ city: response.data.data.restaurant.city }] : [],
       );
       setState(
-        response.data.rest.state ? [{ state: response.data.rest.state }] : [],
+        response.data.data.restaurant.state ? [{ state: response.data.data.restaurant.state }] : [],
       );
       setStartTime(
-        response.data.rest.startTime
-          ? new Date(response.data.rest.startTime)
+        response.data.data.restaurant.startTime
+          ? new Date(response.data.data.restaurant.startTime)
           : '',
       );
       setEndTime(
-        response.data.rest.endTime ? new Date(response.data.rest.endTime) : '',
+        response.data.data.restaurant.endTime ? new Date(response.data.data.restaurant.endTime) : '',
       );
     } catch (error) {
       console.log(error);

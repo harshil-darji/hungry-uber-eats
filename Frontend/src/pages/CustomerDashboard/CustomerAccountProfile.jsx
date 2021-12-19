@@ -2,7 +2,7 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable implicit-arrow-linebreak */
-/* eslint-disable camelcase */
+/* eslint-disable */
 /* eslint-disable no-prototype-builtins */
 import React, { useCallback, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
@@ -25,12 +25,14 @@ import {
 } from 'baseui/modal';
 
 import axiosInstance from '../../services/apiConfig';
+import axios from 'axios';
 import CustomerProfileMenu from '../../components/CustomerProfileMenu';
 import {
   updateCustomerFailure,
   updateCustomerRequest,
   updateCustomerSuccess,
 } from '../../actions/customer';
+import { getCustomerQuery } from '../../services/query';
 
 const {
   ButtonContainer,
@@ -102,10 +104,20 @@ function CustomerAccountProfile() {
     const token = sessionStorage.getItem('token');
     const decoded = jwt_decode(token);
     try {
-      const response = await axiosInstance.get(`customers/${decoded.id}`, {
-        headers: { Authorization: token },
+      const response = await axios({
+        url: 'http://127.0.0.1:8081/api/',
+        method: 'post',
+        data: {
+          query: getCustomerQuery,
+          variables: {
+            custId: decoded.id,
+          }
+        },
+        headers: {
+          Authorization: token,
+        },
       });
-      const { user } = response.data;
+      const user = response.data.data.customer;
       setName(user.name);
       setEmail(user.emailId);
       setContactNo(user.contactNo);

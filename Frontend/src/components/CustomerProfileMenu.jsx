@@ -5,8 +5,9 @@ import { StatefulMenu, OptionProfile } from 'baseui/menu';
 import { useSelector } from 'react-redux';
 import jwt_decode from 'jwt-decode';
 
-import axiosInstance from '../services/apiConfig';
+import axios from 'axios';
 import customerDefaultProfile from '../assets/img/customer-default-profile.jpeg';
+import { getCustomerQuery } from '../services/query';
 
 export default function CustomerProfileMenu({ showViewAccount }) {
   const customer = useSelector((state) => state.customer);
@@ -20,14 +21,26 @@ export default function CustomerProfileMenu({ showViewAccount }) {
     const token = sessionStorage.getItem('token');
     const decoded = jwt_decode(token);
     try {
-      const response = await axiosInstance.get(`customers/${decoded.id}`, {
-        headers: { Authorization: token },
+      const response = await axios({
+        url: 'http://127.0.0.1:8081/api/',
+        method: 'post',
+        data: {
+          query: getCustomerQuery,
+          variables: {
+            custId: decoded.id,
+          },
+        },
+        headers: {
+          Authorization: token,
+        },
       });
-      setname(response.data.user.name);
-      setEmail(response.data.user.emailId);
+      const user = response.data.data.customer;
+      console.log(user);
+      setname(user.name);
+      setEmail(user.emailId);
       setProfileImg(
-        response.data.user.profileImg
-          ? response.data.user.profileImg
+        user.profileImg
+          ? user.profileImg
           : customerDefaultProfile,
       );
     } catch (error) {

@@ -63,17 +63,17 @@ router.get('/', restaurantController.getRestaurants);
  */
 router.get('/search', restaurantController.searchRestaurants);
 
-/**
- * @route GET /restaurants/{restId}
- * @summary Get Restaurant by ID
- * @group Restaurant - Restaurant operations
- * @param {string} restId.path.required
- * @returns {object} 200 - Restaurant details
- * @returns {Error} 404 - Restaurant not found
- * @returns {Error}  500 - Server error
- * @security JWT
- */
-router.get('/:restId', restaurantController.getRestaurant);
+// /**
+//  * @route GET /restaurants/{restId}
+//  * @summary Get Restaurant by ID
+//  * @group Restaurant - Restaurant operations
+//  * @param {string} restId.path.required
+//  * @returns {object} 200 - Restaurant details
+//  * @returns {Error} 404 - Restaurant not found
+//  * @returns {Error}  500 - Server error
+//  * @security JWT
+//  */
+// router.get('/:restId', restaurantController.getRestaurant);
 
 /**
  * @route PUT /restaurants/{restId}

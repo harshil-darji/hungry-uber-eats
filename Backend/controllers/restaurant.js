@@ -35,26 +35,6 @@ const loginRestaurant = async (req, res) => {
   });
 };
 
-const getRestaurant = async (req, res) => {
-  try {
-    const { restId } = req.params;
-    // if (String(req.headers.id) !== String(restId)) {
-    //   return res.status(401).json({ error: 'Unauthorized request!' });
-    // }
-    const rest = await Restaurant.findById(
-      mongoose.Types.ObjectId(String(restId)),
-    );
-    if (rest) {
-      return res.status(200).json({ rest });
-    }
-    return res
-      .status(404)
-      .json({ error: 'Restaurant with the specified ID does not exist!' });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-};
-
 const updateRestaurant = async (req, res) => {
   make_request(
     'restaurant.update',
@@ -278,7 +258,6 @@ const deleteRestaurantDish = async (req, res) => {
 module.exports = {
   createRestaurant,
   loginRestaurant,
-  getRestaurant,
   updateRestaurant,
   addRestaurantImage,
   getRestaurantImages,

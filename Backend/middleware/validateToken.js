@@ -8,7 +8,7 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
 const Customer = require('../models/customer');
 const Restaurant = require('../models/restaurant');
 
-const generateAccessToken = (id, role) => jwt.sign({ id, role }, process.env.TOKEN_SECRET, { expiresIn: '1h' });
+const generateAccessToken = (id, role) => jwt.sign({ id, role }, process.env.TOKEN_SECRET, { expiresIn: '4h' });
 
 const authenticateToken = (req, res, next) => {
   if (

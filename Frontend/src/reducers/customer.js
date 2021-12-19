@@ -18,8 +18,8 @@ const customerReducer = (state = initialState, action) => {
       return {
         ...state,
         error: '',
-        cust: action.payload.data.cust,
-        token: action.payload.data.token,
+        cust: action.payload.cust,
+        token: action.payload.token,
       };
     case 'REGISTER_CUSTOMER_FAILURE':
       return { ...state, error: action.payload, cust: {} };

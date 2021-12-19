@@ -102,7 +102,7 @@ function RestaurantOrders() {
       const decoded = jwt_decode(token);
       const updatedOrderStatus = status[0].orderStatus;
       // eslint-disable-next-line no-unreachable
-      await axiosInstance.put(
+      const res = await axiosInstance.put(
         `restaurants/${decoded.id}/orders/${orderId}`,
         {
           orderStatus: updatedOrderStatus,
@@ -111,6 +111,7 @@ function RestaurantOrders() {
           headers: { Authorization: token },
         },
       );
+      console.log(res);
       getRestaurantOrders();
       toast.success('Order status updated!');
     } catch (error) {

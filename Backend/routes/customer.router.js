@@ -57,17 +57,17 @@ const router = Router();
  * @property {string} orderAddress
  */
 
-/**
- * @route GET /customers/{custId}
- * @summary Get Customer by ID
- * @group Customer - Customer operations
- * @param {string} custId.path.required
- * @returns {object} 200 - Customer details
- * @returns {Error} 404 - Customer not found
- * @returns {Error}  500 - Server error
- * @security JWT
- */
-router.get('/:custId', customerController.getCustomer);
+// /**
+//  * @route GET /customers/{custId}
+//  * @summary Get Customer by ID
+//  * @group Customer - Customer operations
+//  * @param {string} custId.path.required
+//  * @returns {object} 200 - Customer details
+//  * @returns {Error} 404 - Customer not found
+//  * @returns {Error}  500 - Server error
+//  * @security JWT
+//  */
+// router.get('/:custId', customerController.getCustomer);
 
 /**
  * @route PUT /customers/{custId}

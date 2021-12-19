@@ -59,26 +59,6 @@ const loginCustomer = async (req, res) => {
   });
 };
 
-const getCustomer = async (req, res) => {
-  try {
-    const { custId } = req.params;
-    // if (String(req.headers.id) !== String(custId)) {
-    //   return res.status(401).json({ error: 'Unauthorized request!' });
-    // }
-    const user = await Customer.findById(
-      mongoose.Types.ObjectId(String(custId)),
-    );
-    if (!user) {
-      return res.status(404).json({
-        error: 'Customer with the specified ID does not exist!',
-      });
-    }
-    return res.status(200).json({ user });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-};
-
 const updateCustomer = async (req, res) => {
   make_request(
     'customer.update',
@@ -207,7 +187,6 @@ module.exports = {
   checkLoginEmail,
   createCustomer,
   loginCustomer,
-  getCustomer,
   updateCustomer,
   addCustomerAddress,
   getCustomerAddresses,
